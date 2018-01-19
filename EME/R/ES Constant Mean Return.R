@@ -6,9 +6,12 @@ rm(list = ls())
 
 #Reading in the file
 library(readxl)
-path1 <- "C:/Users/nfa/Dropbox/Ed/Ed Uni work/EME/Data/Clean Data/Indices/All_indices_cleaned_test.csv"
-path2 <- "D:/EME/Data/Clean Data/Indices/All_indices_cleaned_test.csv"
-return.Data <- read.csv(path1)
+library(rprojroot)
+root <- rprojroot::has_file(".git/index")
+root_file <- root$make_fix_file()
+path_indices <- root_file('EME' , 'Data' , 'Clean Data' ,'Indices', 'All_indices_cleaned_test.csv')
+
+return.Data <- read.csv(path_indices)
 
 #Cleaning Date and index column
 return.Data$Date <-as.Date(return.Data$Date)
@@ -63,10 +66,10 @@ library(zoo)
 zoo.list <- lapply(UK.index.list, read.zoo)
 
 # Now reading in UK events and formatting
-path.Terror1 <- "C:/Users/nfa/Dropbox/Ed/Ed Uni work/EME/Data/Clean Data/Terror/United Kingdom.xls"
-path.Terror2 <- "D:/EME/Data/Clean Data/Terror/United Kingdom.xls"
+path.Terror <- root_file('EME', 'Data', 'Clean Data', 'Terror', 'United Kingdom.xls')
 
-UK.Terror.Dataset <- read_excel(path.Terror1)
+
+UK.Terror.Dataset <- read_excel(path.Terror)
 UK.Terror.Dataset$Date <- as.Date(UK.Terror.Dataset$Date)
 UK.Terror.Dataset.Subset <- subset(UK.Terror.Dataset, select = c(Date,
                                                                  nkill,
