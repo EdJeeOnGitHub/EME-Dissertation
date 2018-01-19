@@ -1,0 +1,477 @@
+library(readxl)
+FTSE_and_Terror_merged <- read_excel("C:/Users/nfa/Dropbox/Ed/Ed Uni work/EME/Data/EME Data Backup 30.11.2017/Clean Data/Analysis Output/FTSE and Terror merged.xlsx")
+View(FTSE_and_Terror_merged)
+is.na.data.frame(FTSE_and_Terror_merged)
+summary(FTSE_and_Terror_merged)
+x_df <- data.frame(FTSE_and_Terror_merged$nkill, FTSE_and_Terror_merged$nwound, FTSE_and_Terror_merged$propvalue)
+fit1 <- lsfit(x = x_df, y= FTSE_and_Terror_merged$`FTSE 100 - PRICE INDEX`)
+fit1
+fit1.coef
+fit1$coefficients
+summary(fit1)
+lmodel <- lm(FTSE_and_Terror_merged$`FTSE 100 - PRICE INDEX` ~ x1 + x2 + x3, data=x_df)
+lmodel <- lm(FTSE_and_Terror_merged$`FTSE 100 - PRICE INDEX` ~ nkill + nwound + propvalue, data=x_df)
+install.packages('magrittr')
+FTSE_and_Terror_merged %>%
+data <- data.frame(`FTSE 100 - PRICE INDEX`, nkill, nwound, propvalue)
+FTSE_and_Terror_merged %>%
+data_reg <- data.frame(nkill, nwound, propvalue)
+library("magrittr", lib.loc="C:/Users/nfa/AppData/Local/Continuum/anaconda3/R/library")
+FTSE_and_Terror_merged %>%
+data_reg <- data.frame(nkill)
+library("dplyr", lib.loc="C:/Users/nfa/AppData/Local/Continuum/anaconda3/R/library")
+FTSE_and_Terror_merged %>%
+data_reg <- data_frame(nkill, nwound)
+rename(FTSE_and_Terror_merged, FTSE100 = 'FTSE 100 - PRICE INDEX')
+terror_model <- lm(FTSE100 ~ nkill + nwound + propvalue, data = FTSE_and_Terror_merged)
+terror_model <- lm(FTSE100 ~ nkill + nwound + propvalue, data = FTSE_and_Terror_merged)
+rm()
+rm(all)
+ls()
+dataset <- rename( FTSE_and_Terror_merged, FTSE100 = 'FTSE 100 - PRICE INDEX')
+rm(FTSE_and_Terror_merged)
+terror_model <- lm( FTSE100 ~ nkill + nwound + propvalue, data = dataset)
+summary(terror_model)
+library("RCurl", lib.loc="C:/Users/nfa/AppData/Local/Continuum/anaconda3/R/library")
+summary(terror_model, robust = TRUE)
+library('RCurl')
+summary(terror_model, robust = TRUE)
+url_robust <- "https://raw.githubusercontent.com/IsidoreBeautrelet/economictheoryblog/master/robust_summary.R"
+eval(parse(text = getURL(url_robust, ssl.verifypeer = FALSE)),
+envir=.GlobalEnv)
+summary(terror_model, robust = T)
+terror_model2 <- update(terror_model, .~ . + `S&P 500 COMPOSITE - PRICE
+#   INDEX (~£ )`)
+terror_model2 <- update(terror_model, .~ . + `S&P 500 COMPOSITE - PRICE INDEX (~£ )`)
+summary(terror_model2, robust = T)
+dataset <- rename(dataset, SP500 = `S&P 500 COMPOSITE - PRICE INDEX (~£ )`)
+terror_model3 <- lm(  diff(log(FTSE100)) ~ diff(log(SP500)) + nkill + nwound + propvalue, data = dataset   )
+terror_model3 <- lm(  diff(log(FTSE100)) ~ diff(log(SP500)) + nkill + nwound + propvalue, data = dataset, na.action = omit   )
+terror_model3 <- lm(  diff(log(FTSE100)) ~ diff(log(SP500)) + nkill + nwound + propvalue, data = dataset, na.action = na.omit   )
+terror_model3 <- lm(  D_FTSE ~D_SP + nkill + nwound + propvalue, data = dataset, na.action = na.omit   )
+summary(terror_model3, robust = T)
+terror_model3 <- lm(  D_FTSE ~D_SP + nkill + nwound + propvalue, data = dataset  )
+terror_model3 <- lm(  D_FTSE ~D_SP + nkill + nwound + propvalue + 0, data = dataset  )
+summary(terror_model3, robust = T)
+terror_model3 <- lm(  D_FTSE ~D_SP + nkill + nwound + propvalue , data = dataset  )
+summary(terror_model3, robust = T)
+install.packages('dynlm')
+library("dynlm", lib.loc="C:/Users/nfa/AppData/Local/Continuum/anaconda3/R/library")
+library('zoo')
+library('dynlm')
+terror_model3 <- lm(  D_FTSE ~D_SP + nkill + nwound + propvalue + L(propvalue, 1) , data = dataset  )
+terror_model3 <- dynlm(  D_FTSE ~D_SP + nkill + nwound + propvalue + L(propvalue, 1) , data = dataset  )
+summary(terror_model3, robust = T)
+summary(terror_model3)
+terror_model3 <- lm(  D_FTSE ~D_SP + nkill + nwound + propvalue + L(propvalue, 3) , data = dataset  )
+terror_model3 <- dynlm(  D_FTSE ~D_SP + nkill + nwound + propvalue + L(propvalue, 3) , data = dataset  )
+summary(terror_model3)
+terror_model3 <- dynlm(  D_FTSE ~D_SP + nkill + nwound + propvalue + L(D_SP, 1) , data = dataset  )
+summary(terror_model3)
+terror_model3 <- dynlm(  D_FTSE ~D_SP + nkill + nwound + propvalue + L(D_SP, -1) , data = dataset  )
+summary(terror_model3)
+terror_model3 <- dynlm(  D_FTSE ~D_SP + nkill + nwound + propvalue + L(nkill) , data = dataset  )
+summary(terror_model3)
+ls()
+terror_model3 <- dynlm(  D_FTSE ~D_SP + nkill + nwound + propvalue + lag(nkill, 1) , data = dataset  )
+summary(terror_model3)
+terror_model3 <- dynlm(  D_FTSE ~D_SP + lag(nkill, 0:2) + nwound + propvalue , data = dataset  )
+terror_model3 <- dynlm(  D_FTSE ~D_SP + lag(nkill, 1:3) + nwound + propvalue , data = dataset  )
+terror_model3 <- lm(  D_FTSE ~D_SP + lag(nkill, 1) + lag(nkill, 2) + nwound + lag(nwound, 1) + lag(nwound, 2) +  propvalue + lag(propvalue, 1) + lag(propvalue, 2) , data = dataset  )
+summary(terror_model3)
+terror_model3 <- lm(  D_FTSE ~D_SP + nkill + lag(nkill, 1) + lag(nkill, 2) + nwound + lag(nwound, 1) + lag(nwound, 2) +  propvalue + lag(propvalue, 1) + lag(propvalue, 2) , data = dataset  )
+summary(terror_model3)
+summary(terror_model3, robust = T)
+summary(terror_model2)
+summary(terror_model2, robust = T)
+rm(ls())
+clear()
+rm()
+ls()
+rm(list=ls())
+q()
+library(readxl)
+dataset <- read_excel("C:/Users/nfa/Dropbox/Ed/Ed Uni work/EME/Data/EME Data Backup 30.11.2017/Clean Data/Analysis Output/FTSE and Terror merged.xlsx")
+View(dataset)
+install.packages('eventstudies')
+library(eventstudies)
+es <- eventstudy(firm.returns = D_FTSE,)
+es <- eventstudy(firm.returns = dataset$D_FTSE,
+event.list = dataset$terrorattack,)
+es <- eventstudy(firm.returns = dataset$D_FTSE,
+event.list = dataset$terrorattack,
+event.window = 5,
+type = 'None',
+to.remap =  'cumsum',)
+es <- eventstudy(firm.returns = dataset$D_FTSE,
+event.list = dataset$terrorattack,
+event.window = 5,
+type = 'None',
+to.remap =  'cumsum',
+inference = TRUE,
+inference.strategy = 'bootstrap')
+es <- eventstudy(firm.returns = dataset$'FTSE 100 - PRICE INDEX',
+event.list = dataset$terrorattack,
+event.window = 5,
+type = 'None',
+to.remap =  'cumsum',
+inference = TRUE,
+inference.strategy = 'bootstrap')
+returns <- as.zoo(dataset$D_FTSE)
+es <- eventstudy(firm.returns = returns, event.list = dataset$terrorattack)
+es <- eventstudy(firm.returns = returns, event.list = dataset$terrorattack,
+event.window = 5,
+type= 'None',)
+dataset$events <- dataset$Date[dataset$terrorattack == 1]
+dataset$events <- 0
+dataset&events <- dataset$Date[dataset$terrorattack == 1]
+dataset$events <- dataset$Date[dataset$terrorattack == 1]
+rm(dataframe$events)
+within(dataset, rm(events))
+dataset <- within(dataset, rm(events))
+dataset$event_list <- ifelse(dataframe$terrorattack == 1, dataframe$Date, 0)
+dataset$event_list <- ifelse(dataset$terrorattack == 1, dataset$Date, 0)
+head(dataset$event_list, 5)
+str(dataset$Date)
+dataset$Date <- as.Date(dataset$Date)
+dataset$event_list <- ifelse(dataset$terrorattack == 1, dataset$Date, 0)
+dataset$date1 <- as.Date(dataset$Date, format = %Y%m%d)
+dataset$date1 <- as.Date(dataset$Date, format = %Y-%m-%d)
+dataset$date1 <- as.Date(dataset$Date, format = '%Y-%m-%d')
+event_list <- as.Date(event_list)
+dataset$event_list <- as.Date(dataset$event_list)
+dataset$event_list <- ifelse(dataset$terrorattack == 1, dataset$Date, 0)
+dataset$event_list <- ifelse(dataset$terrorattack == 1, as.Date(dataset$Date), 0)
+events <- dataset$Date[dataset$terrorattack == 1,]
+events <- dataset$Date[dataset$terrorattack == 1]
+es <- eventstudy(firm.returns = returns,
+event.list=events,
+event.window = 5,)
+es <- eventstudy(firm.returns = returns,
+event.list=events,
+event.window = 5,)
+es <- eventstudy(firm.returns = returns,
+event.list=events,
+event.window = 5,
+type = 'None',)
+es <- eventstudy(firm.returns = returns,
+event.list=events,
+event.window = 5,
+type = 'None',
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'bootstrap')
+typeof(returns)
+summary(returns)
+returns <- DropNA(returns)
+head(returns, 5)
+returns <- returns[1:]
+returns <- na.approx(returns)
+head(returns, 5)
+head(returns, 10)
+head(dataset$D_FTSE, 10)
+es <- eventstudy(firm.returns = returns,
+event.list=events,
+event.window = 5,
+type = 'None',
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'bootstrap')
+returns <_ as.zoo(x =  (dataset$D_FTSE, dataset$Date))
+returns <- as.zoo(x =  (dataset$D_FTSE, dataset$Date))
+returns_dates <- data.frame(dataset$Date, dataset$D_FTSE)
+returns_zoo <- as.zoo(returns_dates)
+es <- eventstudy(firm.returns = returns_zoo,
+event.list=events,
+event.window = 5,
+type = 'None',
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'bootstrap')
+firm <- 'D_FTSE'
+events <- as.zoo(data.frame(events, firm))
+head(events)
+es <- eventstudy(firm.returns = returns_zoo,
+event.list=events,
+event.window = 5,
+type = 'None',
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'bootstrap')
+typeof(events)
+colnames(events)
+`colnames<-`(events, when, names)
+head(events, 4)
+events <- rename(events, when)
+es <- eventstudy(firm.returns = returns_zoo,
+event.list=events,
+event.window = 5,
+type = 'None',
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'bootstrap')
+events <- dataset$Date[dataset$terrorattack == 1]
+event_df$when <- events
+event_df <- data.frame()
+event_df$when <- events
+rm(event_df)
+event_df <- data.frame(events, firm)
+es <- eventstudy(firm.returns = returns_zoo,
+event.list=event_df,
+event.window = 5,
+type = 'None',
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'bootstrap')
+event_df
+event_df <- rename(event_df, when = events, name = firm)
+library(dplyr)
+event_df <- rename(event_df, when = events, name = firm)
+es <- eventstudy(firm.returns = returns_zoo,
+event.list=event_df,
+event.window = 5,
+type = 'None',
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'bootstrap')
+head(returns_zoo, 10)
+event_df$name <- dataset.D_FTSE
+firm <- dataset.D_FTSE
+firm <- 'dataset.D_FTSE'
+rm(event_df)
+event_df <- data.frame(events, firm)
+event_df <- rename(event_df, when = events, name = firm)
+es <- eventstudy(firm.returns = returns_zoo,
+event.list=event_df,
+event.window = 5,
+type = 'None',
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'bootstrap')
+head(event_df)
+head(returns_zoo)
+event_df <- data.frame(events, x__1)
+event_df <- data.frame(events, dataset$x__1)
+event_df$number <- as.numeric(as.factor(event_df$when))
+head(event_df, 10)
+event_df <- within(event_df, rm(name))
+event_df <- rename(event_df, name = number)
+head(event_df)
+event_df$name <- as.str(event_df$name)
+event_df$name <- toString(event_df$name)
+head(event_df)
+head(event_df, 10)
+rm(event_df)
+event_df <- data.frame(events, dataset$x__1)
+event_df$number <- as.numeric(as.factor(event_df$when))
+event_df <- data.frame(events)
+head(event_df)
+event_df$name <- as.numeric(as.factor(event_df$events))
+head(event_df)
+event_df <- rename(event_df, when = events)
+head(events_df)
+head(event_df)
+es <- eventstudy(firm.returns = returns_zoo,
+event.list=event_df,
+event.window = 5,
+type = 'None',
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'bootstrap')
+event_df$name = as.character(event_df$name)
+es <- eventstudy(firm.returns = returns_zoo,
+event.list=event_df,
+event.window = 5,
+type = 'None',
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'bootstrap')
+es <- eventstudy(firm.returns = returns_zoo,
+event.list=event_df,
+event.window = 5,
+type = 'marketModel',
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'bootstrap')
+es <- eventstudy(firm.returns = returns_zoo,
+event.list=event_df,
+event.window = 10,
+type = 'None',
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'bootstrap')
+es <- eventstudy(firm.returns = returns_zoo,
+event.list=event_df,
+event.window = 2,
+type = 'None',
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'bootstrap')
+es <- eventstudy(firm.returns = returns_zoo,
+event.list=event_df,
+event.window = 5,
+type = 'None',
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'wilcox')
+head(event_df)
+head(returns_zoo)
+head(dataset$D_FTSE)
+es <- eventstudy(firm.returns = returns_zoo,
+event.list=event_df,
+event.window = 5,
+type = 'None',
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'wilcox')
+es <- eventstudy(firm.returns = returns_zoo,
+event.list=event_df,
+event.window = 2,
+type = 'marketModel',
+to.remap = 'cumprod',
+inference = TRUE,
+inference.strategy = 'wilcox')
+es <- eventstudy(firm.returns = returns_zoo,
+event.list=event_df,
+event.window = 5,
+type = 'marketModel',
+model.args = market.returns,
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'wilcox')
+es <- eventstudy(firm.returns = returns_zoo,
+event.list=event_df,
+event.window = 5,
+type = 'marketModel',
+market.returns,
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'wilcox')
+es <- eventstudy(firm.returns = returns_zoo,
+event.list=event_df,
+event.window = 5,
+type = 'marketModel',
+model.args = market.returns,
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'bootstrap')
+es <- eventstudy(firm.returns = returns_zoo,
+event.list=event_df,
+event.window = 5,
+type = 'marketModel',
+model.args = list(
+market.returns = dataset$D_FTSE),
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'bootstrap')
+es <- eventstudy(firm.returns = returns_zoo,
+event.list=event_df,
+event.window = 5,
+type = 'marketModel',
+model.args = market.returns = dataset$D_FTSE,
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'bootstrap')
+es <- eventstudy(firm.returns = returns_zoo,
+event.list=event_df,
+event.window = 5,
+type = 'marketModel',
+model.args = list(market.returns = dataset$D_FTSE),
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'bootstrap')
+es <- eventstudy(firm.returns = returns_zoo,
+event.list=event_df,
+event.window = 5,
+type = 'marketModel',
+model.args = list(market.returns = returns),
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'bootstrap')
+es <- eventstudy(firm.returns = returns_zoo,
+event.list=event_df,
+event.window = 5,
+type = 'None,
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'bootstrap')
+es <- eventstudy(firm.returns = returns_zoo,
+event.list=event_df,
+event.window = 5,
+type = 'None',
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'bootstrap')
+class(es)
+head(returns_zoo)
+returns_zoo <- na.approx(returns_zoo)
+returns_zoo[1,5]
+returns_zoo[1,1]
+returns_zoo <- drop(x = 1)
+returns_zoo <- as.zoo(returns_dates)
+head(returns_zoo)
+returns_zoo[2,]
+returns_zoo[2,:]
+returns_zoo[2]
+returns_zoo[2:4]
+returns_zoo[2:]
+returns_zoo[2]
+returns_zoo[2:8846]
+returns_zoo <- returns_zoo[2:8846]
+head(returns_zoo)
+es <- eventstudy(firm.returns = returns_zoo,
+event.list=event_df,
+event.window = 5,
+type = 'None',
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'bootstrap')
+head(event_df)
+event_df$name <- dataset.D_FTSE
+event_df$name <- 'dataset.D_FTSE'
+head(event_df)
+es <- eventstudy(firm.returns = returns_zoo,
+event.list=event_df,
+event.window = 5,
+type = 'None',
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'bootstrap')
+class(es)
+str(es)
+par(mai=c(.8, .8, .2, .2), cex=.7)
+plot(es)
+es
+View(es)
+es.output
+eventstudy.output
+es.outcomes
+es$outcomes
+es$result
+str(es$result)
+es$outcomes
+es$result
+es$eventstudy.output
+es2 <- eventstudy(firm.returns = returns_zoo,
+event.list=event_df,
+event.window = 3,
+type = 'None',
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'bootstrap')
+str(es2)
+plot(es2)
+es3 <- eventstudy(firm.returns = returns_zoo,
+event.list=event_df,
+event.window = 10,
+type = 'None',
+to.remap = 'cumsum',
+inference = TRUE,
+inference.strategy = 'bootstrap')
+str(es3)
+plot(es3)
+es3$result
+savehistory(file = initialR_ES)
+savehistory(file = 'C:\Users\nfa\Dropbox\Ed\Ed Uni work\EME\R\AnalysisinitialR_ES')
+savehistory(file = r'C:\Users\nfa\Dropbox\Ed\Ed Uni work\EME\R\AnalysisinitialR_ES')
+savehistory(file = 'C:/Users/nfa/Dropbox/Ed/Ed Uni work/EME/R/AnalysisinitialR_ES')

@@ -1,0 +1,39 @@
+Generated on 2018-01-18 18:07:12 by gEcon ver. 1.0.2 (2016-12-05)
+http://gecon.r-forge.r-project.org/
+
+Model name: EZ_No_T
+
+1 ERROR, see bottom of this logfile
+
+
+Block: CONSUMER
+ Controls:
+    K_s[], C[], I[]
+ Objective:
+    U[] = u[] + beta * (E[][U[1]^(1 - theta_EZ)])^((1 - theta_EZ)^-1)    (lambda__CONSUMER_U[])
+ Constraints:
+    pi[] - C[] - I[] + K_s[-1] * r[] + L_s[] * W[] = 0    (lambda__CONSUMER_1[])
+    I[] - K_s[] + K_s[-1] * (1 - delta) = 0    (lambda__CONSUMER_2[])
+ Identities:
+    1 - L_s[] = 0
+
+Block: FIRM
+ Controls:
+    K_d[], L_d[], Y[]
+ Objective:
+    pi[] = Y[] - L_d[] * W[] - r[] * K_d[]    (lambda__FIRM_pi[])
+ Constraints:
+    -Y[] + Z[] * L_d^(1 - alpha) * K_d[]^alpha = 0    (lambda__FIRM_1[])
+
+Block: EQUILIBRIUM
+ Identities:
+    K_s[-1] - K_d[] = 0
+    L_s[] - L_d[] = 0
+
+Block: EXOG
+ Identities:
+    -Z[] + exp(epsilon_Z[] + phi * log(Z[-1])) = 0
+
+
+1 ERROR
+(gEcon model error 1): "L_d" treated both as a variable and a parameter in block FIRM; you might have forgotten "[]"
