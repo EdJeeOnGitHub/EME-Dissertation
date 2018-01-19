@@ -5,7 +5,7 @@
 rm(list = ls())
 
 #Reading in the file
-library(readxl)
+
 library(rprojroot)
 root <- rprojroot::has_file(".git/index")
 root_file <- root$make_fix_file()
@@ -68,7 +68,7 @@ zoo.list <- lapply(UK.index.list, read.zoo)
 # Now reading in UK events and formatting
 path.Terror <- root_file('EME', 'Data', 'Clean Data', 'Terror', 'United Kingdom.xls')
 
-
+library(readxl)
 UK.Terror.Dataset <- read_excel(path.Terror)
 UK.Terror.Dataset$Date <- as.Date(UK.Terror.Dataset$Date)
 UK.Terror.Dataset.Subset <- subset(UK.Terror.Dataset, select = c(Date,
