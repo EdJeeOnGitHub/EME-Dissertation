@@ -189,6 +189,7 @@ test.t.AR.CAR <- function(esti.window, ev.window){
 
 # Needed for the rownames_to_column function used in ES
 library(tibble)
+library(gtools)
 
 ES <- function(index, events, n, car.length){
   row.index <- NA.index.number(index, events, n)
