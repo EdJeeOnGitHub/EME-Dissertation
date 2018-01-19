@@ -3,7 +3,7 @@
 ###########################
 
 rm(list = ls())
-
+dev.off()
 #Reading in the file
 
 library(rprojroot)
@@ -46,7 +46,7 @@ UK.2010s <- UK.2010s[ UK.2010s$Date < as.Date("2020-01-01"),]
 
 # This isn't strictly necessary at this stage but makes the eventstudy package easier to use later
 
-index.chosen <-  "FTSE.ALL.SHARE...PRICE.INDEX"
+index.chosen <-  "UK...TO.US....WMR....EXCHANGE.RATE"
 index.selector <- function(dataframe, n){
   keep <- c( 'Date', index.chosen)
   mydf <- dataframe[, keep, drop = FALSE]
@@ -179,12 +179,6 @@ test.t.AR.CAR <- function(esti.window, ev.window){
   return(test)
 }
 
-
-library(boot)
-
-
-library(tibble)
-library(gtools)
 # This function returns the CAR of an event after the specified date. 'index' is a zoo object with returns indexed by date. 'events' is a list of dates whilst
 # n refers to the row of the date to be calculated. 'car.length' gives the size of CAR to be calculated - i.e. 10 would mean the 10-day cumulative abnormal return
 # The function currently returns the date of the CAR, the AR on that day, the CAR it's t statistic and p value.
@@ -232,6 +226,17 @@ ES <- function(index, events, n, car.length){
   return(return.df)
 }
 
+# This function essentially repeats the above function to fill up the event window - it's easier this way as we don't have
+# to re-calculate the t statistic function for every day in the event window
+
+Full.ES <- function(index, events, n, car.length){
+  CAR.event.values <- ES(index, events, n, 1)
+  for (i in 2:car.length){
+    single.es <- ES(index, events, n, i)
+    CAR.event.values <- rbind(CAR.event.values, single.es)
+  }
+  return(CAR.event.values)
+}
 
 
 
@@ -248,13 +253,8 @@ SE <- function(esti.window){
 }
 
 
-doggy1 <- ES(zoo.NA.list[[1]], event.dates.list[[1]], 1, 5)
-doggy2 <- ES(zoo.NA.list[[1]], event.dates.list[[1]], 2, 5)
-doggy3 <- ES(zoo.NA.list[[1]], event.dates.list[[1]], 3, 5)
-doggy4 <- ES(zoo.NA.list[[1]], event.dates.list[[1]], 4, 5)
-doggy5 <- ES(zoo.NA.list[[1]], event.dates.list[[1]], 5, 5)
-
-
+# This function repeats the ES function for the top 5 dates in a given event list. Essentially finding the CAR for the top 5 events
+# per decade. N.B. top 5 events is hardcoded, should use a for loop with length of event.dates.list element TODO....
 
 decade.event.study <- function(index, event, car.length){
 
@@ -290,7 +290,7 @@ CAR.11.total <- rbind( CAR.11.80s,
                        CAR.11.90s,
                        CAR.11.00s,
                        CAR.11.10s)
-CAR.11.total
+# CAR.11.total
 
 CAR.6.80s <- decade.event.study(zoo.NA.list[[1]], event.dates.list[[1]], car.length = 6)
 CAR.6.90s <- decade.event.study(zoo.NA.list[[2]], event.dates.list[[2]], car.length = 6)
@@ -301,7 +301,7 @@ CAR.6.total <- rbind(CAR.6.80s,
                      CAR.6.90s,
                      CAR.6.00s,
                      CAR.6.10s)
-CAR.6.total
+# CAR.6.total
 
 # Now using the eventstudies package we aggregate up CARS to give us CAARS
 
@@ -381,3 +381,8 @@ es.10s <- eventstudy(firm.returns = zoo.transformed[[4]],
                      inference.strategy = 'wilcox')
 plot(es.10s)
 es.10s
+
+ES.80s.1 <- ES(index = zoo.NA.list[[1]], events = event.dates.list[[1]], n = 1, car.length = 9)
+ES.80s.1
+full.80s.1 <- Full.ES(index = zoo.NA.list[[1]], events = event.dates.list[[1]], n = 1, car.length = 10)
+full.80s.1
