@@ -187,6 +187,9 @@ test.t.AR.CAR <- function(esti.window, ev.window){
 # occurs and ending 10 days before the event occurs. (Or maybe 31 and 11 days - need to check???)
 
 
+# Needed for the rownames_to_column function used in ES
+library(tibble)
+
 ES <- function(index, events, n, car.length){
   row.index <- NA.index.number(index, events, n)
   date.event <- events[[1]][n]
