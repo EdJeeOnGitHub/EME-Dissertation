@@ -450,15 +450,15 @@ ggplot(UK.Terror.Dataset.Subset, aes(log(Terror.Intensity), fill = cut(log(Terro
 
 
 ggplot(UK.Terror.Dataset.Subset, aes(Date, nkill, colour = cut(nkill, 10000))) +
-  geom_point(size = 1, show.legend = FALSE) +
+  geom_point(size = 1, show.legend = FALSE, aes(size = Terror.Intensity)) +
   xlab('Year of Attack') +
   ylab('Number of Fatalities') +
   ggtitle('Deaths Attributed to Terror in the UK, 1983-2016') +
   theme_minimal()
 UK.Terror.Dataset.Subset$roll.nkill <- rollmean(UK.Terror.Dataset.Subset$nkill, k = 50, fill = NA, align = 'right') 
 
-ggplot(UK.Terror.Dataset.Subset, aes(Date, nkill,roll.nkill, colour = cut(nkill, 10000))) +
-  geom_point(aes(Date, nkill), size = 1, show.legend = FALSE) +
+ggplot(UK.Terror.Dataset.Subset, aes(Date, nkill, colour = cut(nkill, 10000))) +
+  geom_point( aes(size = Terror.Intensity), show.legend = FALSE) +
   scale_y_log10() +
   xlab('Year of Attack') +
   ylab('Number of Fatalities, \n logarithmic scale') +
@@ -467,15 +467,15 @@ ggplot(UK.Terror.Dataset.Subset, aes(Date, nkill,roll.nkill, colour = cut(nkill,
   annotate('text', x = as.Date('2000-01-01'), y = 5, label = 'End of The Troubles', angle = 270) +
   theme_minimal()
 
-ggplot(UK.Terror.Dataset.Subset, aes(Date, nwound, colour = cut(nwound, 100))) +
-  geom_point(show.legend = FALSE) +
+ggplot(UK.Terror.Dataset.Subset, aes(Date, nwound, Terror.intensity,  colour = cut(nwound, 100))) +
+  geom_point(show.legend = FALSE, aes(size = Terror.Intensity)) +
   ylab('Number of wounded') +
   xlab('Year of Attack') +
   ggtitle('Injuries Attributed to Terror in the UK, 1983-2016') + 
   theme_minimal()
 
 ggplot(UK.Terror.Dataset.Subset, aes(Date, log(nwound), colour = cut(nwound, 100))) +
-  geom_point(show.legend = FALSE) +
+  geom_point(show.legend = FALSE, aes(size = Terror.Intensity)) +
   ylab('Log Number of wounded') +
   xlab('Year of Attack') +
   ggtitle('Injuries Attributed to Terror in the UK, 1983-2016') + 
@@ -491,12 +491,12 @@ ggplot(UK.Terror.Dataset.Subset, aes(Date, Terror.Intensity, colour = cut(Terror
   ggtitle('Terror Intensity, UK 1983-2016') + 
   theme_minimal()
 
-ggplot(UK.Terror.Dataset.Subset, aes(Date, log(Terror.Intensity), colour = cut(log(Terror.Intensity), 100))) +
+ggplot(UK.Terror.Dataset.Subset, aes(as.Date(Date), log(Terror.Intensity), colour = cut(log(Terror.Intensity), 100))) +
   geom_point(show.legend = FALSE) +
   ylab('Log Terror Intensity') +
   xlab('Year of Attack') +
-  ggtitle('Terror Intensity, UK 1983-2016') + 
+  ggtitle('Terror Intensity, UK 1983-2016') +
   geom_vline(aes(xintercept = as.Date('1998-01-01')), linetype = 'longdash', colour = 'green', size = 1) +
   annotate('text', x = as.Date('2000-01-01'), y = 5, label = 'End of The Troubles', angle = 270) +
+  # scale_size_area() +
   theme_minimal()
-
