@@ -390,3 +390,113 @@ ES.80s.1 <- ES(index = zoo.NA.list[[1]], events = event.dates.list[[1]], n = 1, 
 ES.80s.1
 full.80s.1 <- Full.ES(index = zoo.NA.list[[1]], events = event.dates.list[[1]], n = 1, car.length = 10)
 full.80s.1
+
+
+
+# Creating Visualisations
+Mode <- function(x) {
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
+Mode(UK.Terror.Dataset.Subset$nwound)
+
+
+library(ggplot2)
+
+
+
+
+ggplot(UK.Terror.Dataset.Subset[(UK.Terror.Dataset.Subset$nwound > 0), ], aes(nwound, fill = cut(nwound, 100))) +
+  geom_histogram(show.legend = FALSE) +
+  xlim(0, 100) +
+  xlab('Number of wounded | at least one person is wounded') +
+  ggtitle('Number of wounded from UK Terror Attacks 1983-2016') +
+  theme_minimal()
+
+ggplot(UK.Terror.Dataset.Subset[(UK.Terror.Dataset.Subset$nwound > 0), ], aes(nwound, fill = cut(nwound, 100))) +
+  geom_histogram(show.legend = FALSE, binwidth = 5) +
+  xlab('Number of wounded | at least one person is wounded') +
+  ggtitle('Number of wounded from UK Terror Attacks 1983-2016') +
+  theme_minimal()
+
+ggplot(UK.Terror.Dataset.Subset[(UK.Terror.Dataset.Subset$nkill > 0), ], aes(nkill, fill = cut(nkill, 100))) +
+  geom_histogram(show.legend = FALSE, binwidth = 5) +
+  xlab('Number of fatalities | at least one person is killed') +
+  ggtitle('Number of fatalities from UK Terror Attacks 1983-2016') +
+  theme_minimal()
+
+ggplot(UK.Terror.Dataset.Subset, aes(nkill, fill = cut(nkill, 100))) +
+  geom_histogram(show.legend = FALSE, binwidth = 5) +
+  xlab('Number of fatalities') +
+  annotate('text', x = 150, y = 1570, label = 'N.B. scale has doubled', colour = 'orange', size = 8) +
+  ggtitle('Number of fatalities from UK Terror Attacks 1983-2016') +
+  theme_minimal()
+
+
+ggplot(UK.Terror.Dataset.Subset[(UK.Terror.Dataset.Subset$propvalue > 0), ], aes(propvalue)) +
+  geom_histogram(show.legend = FALSE) +
+  xlab('Recorded Property Damage | Property Damage > 0') +
+  ggtitle('Property Damage from UK Terror Attacks 1983-2016') +
+  annotate('text', x = 2.5*10^9, y = 20, label = '1992 Manchester \n Bombing', colour = 'red') +
+  annotate('text', x = 1.2*10^9, y = 15, label = '1996 Manchester Bombing', colour = 'red') +
+  theme_minimal()
+
+ggplot(UK.Terror.Dataset.Subset, aes(log(Terror.Intensity), fill = cut(log(Terror.Intensity), 1000))) +
+  geom_histogram(show.legend = FALSE) +
+  ggtitle('Log(Terror Intensity) from 1983-2016 in the UK') +
+  theme_minimal()
+
+
+
+
+ggplot(UK.Terror.Dataset.Subset, aes(Date, nkill, colour = cut(nkill, 10000))) +
+  geom_point(size = 1, show.legend = FALSE) +
+  xlab('Year of Attack') +
+  ylab('Number of Fatalities') +
+  ggtitle('Deaths Attributed to Terror in the UK 1983-2016') +
+  theme_minimal()
+UK.Terror.Dataset.Subset$roll.nkill <- rollmean(UK.Terror.Dataset.Subset$nkill, k = 50, fill = NA, align = 'right') 
+
+ggplot(UK.Terror.Dataset.Subset, aes(Date, nkill,roll.nkill, colour = cut(nkill, 10000))) +
+  geom_point(aes(Date, nkill), size = 1, show.legend = FALSE) +
+  scale_y_log10() +
+  xlab('Year of Attack') +
+  ylab('Number of Fatalities, \n logarithmic scale') +
+  ggtitle('Deaths Attributed to Terror in the UK 1983-2016') + 
+  geom_vline(aes(xintercept = as.Date('1998-01-01')), linetype = 'longdash', colour = 'green', size = 1) +
+  annotate('text', x = as.Date('2000-01-01'), y = 5, label = 'End of The Troubles', angle = 270) +
+  theme_minimal()
+
+ggplot(UK.Terror.Dataset.Subset, aes(Date, nwound, colour = cut(nwound, 100))) +
+  geom_point(show.legend = FALSE) +
+  ylab('Number of wounded') +
+  xlab('Year of Attack') +
+  ggtitle('Injuries Attributed to Terror in the UK 1983-2016') + 
+  theme_minimal()
+
+ggplot(UK.Terror.Dataset.Subset, aes(Date, log(nwound), colour = cut(nwound, 100))) +
+  geom_point(show.legend = FALSE) +
+  ylab('Log Number of wounded') +
+  xlab('Year of Attack') +
+  ggtitle('Injuries Attributed to Terror in the UK 1983-2016') + 
+  geom_vline(aes(xintercept = as.Date('1998-01-01')), linetype = 'longdash', colour = 'green', size = 1) +
+  annotate('text', x = as.Date('2000-01-01'), y = 5, label = 'End of The Troubles', angle = 270) +
+  theme_minimal()
+
+
+ggplot(UK.Terror.Dataset.Subset, aes(Date, Terror.Intensity, colour = cut(Terror.Intensity, 100))) +
+  geom_point(show.legend = FALSE) +
+  ylab('Terror Intensity') +
+  xlab('Year of Attack') +
+  ggtitle('Terror Intensity, UK 1983-2016') + 
+  theme_minimal()
+
+ggplot(UK.Terror.Dataset.Subset, aes(Date, log(Terror.Intensity), colour = cut(log(Terror.Intensity), 100))) +
+  geom_point(show.legend = FALSE) +
+  ylab('Log Terror Intensity') +
+  xlab('Year of Attack') +
+  ggtitle('Terror Intensity, UK 1983-2016') + 
+  geom_vline(aes(xintercept = as.Date('1998-01-01')), linetype = 'longdash', colour = 'green', size = 1) +
+  annotate('text', x = as.Date('2000-01-01'), y = 5, label = 'End of The Troubles', angle = 270) +
+  theme_minimal()
+
