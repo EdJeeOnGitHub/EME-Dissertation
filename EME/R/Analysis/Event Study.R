@@ -629,3 +629,25 @@ ggplot(largest.5.events, aes(name, Terror.Intensity)) +
         axis.ticks.x=element_blank(),
         axis.ticks.y = element_blank()
         ) 
+
+
+## Calculating CAAR of 5 largest events ##
+# First need to transform format of event dates
+
+largest.5.events.transformed <- name.function(largest.5.events[, 'Date'])
+largest.5.events.transformed
+
+
+
+index.now <- index.selector2(UK.Index.Data, 5)
+head(index.now[[1]])
+
+
+
+
+
+es.test <- ES(index = zoo.NA.list[[1]],
+              events = event.dates.list[[1]], n = 1,
+              car.length = 11
+              )
+es.test
