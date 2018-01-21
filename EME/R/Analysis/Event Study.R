@@ -46,7 +46,7 @@ UK.2010s <- UK.2010s[ UK.2010s$Date < as.Date("2020-01-01"),]
 
 # This isn't strictly necessary at this stage but makes the eventstudy package easier to use later
 
-index.chosen <-  "UK...TO.US....WMR....EXCHANGE.RATE"
+index.chosen <-  "FTSE.ALL.SHARE...PRICE.INDEX"
 index.selector <- function(dataframe, n){
   keep <- c( 'Date', index.chosen)
   mydf <- dataframe[, keep, drop = FALSE]
@@ -191,6 +191,17 @@ test.t.AR.CAR <- function(esti.window, ev.window){
 library(tibble)
 library(gtools)
 
+# Calculating confidence intervals
+
+CI <- function(esti.window){
+  esti.window <- na.omit(esti.window)
+  estimation.stdev <- sd(esti.window)
+  root.n <- sqrt(length(esti.window))
+  ci <- qt(0.975, df = length(esti.window) - 1)*(estimation.stdev/root.n)
+  return(ci)
+}
+
+
 ES <- function(index, events, n, car.length){
   row.index <- NA.index.number(index, events, n)
   date.event <- events[[1]][n]
@@ -219,7 +230,9 @@ ES <- function(index, events, n, car.length){
                                    ev.window = event.car)
   p.value <- 2*pt(-abs(t.statistic.CAR),df=length(na.omit(estimation.car))-1)
   
-  return.zoo <- merge.zoo(event.ar, event.car, t.statistic.CAR, p.value)
+  CI.width <- CI(estimation.car)
+  
+  return.zoo <- merge.zoo(event.ar, event.car, t.statistic.CAR, p.value, CI.width)
   return.df <- data.frame(return.zoo[ car.length, ])
 
   return.df <- rownames_to_column(return.df, 'Date')
@@ -244,17 +257,6 @@ Full.ES <- function(index, events, n, car.length){
 
 
 
-
-
-# Calculating standard error in order to plot confidence intervals
-
-SE <- function(esti.window){
-  esti.window <- na.omit(esti.window)
-  estimation.stdev <- sd(esti.window)
-  root.n <- sqrt(length(esti.window))
-  se <- qt(0.975, df = length(esti.window) - 1)*(estimation.stdev/root.n)
-  return(se)
-}
 
 
 # This function repeats the ES function for the top 5 dates in a given event list. Essentially finding the CAR for the top 5 events
@@ -402,7 +404,7 @@ Mode(UK.Terror.Dataset.Subset$nwound)
 
 
 library(ggplot2)
-
+library(ggthemes)
 
 
 
@@ -410,33 +412,33 @@ ggplot(UK.Terror.Dataset.Subset[(UK.Terror.Dataset.Subset$nwound > 0), ], aes(nw
   geom_histogram(show.legend = FALSE) +
   xlim(0, 100) +
   xlab('Number of wounded | at least one person is wounded') +
-  ggtitle('Number of wounded from UK Terror Attacks, 1983-2016') +
+  ggtitle('Number of wounded from UK Terror Attacks, 1970-2016') +
   theme_minimal()
 
 ggplot(UK.Terror.Dataset.Subset[(UK.Terror.Dataset.Subset$nwound > 0), ], aes(nwound, fill = cut(nwound, 100))) +
   geom_histogram(show.legend = FALSE, binwidth = 5) +
   xlab('Number of wounded | at least one person is wounded') +
-  ggtitle('Number of wounded from UK Terror Attacks, 1983-2016') +
+  ggtitle('Number of wounded from UK Terror Attacks, 1970-2016') +
   theme_minimal()
 
 ggplot(UK.Terror.Dataset.Subset[(UK.Terror.Dataset.Subset$nkill > 0), ], aes(nkill, fill = cut(nkill, 100))) +
   geom_histogram(show.legend = FALSE, binwidth = 5) +
   xlab('Number of fatalities | at least one person is killed') +
-  ggtitle('Number of fatalities from UK Terror Attacks, 1983-2016') +
+  ggtitle('Number of fatalities from UK Terror Attacks, 1970-2016') +
   theme_minimal()
 
 ggplot(UK.Terror.Dataset.Subset, aes(nkill, fill = cut(nkill, 100))) +
   geom_histogram(show.legend = FALSE, binwidth = 5) +
   xlab('Number of fatalities') +
   annotate('text', x = 150, y = 1570, label = 'N.B. scale has doubled', colour = 'orange', size = 8) +
-  ggtitle('Number of fatalities from UK Terror Attacks, 1983-2016') +
+  ggtitle('Number of fatalities from UK Terror Attacks, 1970-2016') +
   theme_minimal()
 
 
 ggplot(UK.Terror.Dataset.Subset[(UK.Terror.Dataset.Subset$propvalue > 0), ], aes(propvalue)) +
   geom_histogram(show.legend = FALSE) +
   xlab('Recorded Property Damage | Property Damage > 0') +
-  ggtitle('Property Damage from UK Terror Attacks, 1983-2016') +
+  ggtitle('Property Damage from UK Terror Attacks, 1970-2016') +
   annotate('text', x = 2.5*10^9, y = 20, label = '1992 Manchester \n Bombing', colour = 'red') +
   annotate('text', x = 1.2*10^9, y = 15, label = '1996 Manchester Bombing', colour = 'red') +
   theme_minimal()
@@ -453,7 +455,7 @@ ggplot(UK.Terror.Dataset.Subset, aes(Date, nkill, colour = cut(nkill, 10000))) +
   geom_point(size = 1, show.legend = FALSE, aes(size = Terror.Intensity)) +
   xlab('Year of Attack') +
   ylab('Number of Fatalities') +
-  ggtitle('Deaths Attributed to Terror in the UK, 1983-2016') +
+  ggtitle('Deaths Attributed to Terror in the UK, 1970-2016') +
   theme_minimal()
 UK.Terror.Dataset.Subset$roll.nkill <- rollmean(UK.Terror.Dataset.Subset$nkill, k = 50, fill = NA, align = 'right') 
 
@@ -462,7 +464,7 @@ ggplot(UK.Terror.Dataset.Subset, aes(Date, nkill, colour = cut(nkill, 10000))) +
   scale_y_log10() +
   xlab('Year of Attack') +
   ylab('Number of Fatalities, \n logarithmic scale') +
-  ggtitle('Deaths Attributed to Terror in the UK, 1983-2016') + 
+  ggtitle('Deaths Attributed to Terror in the UK, 1970-2016') + 
   geom_vline(aes(xintercept = as.Date('1998-01-01')), linetype = 'longdash', colour = 'green', size = 1) +
   annotate('text', x = as.Date('2000-01-01'), y = 5, label = 'End of The Troubles', angle = 270) +
   theme_minimal()
@@ -471,14 +473,14 @@ ggplot(UK.Terror.Dataset.Subset, aes(Date, nwound, Terror.intensity,  colour = c
   geom_point(show.legend = FALSE, aes(size = Terror.Intensity)) +
   ylab('Number of wounded') +
   xlab('Year of Attack') +
-  ggtitle('Injuries Attributed to Terror in the UK, 1983-2016') + 
+  ggtitle('Injuries Attributed to Terror in the UK, 1970-2016') + 
   theme_minimal()
 
 ggplot(UK.Terror.Dataset.Subset, aes(Date, log(nwound), colour = cut(nwound, 100))) +
   geom_point(show.legend = FALSE, aes(size = Terror.Intensity)) +
   ylab('Log Number of wounded') +
   xlab('Year of Attack') +
-  ggtitle('Injuries Attributed to Terror in the UK, 1983-2016') + 
+  ggtitle('Injuries Attributed to Terror in the UK, 1970-2016') + 
   geom_vline(aes(xintercept = as.Date('1998-01-01')), linetype = 'longdash', colour = 'green', size = 1) +
   annotate('text', x = as.Date('2000-01-01'), y = 5, label = 'End of The Troubles', angle = 270) +
   theme_minimal()
@@ -488,15 +490,142 @@ ggplot(UK.Terror.Dataset.Subset, aes(Date, Terror.Intensity, colour = cut(Terror
   geom_point(show.legend = FALSE) +
   ylab('Terror Intensity') +
   xlab('Year of Attack') +
-  ggtitle('Terror Intensity, UK 1983-2016') + 
+  ggtitle('Terror Intensity, UK 1970-2016') + 
   theme_minimal()
 
 ggplot(UK.Terror.Dataset.Subset, aes(as.Date(Date), log(Terror.Intensity), colour = cut(log(Terror.Intensity), 100))) +
   geom_point(show.legend = FALSE) +
   ylab('Log Terror Intensity') +
   xlab('Year of Attack') +
-  ggtitle('Terror Intensity, UK 1983-2016') +
+  ggtitle('Terror Intensity, UK 1970-2016') +
   geom_vline(aes(xintercept = as.Date('1998-01-01')), linetype = 'longdash', colour = 'green', size = 1) +
   annotate('text', x = as.Date('2000-01-01'), y = 5, label = 'End of The Troubles', angle = 270) +
   # scale_size_area() +
   theme_minimal()
+
+
+# Now performing analysis by no longer splitting up by decade - just looking at the largest attacks on 
+# UK soil ever
+largest.5.events <- decade.Event.Filter(data = UK.Terror.Dataset.Subset, start.Date = '1980-01-01',
+                                        end.Date = '2017-01-01',
+                                        n = 5)
+index.complete <- index.selector(UK.Index.Data, 1)
+head(index.complete)
+index.complete <- read.zoo(index.complete)
+index.complete <- prices2returns(index.complete)
+index.complete.na.omitted <- na.omit(index.complete)
+
+ES.no.decade <- ES(index = index.complete.na.omitted,
+                  events = largest.5.events, n = 1, car.length = 5)
+lockerbie.bombing.es <- Full.ES(index.complete.na.omitted,
+                             events = largest.5.events,
+                             n = 1, 
+                             car.length = 11)
+
+attack.time.delta <- function(es.object){
+  return.df <- rownames_to_column(es.object, var = 'days.since.attack')
+  return.df$'days.since.attack' <- as.numeric(return.df$'days.since.attack')
+  return(return.df)
+}
+
+# lockerbie.bombing.es <- attack.time.delta(lockerbie.bombing.es)
+# ggplot(lockerbie.bombing.es, aes(Date, event.car, event.ar)) +
+#   geom_smooth(size = 2, colour = 'red', se = F) +
+#   geom_smooth(aes(Date, event.car + CI.width), linetype = 'longdash', se= F) +
+#   geom_smooth(aes(Date, event.car - CI.width), linetype = 'longdash', se = F) +
+#   ylim(-3, 3) +
+#   theme_minimal()
+
+
+ggplot(lockerbie.bombing.es, aes(days.since.attack, event.car)) +
+  geom_line(size = 2, colour = 'pink') +
+  geom_line(aes(days.since.attack, event.car + CI.width), linetype = 'longdash', alpha = 0.3) +
+  geom_line(aes(days.since.attack, event.car - CI.width), linetype = 'longdash', alpha = 0.3) +
+  geom_hline(aes(yintercept = 0), linetype = 'longdash', size = 1, colour = 'red', alpha = 0.4) +
+  xlab('Days Since Attack') +
+  ylab('Cumulate Abnormal Returns (%)')+
+  ggtitle('Lockerbie Bombing, Cumulative Abnormal Returns', subtitle = 'FTSE ALL SHARE Price Index, log differenced - 21 December 1988') +
+  ylim(-3, 3.5) +
+  theme_minimal()
+
+london.7.7.bombings.es <- Full.ES(index = index.complete.na.omitted,
+                               events = largest.5.events, 
+                               n = 2,
+                               car.length = 11)
+london.7.7.bombings.es <- attack.time.delta(london.7.7.bombings.es)
+
+ggplot(london.7.7.bombings.es, aes(days.since.attack, event.car)) +
+  geom_line(size = 2, colour = 'pink') +
+  geom_line(aes(days.since.attack, event.car + CI.width), linetype = 'longdash', alpha = 0.3) +
+  geom_line(aes(days.since.attack, event.car - CI.width), linetype = 'longdash', alpha = 0.3) +
+  geom_hline(aes(yintercept = 0), linetype = 'longdash', size = 1, colour = 'red', alpha = 0.4) +
+  xlab('Days Since Attack') +
+  ylab('Cumulate Abnormal Returns (%)')+
+  ggtitle('London 7/7 Bombings, Cumulative Abnormal Returns', subtitle = 'FTSE ALL SHARE Price Index, log differenced - 7 July 2005') +
+  ylim(-3, 3.5) +
+  theme_minimal()
+
+omagh.bombing.es <- Full.ES(index = index.complete.na.omitted,
+                            events = largest.5.events,
+                            n = 3,
+                            car.length = 11)
+omagh.bombing.es <- attack.time.delta(omagh.bombing.es)
+
+ggplot(omagh.bombing.es, aes(days.since.attack, event.car)) +
+  geom_line(size = 2, colour = 'pink') +
+  geom_line(aes(days.since.attack, event.car + CI.width), linetype = 'longdash', alpha = 0.3) +
+  geom_line(aes(days.since.attack, event.car - CI.width), linetype = 'longdash', alpha = 0.3) +
+  geom_hline(aes(yintercept = 0), linetype = 'longdash', size = 1, colour = 'red', alpha = 0.4) +
+  xlab('Days Since Attack') +
+  ylab('Cumulate Abnormal Returns (%)')+
+  ggtitle('Omagh Bombing, Cumulative Abnormal Returns', subtitle = 'FTSE ALL SHARE Price Index, log differenced - 15 August 1998') +
+  theme_minimal()
+
+manchester.bombing.1996.es <- Full.ES(index = index.complete.na.omitted,
+                                   events = largest.5.events,
+                                   n = 4,
+                                   car.length = 11)
+manchester.bombing.1996.es <- attack.time.delta(manchester.bombing.1996.es)
+
+ggplot(manchester.bombing.1996.es, aes(days.since.attack, event.car)) +
+  geom_line(size = 2, colour = 'pink') +
+  geom_line(aes(days.since.attack, event.car + CI.width), linetype = 'longdash', alpha = 0.3) +
+  geom_line(aes(days.since.attack, event.car - CI.width), linetype = 'longdash', alpha = 0.3) +
+  geom_hline(aes(yintercept = 0), linetype = 'longdash', size = 1, colour = 'red', alpha = 0.4) +
+  xlab('Days Since Attack') +
+  ylab('Cumulate Abnormal Returns (%)')+
+  ggtitle('1996 Manchester Bombing, Cumulative Abnormal Returns', subtitle = 'FTSE ALL SHARE Price Index, log differenced - 15 June 1996') +
+  ylim(-3, 3) +
+  theme_minimal()
+
+droppin.well.bombing.es <- Full.ES(index = index.complete.na.omitted,
+                                   events = largest.5.events,
+                                   n = 5, 
+                                   car.length = 11)
+droppin.well.bombing.es <- attack.time.delta(droppin.well.bombing.es)
+
+ggplot(droppin.well.bombing.es, aes(days.since.attack, event.car)) +
+  geom_line(size = 2, colour = 'pink') +
+  geom_line(aes(days.since.attack, event.car + CI.width), linetype = 'longdash', alpha = 0.3) +
+  geom_line(aes(days.since.attack, event.car - CI.width), linetype = 'longdash', alpha = 0.3) +
+  geom_hline(aes(yintercept = 0), linetype = 'longdash', size = 1, colour = 'red', alpha = 0.4) +
+  xlab('Days Since Attack') +
+  ylab('Cumulate Abnormal Returns (%)')+
+  ggtitle('Droppin Well Disco Bombing, Cumulative Abnormal Returns', subtitle = 'FTSE ALL SHARE Price Index, log differenced - 6 December 1982') +
+  ylim(-5, 3) +
+  theme_minimal()
+largest.5.events$name <- c('Lockerbie', 'London 7/7', 'Omagh', '1996 Manchester', 'Droppin Well')
+largest.5.events$name <- factor(largest.5.events$name, levels = largest.5.events$name[order(largest.5.events$Terror.Intensity)])
+
+
+ggplot(largest.5.events, aes(name, Terror.Intensity)) +
+  geom_col(aes(name, Terror.Intensity, fill = -Terror.Intensity), show.legend = FALSE) +
+  xlab('Event') +
+  ylab('Terror Intensity') +
+  ggtitle('Terror Intensity, \nTop 5 Events') +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                                  panel.background = element_blank(),
+        axis.line = element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.ticks.y = element_blank()
+        ) 
