@@ -369,7 +369,7 @@ head(zoo.transformed[[1]])
 es.80s <- eventstudy(firm.returns = zoo.transformed[[1]],
                   event.list = event.dates.list.es[[1]],
                   event.window = 10,
-                  type = 'None',
+                  type = 'constantMeanReturn',
                   inference = TRUE,
                   inference.strategy = 'wilcox')
 plot(es.80s)
