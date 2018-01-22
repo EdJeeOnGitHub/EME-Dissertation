@@ -224,28 +224,11 @@ events.top5 <- filter.events(event.data = terror.data, start.Date = '1980-01-01'
 events.top5$event.name <- c('Lockerbie', 'London 7/7', 'Omagh', '1996 Manchester', 'Droppin Well')
 events.top5$event.name <- factor(events.top5$event.name, levels = events.top5$event.name[order(events.top5$terror.intensity)])
 
-
-## Data transformation for the eventstudies package - namely creating a 'when' and 'name' column that 'eventstudies' package can read
-
-create.name.when.columns <- function(event.data, index.selected, n){
-  name.list <- c(index.selected, 2:n)
-  event.data$name <- name.list
-  event.data <- data.frame(event.data)
-  colnames(event.data) <- c('when', 'name')
-  return(event.data)
-}
-
-# Applying first to largest events, then to decade events
-
-eventstudies.events.top5 <- 
-  events.top5 %>%
-  select.date.column %>%
-  create.name.when.columns(index.selected = "FTSE.100...PRICE.INDEX",
-                           n = 5)
-  
-  
-
-
+# using filter.events to sort the terror data and select every observation rather than top n
+events.sorted <- filter.events(event.data = terror.data, 
+                               start.Date = '1970-01-01',
+                               end.Date = '2020-01-01',
+                               n.events = nrow(terror.data))
 
 
 
@@ -263,6 +246,29 @@ removal.list.terror <- c('raw.terror.data',
 rm(list = removal.list.terror)
 
 
+
+
+
+
+#### eventstudies Package Cleaning ####
+
+## Data transformation for the eventstudies package - namely creating a 'when' and 'name' column that 'eventstudies' package can read
+
+create.name.when.columns <- function(event.data, index.selected, n){
+  name.list <- c(index.selected, 2:n)
+  event.data$name <- name.list
+  event.data <- data.frame(event.data)
+  colnames(event.data) <- c('when', 'name')
+  return(event.data)
+}
+
+# Applying to largest events
+
+eventstudies.events.top5 <- 
+  events.top5 %>%
+  select.date.column %>%
+  create.name.when.columns(index.selected = "FTSE.100...PRICE.INDEX",
+                           n = 5)
 
 
 
@@ -447,6 +453,51 @@ perform.decade.event.study <- function(index, events, car.length, estimation.win
   return(decade.event.study)
 }
 
+# This function takes every event given in events and calculates the appropriate CAR
+calculate.every.CAR <- function(events, index, estimation.window.length = 20, estimation.window.end = 10, car.length = 11){
+  
+  all.events.CAR <- perform.one.day.event.study(index = index,
+                                                events = events,
+                                                n = 1, 
+                                                estimation.window.length = estimation.window.length,
+                                                estimation.window.end = estimation.window.end,
+                                                car.length = car.length)
+  for (i in 2:nrow(events)){
+    temp.event.CAR <- perform.one.day.event.study(n = i,
+                                                  index = index,
+                                                  events = events,
+                                                  estimation.window.length = estimation.window.length,
+                                                  estimation.window.end = estimation.window.end,
+                                                  car.length = car.length)
+    all.events.CAR <- rbind(all.events.CAR, temp.event.CAR)
+  }
+  return(all.events.CAR)
+  
+}
+
+# Now gives rolling Cumulative Average Abnormal Returns
+calculate.rolling.CAAR <- function(all.events.CAR){
+  all.events.CAR$rolling.CAAR <- cumsum(all.events.CAR$event.car)/seq(along = all.events.CAR$event.car)
+  n <- c(1:nrow(all.events.CAR))
+  all.events.CAR$n <- n
+  return(all.events.CAR)
+}
+
+
+calculate.CI.rolling.CAAR <- function(all.events.CAR){
+ all.events.CAR$df <- all.events.CAR$n - 1
+ all.events.CAR <- mutate(all.events.CAR, 
+                          temp.diff = (event.car - rolling.CAAR)^2,
+                          rolling.sd = sqrt(cumsum(temp.diff)/df),
+                          rolling.ci = qt(0.975, df = df)*rolling.sd/(sqrt(n)))
+ # all.events.CAR$temp.diff <- (all.events.CAR$event.CAR - all.events.CAR$rolling.CAAR)^2
+ # # all.events.CAR$rolling.sd <- sqrt(cumsum(all.events.CAR$temp.diff)/all.events.CAR$df)
+ # # all.events.CAR$ci <- qt(0.975, df = df)*(all.events.CAR$rolling.sd/(sqrt(all.events.CAR$n)))
+ return(all.events.CAR)                                         
+}
+
+
+
 #### Decade Results ####
 
 # CAR10
@@ -484,7 +535,17 @@ decade.event.study.CAR4 <- rbind(decade.event.study.80s.CAR4,
 decade.event.study.CAR10
 decade.event.study.CAR4
 
+removal.list.decade <- c('decade.event.study.80s.CAR10',
+                         'decade.event.study.90s.CAR10',
+                         'decade.event.study.10s.CAR10',
+                         'decade.event.study.00s.CAR10',
+                         'decade.event.study.80s.CAR4',
+                         'decade.event.study.90s.CAR4',
+                         'decade.event.study.00s.CAR4',
+                         'decade.event.study.10s.CAR4',
+                         'removal.list.decade')
 
+rm(list = removal.list.decade)
 
 #### Largest Event Results ####
 lockerbie.bombing.event.study <- perform.event.study(index = index.zoo.UK.ALLSHARE.omitted,
@@ -508,7 +569,13 @@ omagh.bombing.event.study
 manchester.bombing.1996.event.study
 droppin.well.bombing.event.study
 
+# Calculating rolling CAAR of the largest n events
+all.CAR.10.day.ALLSHARE <- calculate.every.CAR(events = events.sorted,
+                                               index = index.zoo.UK.ALLSHARE.omitted)
 
+all.CAR.10.day.ALLSHARE <- calculate.rolling.CAAR(all.CAR.10.day.ALLSHARE)
+
+all.CAR.10.day.ALLSHARE <- calculate.CI.rolling.CAAR(all.CAR.10.day.ALLSHARE)
 
 #### eventstudies Package Results ####
 
@@ -631,7 +698,7 @@ scatter.log.terror.intensity.over.time <- ggplot(terror.data, aes(as.Date(Date),
 
 
 
-#### Top 5 Events Graphics ####
+#### Largest Events Graphics ####
 
 lockerbie.plot <- ggplot(lockerbie.bombing.event.study, aes(time.delta, event.car)) +
   geom_line(size = 2, colour = 'pink') +
@@ -692,6 +759,15 @@ droppin.well.plot <- ggplot(droppin.well.bombing.event.study, aes(time.delta, ev
 # omagh.plot
 # manchester.plot
 # droppin.well.plot
+
+# Now graphing rolling CAAR
+rolling.CAAR.plot <- ggplot(all.CAR.10.day.ALLSHARE, aes(n, rolling.CAAR))+
+  geom_point() +
+  geom_line(aes(n, rolling.CAAR - rolling.ci), alpha = 0.3, linetype = 'longdash') +
+  geom_line(aes(n, rolling.CAAR + rolling.ci), alpha = 0.3, linetype = 'longdash') +
+  ylim(-10, 10) +
+  theme_minimal()
+rolling.CAAR.plot
 #### Decade Graphics ####
 
 
