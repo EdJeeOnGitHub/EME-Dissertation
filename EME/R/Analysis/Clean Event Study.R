@@ -13,8 +13,8 @@ library(zoo) # Time series manipulation
 library(readxl) # Reading in excel
 library(tibble) # Data manipulation
 library(ggplot2) # Plotting graphics
-library(ggthemes) # Some extra themes for graphics plotting
-
+library(ggthemes) # Some extra themes for plotting
+library(eventstudies) # Package useful for calculating CAARs
 ##### Index Data Cleaning #####
 
 # Reading in file, using projroot library so only relative path needed
@@ -95,7 +95,9 @@ prices.to.returns <- function(x) 100*diff(log(x))
 index.zoo.UK.decade.list.ALLSHARE <- lapply(index.zoo.UK.decade.list.ALLSHARE, prices.to.returns)
 index.zoo.UK.decade.list.ALLSHARE.omitted <- lapply(index.zoo.UK.decade.list.ALLSHARE, na.omit)
 
-# Creating an zoo index that isn't split up into decades
+# Creating zoo indices that aren't split up into decades
+
+# FTSE ALLSHARE
 index.data.UK.ALLSHARE <- select.index(raw.index.data.UK,
                                        index.to.select = "FTSE.ALL.SHARE...PRICE.INDEX")
 index.zoo.UK.ALLSHARE.omitted <-
@@ -104,6 +106,32 @@ index.zoo.UK.ALLSHARE.omitted <-
   prices.to.returns %>%
   na.omit
 
+
+# Creating a zoo index in the eventstudies package format - a zoo with repeated columns of index data
+eventstudies.index.ALLSHARE <- select.index(raw.index.data.UK,
+                                            index.to.select = "FTSE.ALL.SHARE...PRICE.INDEX",
+                                            rep = TRUE,
+                                            n = 5)
+
+eventstudies.zoo.ALLSHARE <- 
+  eventstudies.index.ALLSHARE %>%
+  read.zoo %>%
+  prices.to.returns %>%
+  na.omit
+
+
+
+
+# FTSE100 eventstudies
+eventstudies.index.UK.FTSE100 <- select.index(raw.index.data.UK,
+                                      index.to.select = "FTSE.100...PRICE.INDEX",
+                                      rep = TRUE,
+                                      n = 5)
+eventstudies.zoo.UK.FTSE100.omitted <-
+  eventstudies.index.UK.FTSE100 %>%
+  read.zoo %>%
+  prices.to.returns %>%
+  na.omit
 # Cleaning up unwanted variables
 removal.list.index <- c('root',
                  'raw.index.data',
@@ -117,7 +145,10 @@ removal.list.index <- c('root',
                  'path.index',
                  'index.data.UK.decade.list',
                  'removal.list.index',
-                 'index.data.UK.ALLSHARE')
+                 'index.data.UK.ALLSHARE',
+                 'index.zoo.UK.decade.list.ALLSHARE',
+                 'eventstudies.index.ALLSHARE',
+                 'eventstudies.index.UK.FTSE100')
 
 rm(list = removal.list.index)
 
@@ -194,6 +225,25 @@ events.top5$event.name <- c('Lockerbie', 'London 7/7', 'Omagh', '1996 Manchester
 events.top5$event.name <- factor(events.top5$event.name, levels = events.top5$event.name[order(events.top5$terror.intensity)])
 
 
+## Data transformation for the eventstudies package - namely creating a 'when' and 'name' column that 'eventstudies' package can read
+
+create.name.when.columns <- function(event.data, index.selected, n){
+  name.list <- c(index.selected, 2:n)
+  event.data$name <- name.list
+  event.data <- data.frame(event.data)
+  colnames(event.data) <- c('when', 'name')
+  return(event.data)
+}
+
+# Applying first to largest events, then to decade events
+
+eventstudies.events.top5 <- 
+  events.top5 %>%
+  select.date.column %>%
+  create.name.when.columns(index.selected = "FTSE.100...PRICE.INDEX",
+                           n = 5)
+  
+  
 
 
 
@@ -204,14 +254,13 @@ events.top5$event.name <- factor(events.top5$event.name, levels = events.top5$ev
 
 
 
-
-
-
-
-
-
-
-
+removal.list.terror <- c('raw.terror.data',
+                         'fatality.weight',
+                         'incident.weight',
+                         'injury.weight',
+                         'path.terror',
+                         'removal.list.terror')
+rm(list = removal.list.terror)
 
 
 
@@ -436,6 +485,7 @@ decade.event.study.CAR10
 decade.event.study.CAR4
 
 
+
 #### Largest Event Results ####
 lockerbie.bombing.event.study <- perform.event.study(index = index.zoo.UK.ALLSHARE.omitted,
                                                      events = events.top5,
@@ -457,6 +507,32 @@ london.7.7.bombing.event.study
 omagh.bombing.event.study
 manchester.bombing.1996.event.study
 droppin.well.bombing.event.study
+
+
+
+#### eventstudies Package Results ####
+
+####
+#### Need to come back to this with individual industry/firm level data rather than index level data.
+####
+
+
+
+# eventstudies.top5.constant.mean.return <- eventstudy(firm.returns = eventstudies.zoo.UK.FTSE100.omitted,
+#                                 event.list = eventstudies.events.top5,
+#                                 type = 'marketModel',
+#                                 inference = TRUE,
+#                                 inference.strategy = 'bootstrap',
+#                                 model.args = list(market.returns = eventstudies.zoo.ALLSHARE[, '2']))
+# 
+# 
+# eventstudies.top5.none <- eventstudy(firm.returns = eventstudies.zoo.ALLSHARE,
+#                                      event.list = eventstudies.events.top5,
+#                                      type = 'None',
+#                                      inference.strategy = 'classic')
+# plot(eventstudies.top5.constant.mean.return)
+# plot(eventstudies.top5.none)
+
 
 
 
@@ -616,3 +692,38 @@ droppin.well.plot <- ggplot(droppin.well.bombing.event.study, aes(time.delta, ev
 # omagh.plot
 # manchester.plot
 # droppin.well.plot
+#### Decade Graphics ####
+
+
+# Need to recode some variables as factors for plot to be ordered by event.car size
+decade.event.study.CAR10$market.date <- factor(decade.event.study.CAR10$market.date)
+decade.event.study.CAR10$market.date <- factor(decade.event.study.CAR10$market.date,
+                                        levels = decade.event.study.CAR10$market.date[order(-decade.event.study.CAR10$event.car)])
+
+bar.chart.decade.event.study.by.CAR <- ggplot(decade.event.study.CAR10, aes(market.date, event.car, event.p.value, alpha = -event.p.value)) +
+  geom_col(fill = 'red') +
+  coord_flip() +
+  ylab('10 Day Cumulative Abnormal Return') +
+  xlab('Market Date of Attack') + 
+  theme_minimal() +
+  ggtitle('10 Day Cumulative Abnormal Returns in Response to Terror Event', subtitle = 'Top 5 Events per Decade') +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = 'none')
+  
+
+
+
+# This time ordering temporally
+decade.event.study.CAR10$market.date <- factor(decade.event.study.CAR10$market.date)
+decade.event.study.CAR10$market.date <- factor(decade.event.study.CAR10$market.date,
+                                               levels = decade.event.study.CAR10$market.date[order(decade.event.study.CAR10$Date)])
+
+bar.chart.decade.event.study.by.time <- ggplot(decade.event.study.CAR10, aes(market.date, event.car, event.p.value, alpha = -event.p.value)) +
+  geom_col(fill = 'red') +
+  ylab('10 Day Cumulative Abnormal Return') +
+  xlab('Market Date of Attack') + 
+  theme_minimal() +
+  ggtitle('10 Day Cumulative Abnormal Returns in Response to Terror Event', subtitle = 'Top 5 Events per Decade') +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = 'none',
+        axis.text.x = element_text(angle = 270, hjust = 1))
+
+
