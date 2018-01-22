@@ -4,17 +4,16 @@
 
 ## Clearing workspace and any graphics left over
 rm(list = ls())
-dev.off()
+try(dev.off(), silent = TRUE)
 
 # Libraries
 library(rprojroot) # Allows use of relative instead of absolute paths when reading in files
-library(dplyr)
-library(zoo)
-library(readxl)
-library(tibble)
-
-## Data transformation and cleaning ##
-
+library(dplyr) # Data manipulation
+library(zoo) # Time series manipulation
+library(readxl) # Reading in excel
+library(tibble) # Data manipulation
+library(ggplot2) # Plotting graphics
+library(ggthemes) # Some extra themes for graphics plotting
 
 ##### Index Data Cleaning #####
 
@@ -96,6 +95,14 @@ prices.to.returns <- function(x) 100*diff(log(x))
 index.zoo.UK.decade.list.ALLSHARE <- lapply(index.zoo.UK.decade.list.ALLSHARE, prices.to.returns)
 index.zoo.UK.decade.list.ALLSHARE.omitted <- lapply(index.zoo.UK.decade.list.ALLSHARE, na.omit)
 
+# Creating an zoo index that isn't split up into decades
+index.data.UK.ALLSHARE <- select.index(raw.index.data.UK,
+                                       index.to.select = "FTSE.ALL.SHARE...PRICE.INDEX")
+index.zoo.UK.ALLSHARE.omitted <-
+  index.data.UK.ALLSHARE %>%
+  read.zoo %>%
+  prices.to.returns %>%
+  na.omit
 
 # Cleaning up unwanted variables
 removal.list.index <- c('root',
@@ -109,7 +116,8 @@ removal.list.index <- c('root',
                  'keep.vars',
                  'path.index',
                  'index.data.UK.decade.list',
-                 'removal.list.index')
+                 'removal.list.index',
+                 'index.data.UK.ALLSHARE')
 
 rm(list = removal.list.index)
 
@@ -149,7 +157,7 @@ terror.data <- mutate(terror.data,
                         prop.weight)
 
 # Filtering events via decade and top n events measured by terror intensity
-filter.event.decade <- function(event.data, start.Date, end.Date, n.events){
+filter.events <- function(event.data, start.Date, end.Date, n.events){
   myData <- event.data[ event.data$Date < as.Date(end.Date), ]
   myData <- myData[ myData$Date > as.Date(start.Date),]
   
@@ -158,10 +166,10 @@ filter.event.decade <- function(event.data, start.Date, end.Date, n.events){
   return(to.return)
 }
 
-events.80s <- filter.event.decade(event.data = terror.data, start.Date = '1979-12-31', end.Date = '1990-01-01', n.events = 5)
-events.90s <- filter.event.decade(event.data = terror.data, start.Date = '1989-12-31', end.Date = '2000-01-01', n.events = 5)
-events.00s <- filter.event.decade(event.data = terror.data, start.Date = '1999-12-31', end.Date = '2010-01-01', n.events = 5)
-events.10s <- filter.event.decade(event.data = terror.data, start.Date = '2009-12-31', end.Date = '2020-01-01', n.events = 5) 
+events.80s <- filter.events(event.data = terror.data, start.Date = '1979-12-31', end.Date = '1990-01-01', n.events = 5)
+events.90s <- filter.events(event.data = terror.data, start.Date = '1989-12-31', end.Date = '2000-01-01', n.events = 5)
+events.00s <- filter.events(event.data = terror.data, start.Date = '1999-12-31', end.Date = '2010-01-01', n.events = 5)
+events.10s <- filter.events(event.data = terror.data, start.Date = '2009-12-31', end.Date = '2020-01-01', n.events = 5) 
 
 
 # Creating a list of the events by decade for ease of use again
@@ -178,6 +186,12 @@ events.decade.list <- lapply(events.decade.list, select.date.column)
 
 
 
+# Creating a list with the five largest events ever recorded in the UK
+events.top5 <- filter.events(event.data = terror.data, start.Date = '1980-01-01', end.Date = '2020-01-01', n.events = 5)
+
+
+events.top5$event.name <- c('Lockerbie', 'London 7/7', 'Omagh', '1996 Manchester', 'Droppin Well')
+events.top5$event.name <- factor(events.top5$event.name, levels = events.top5$event.name[order(events.top5$terror.intensity)])
 
 
 
@@ -205,10 +219,7 @@ events.decade.list <- lapply(events.decade.list, select.date.column)
 
 
 
-
-
-
-#### Analysis #####
+#### Analysis Functions #####
 
 # To run our analysis we need to remove NA values however this creates a problem when the attacks we want to study occur on the weekend. To overcome this the function
 # checks if the event date is missing from the omitted zoo. If it is, it adds one day and checks again, if it's still missing it adds another day and checks again. If a check
@@ -275,39 +286,18 @@ find.event.window <- function(index, events, n, window.length){
   return(event.window)
 }
 
+# Calculate AR
+calculate.AR <- function(window, mean.return){
+  ar <- window - mean.return
+  return(ar)
+}
+
+
 # Calculating cumulative abnormal returns under the constant mean return model.
 calculate.CAR <- function(window, mean.return, car.length){
   ar <- window - mean.return
   car <- rollsum(ar, car.length, fill = NA, align = 'right')
 }
-
-
-####### Testing #########
-# esti.window.test <- find.estimation.window(index = index.zoo.UK.decade.list.ALLSHARE.omitted[[1]],
-#                                            events = events.decade.list[[1]],
-#                                            n = 1,window.end = 10, window.length = 20
-# )
-# 
-# 
-# event.window.test <- find.event.window(index = index.zoo.UK.decade.list.ALLSHARE.omitted[[1]],
-#                                        events = events.decade.list[[1]],
-#                                        n = 1,
-#                                        window.length = 10)
-# mean.test <- mean(esti.window.test)
-# esti.car <- calculate.CAR(esti.window.test, mean.return = mean.test, car.length = 10)
-# event.car <- calculate.CAR(event.window.test, mean.test, car.length = 10)
-# 
-# esti.window.test
-# event.window.test
-# esti.car
-# event.car
-# 
-# event.t <- calculate.CAR.t.test(esti.window = esti.car,
-#                                 ev.window = event.car)
-# event.t
-# 
-
-
 
 
 # Calculating p value based off t-statistic and estimation window df
@@ -318,11 +308,13 @@ calculate.p.value <- function(t.stat, estimation.car){
 
 # Converts event date into market days since attack
 calculate.attack.time.delta <- function(event.study){
-  event.study$time.delta <- seq(length(event.study[, 1]))
+  event.study$time.delta <- seq(length(event.study[, 1])) - 1
   return(event.study)
 }
-# Pulling all the above together into a single function for event studies.
-perform.one.day.event.study <- function(index, events, n, car.length = 10, estimation.window.length = 20, estimation.window.end = 10){
+# Pulling all the above together into a single function to run an event study. This will give an n-day CAR observation only.
+perform.one.day.event.study <- function(index, events, n, car.length = 11, estimation.window.length = 20, estimation.window.end = 10){
+  
+  event.market.date <- events$Date[n]
   
   estimation.window <- find.estimation.window(index = index,
                                               events = events,
@@ -340,29 +332,36 @@ perform.one.day.event.study <- function(index, events, n, car.length = 10, estim
                                   mean.return = constant.mean.return,
                                   car.length = car.length)
   
+  event.ar <- calculate.AR(window = event.window,
+                           mean.return = constant.mean.return)
+  
   event.car <- calculate.CAR(window = event.window,
                              mean.return = constant.mean.return,
                              car.length = car.length)
   
-  event.t.stat <- calculate.CAR.t.test(esti.window = estimation.window,
-                                       ev.window = event.window)
+  event.t.stat <- calculate.CAR.t.test(esti.window = estimation.car,
+                                       ev.window = event.car)
   
   event.p.value <- calculate.p.value(t.stat = event.t.stat,
                                      estimation.car = estimation.car)
   
   event.confidence.interval <- calculate.CI(esti.window = estimation.car)
   
-  return.zoo <- merge.zoo(event.car,
+  return.zoo <- merge.zoo(event.ar,
+                          event.car,
                           event.t.stat,
                           event.p.value,
                           event.confidence.interval)
   return.df <- data.frame(return.zoo[car.length, ])
   return.df <- rownames_to_column(return.df, 'Date')
   return.df$Date <- as.Date(return.df$Date)
+  return.df$stars <- gtools::stars.pval(return.df$event.p.value)
+  return.df$market.date <- event.market.date
   return(return.df)
 }
 
-perform.event.study <- function(index, events, n, car.length = 10, estimation.window.length = 20, estimation.window.end = 10){
+# This will run the one day event study function n times to fill up an n-day event window
+perform.event.study <- function(index, events, n, car.length = 11, estimation.window.length = 20, estimation.window.end = 10){
   
   full.event.study <- perform.one.day.event.study(index = index,
                                                      events = events,
@@ -370,11 +369,11 @@ perform.event.study <- function(index, events, n, car.length = 10, estimation.wi
                                                      car.length = 1,
                                                      estimation.window.length = estimation.window.length,
                                                      estimation.window.end = estimation.window.end)
-  for (i in 2:6){
-    single.event.study <- perform.one.day.event.study(n = i,
+  for (i in 2:car.length){
+    single.event.study <- perform.one.day.event.study(n = n,
                                                       index = index,
                                                       events = events,
-                                                      car.length = car.length,
+                                                      car.length = i,
                                                       estimation.window.length = estimation.window.length,
                                                       estimation.window.end = estimation.window.end)
 
@@ -384,13 +383,236 @@ perform.event.study <- function(index, events, n, car.length = 10, estimation.wi
   return(full.event.study)
 }
 
-event.study.80s.1 <- perform.event.study(index = index.zoo.UK.decade.list.ALLSHARE.omitted[[1]],
-                                         events = events.decade.list[[1]],
-                                         n = 1)
-event.study.80s.1
+# Function performs a one.day event study for the largest n events grouped by decade
+perform.decade.event.study <- function(index, events, car.length, estimation.window.length = 20, estimation.window.end = 10){
+  n.events <- nrow(events)
+  decade.event.study <- perform.one.day.event.study(index = index,
+                                                    events = events,
+                                                    n = 1)
+  for (i in 2:n.events){
+    event.study <- perform.one.day.event.study(index = index,
+                                               events = events,
+                                               n = i)
+    decade.event.study <- rbind(decade.event.study, event.study)
+  }
+  return(decade.event.study)
+}
 
-one.day.es.80s.1.1 <- perform.one.day.event.study(index = index.zoo.UK.decade.list.ALLSHARE.omitted[[1]],
-                                                events = events.decade.list[[1]],
-                                                car.length = 1,
-                                                n = 1)
-one.day.es.80s.1.1
+#### Decade Results ####
+
+# CAR10
+decade.event.study.80s.CAR10 <- perform.decade.event.study(index = index.zoo.UK.ALLSHARE.omitted,
+                                                     events = events.80s)
+decade.event.study.90s.CAR10 <- perform.decade.event.study(index = index.zoo.UK.ALLSHARE.omitted,
+                                                     events = events.90s)
+decade.event.study.00s.CAR10 <- perform.decade.event.study(index = index.zoo.UK.ALLSHARE.omitted,
+                                                     events = events.00s)
+decade.event.study.10s.CAR10 <- perform.decade.event.study(index = index.zoo.UK.ALLSHARE.omitted,
+                                                     events = events.10s)
+decade.event.study.CAR10 <- rbind(decade.event.study.80s.CAR10,
+                            decade.event.study.90s.CAR10,
+                            decade.event.study.00s.CAR10,
+                            decade.event.study.10s.CAR10)
+
+# CAR4 N.B. car.length set to 5 as it counts event day (i.e. t=0) inclusively
+decade.event.study.80s.CAR4 <- perform.decade.event.study(index = index.zoo.UK.ALLSHARE.omitted,
+                                                          events = events.80s,
+                                                          car.length = 5)
+decade.event.study.90s.CAR4 <- perform.decade.event.study(index = index.zoo.UK.ALLSHARE.omitted,
+                                                          events = events.90s,
+                                                          car.length = 5)
+decade.event.study.00s.CAR4 <- perform.decade.event.study(index = index.zoo.UK.ALLSHARE.omitted,
+                                                          events = events.00s,
+                                                          car.length = 5)
+decade.event.study.10s.CAR4 <- perform.decade.event.study(index = index.zoo.UK.ALLSHARE.omitted,
+                                                          events = events.10s,
+                                                          car.length = 5)
+decade.event.study.CAR4 <- rbind(decade.event.study.80s.CAR4,
+                                 decade.event.study.90s.CAR4,
+                                 decade.event.study.00s.CAR4,
+                                 decade.event.study.10s.CAR4)
+
+decade.event.study.CAR10
+decade.event.study.CAR4
+
+
+#### Largest Event Results ####
+lockerbie.bombing.event.study <- perform.event.study(index = index.zoo.UK.ALLSHARE.omitted,
+                                                     events = events.top5,
+                                                     n = 1)
+london.7.7.bombing.event.study <- perform.event.study(index = index.zoo.UK.ALLSHARE.omitted,
+                                                      events = events.top5,
+                                                      n = 2)
+omagh.bombing.event.study <- perform.event.study(index = index.zoo.UK.ALLSHARE.omitted,
+                                                 events = events.top5,
+                                                 n = 3)
+manchester.bombing.1996.event.study <- perform.event.study(index = index.zoo.UK.ALLSHARE.omitted,
+                                                           events = events.top5,
+                                                           n = 4)
+droppin.well.bombing.event.study <- perform.event.study(index = index.zoo.UK.ALLSHARE.omitted,
+                                                        events = events.top5,
+                                                        n = 5)
+lockerbie.bombing.event.study
+london.7.7.bombing.event.study
+omagh.bombing.event.study
+manchester.bombing.1996.event.study
+droppin.well.bombing.event.study
+
+
+
+#### Summary Statistics Graphics ####
+
+## Histograms ##
+
+histogram.wounded.small <- ggplot(terror.data[(terror.data$nwound > 0), ], aes(nwound, fill = cut(nwound, 100))) +
+  geom_histogram(show.legend = FALSE) +
+  xlim(0, 100) +
+  xlab('Number of wounded | at least one person is wounded') +
+  ggtitle('Number of wounded from UK Terror Attacks, 1970-2016', subtitle = 'xlim(0, 100)') +
+  theme_minimal()
+
+histogram.wounded.large <- ggplot(terror.data[(terror.data$nwound > 0), ], aes(nwound, fill = cut(nwound, 100))) +
+  geom_histogram(show.legend = FALSE, binwidth = 5) +
+  xlab('Number of wounded | at least one person is wounded') +
+  ggtitle('Number of wounded from UK Terror Attacks, 1970-2016') +
+  theme_minimal()
+
+histogram.killed.at.least.1 <- ggplot(terror.data[(terror.data$nkill > 0), ], aes(nkill, fill = cut(nkill, 100))) +
+  geom_histogram(show.legend = FALSE, binwidth = 5) +
+  xlab('Number of fatalities | at least one person is killed') +
+  ggtitle('Number of fatalities from UK Terror Attacks, 1970-2016') +
+  theme_minimal()
+
+histogram.killed <- ggplot(terror.data, aes(nkill, fill = cut(nkill, 100))) +
+  geom_histogram(show.legend = FALSE, binwidth = 5) +
+  xlab('Number of fatalities') +
+  annotate('text', x = 150, y = 1570, label = 'N.B. scale has doubled', colour = 'orange', size = 8) +
+  ggtitle('Number of fatalities from UK Terror Attacks, 1970-2016') +
+  theme_minimal()
+
+histogram.prop.damage.at.least.1 <- ggplot(terror.data[(terror.data$propvalue > 0), ], aes(propvalue)) +
+  geom_histogram(show.legend = FALSE) +
+  xlab('Recorded Property Damage | Property Damage > 0') +
+  ggtitle('Property Damage from UK Terror Attacks, 1970-2016') +
+  annotate('text', x = 2.5*10^9, y = 20, label = '1992 Manchester \n Bombing', colour = 'red') +
+  annotate('text', x = 1.2*10^9, y = 15, label = '1996 Manchester Bombing', colour = 'red') +
+  theme_minimal()
+
+histogram.terror.intensity <- ggplot(terror.data, aes(log(terror.intensity), fill = cut(log(terror.intensity), 1000))) +
+  geom_histogram(show.legend = FALSE) +
+  ggtitle('Log(Terror Intensity) from 1983-2016 in the UK') +
+  theme_minimal()
+
+## Scatter Graphs ##
+scatter.fatalities.over.time <- ggplot(terror.data, aes(Date, nkill, colour = cut(nkill, 10000))) +
+  geom_point(size = 1, show.legend = FALSE, aes(size = terror.intensity)) +
+  xlab('Year of Attack') +
+  ylab('Number of Fatalities') +
+  ggtitle('Deaths Attributed to Terror in the UK, 1970-2016') +
+  theme_minimal()
+
+scatter.log.fatalities.over.time <- ggplot(terror.data, aes(Date, nkill, colour = cut(nkill, 10000))) +
+  geom_point( aes(size = terror.intensity), show.legend = FALSE) +
+  scale_y_log10() +
+  xlab('Year of Attack') +
+  ylab('Number of Fatalities, \n logarithmic scale') +
+  ggtitle('Deaths Attributed to Terror in the UK, 1970-2016') + 
+  geom_vline(aes(xintercept = as.Date('1998-01-01')), linetype = 'longdash', colour = 'green', size = 1) +
+  annotate('text', x = as.Date('2000-01-01'), y = 5, label = 'End of The Troubles', angle = 270) +
+  theme_minimal()
+
+scatter.wounded.over.time <- ggplot(terror.data, aes(Date, nwound, Terror.intensity,  colour = cut(nwound, 100))) +
+  geom_point(show.legend = FALSE, aes(size = terror.intensity)) +
+  ylab('Number of wounded') +
+  xlab('Year of Attack') +
+  ggtitle('Injuries Attributed to Terror in the UK, 1970-2016') + 
+  theme_minimal()
+
+scatter.log.wounded.over.time <- ggplot(terror.data, aes(Date, log(nwound), colour = cut(nwound, 100))) +
+  geom_point(show.legend = FALSE, aes(size = terror.intensity)) +
+  ylab('Log Number of wounded') +
+  xlab('Year of Attack') +
+  ggtitle('Injuries Attributed to Terror in the UK, 1970-2016') + 
+  geom_vline(aes(xintercept = as.Date('1998-01-01')), linetype = 'longdash', colour = 'green', size = 1) +
+  annotate('text', x = as.Date('2000-01-01'), y = 5, label = 'End of The Troubles', angle = 270) +
+  theme_minimal()
+
+scatter.terror.intensity.over.time <- ggplot(terror.data, aes(Date, terror.intensity, colour = cut(terror.intensity, 100))) +
+  geom_point(show.legend = FALSE) +
+  ylab('Terror Intensity') +
+  xlab('Year of Attack') +
+  ggtitle('Terror Intensity, UK 1970-2016') + 
+  theme_minimal()
+
+scatter.log.terror.intensity.over.time <- ggplot(terror.data, aes(as.Date(Date), log(terror.intensity), colour = cut(log(terror.intensity), 100))) +
+  geom_point(show.legend = FALSE) +
+  ylab('Log Terror Intensity') +
+  xlab('Year of Attack') +
+  ggtitle('Terror Intensity, UK 1970-2016') +
+  geom_vline(aes(xintercept = as.Date('1998-01-01')), linetype = 'longdash', colour = 'green', size = 1) +
+  annotate('text', x = as.Date('2000-01-01'), y = 5, label = 'End of The Troubles', angle = 270) +
+  theme_minimal()
+
+
+
+#### Top 5 Events Graphics ####
+
+lockerbie.plot <- ggplot(lockerbie.bombing.event.study, aes(time.delta, event.car)) +
+  geom_line(size = 2, colour = 'pink') +
+  geom_line(aes(time.delta, event.car + event.confidence.interval), linetype = 'longdash', alpha = 0.3) +
+  geom_line(aes(time.delta, event.car - event.confidence.interval), linetype = 'longdash', alpha = 0.3) +
+  geom_hline(aes(yintercept = 0), linetype = 'longdash', size = 1, colour = 'red', alpha = 0.4) +
+  xlab('Days Since Attack') +
+  ylab('Cumulate Abnormal Returns (%)')+
+  ggtitle('Lockerbie Bombing, Cumulative Abnormal Returns', subtitle = 'FTSE ALL SHARE Price Index, log differenced - 21 December 1988') +
+  ylim(-3, 4) +
+  theme_minimal()
+
+london.7.7.plot <-ggplot(london.7.7.bombing.event.study, aes(time.delta, event.car)) +
+  geom_line(size = 2, colour = 'pink') +
+  geom_line(aes(time.delta, event.car + event.confidence.interval), linetype = 'longdash', alpha = 0.3) +
+  geom_line(aes(time.delta, event.car - event.confidence.interval), linetype = 'longdash', alpha = 0.3) +
+  geom_hline(aes(yintercept = 0), linetype = 'longdash', size = 1, colour = 'red', alpha = 0.4) +
+  xlab('Days Since Attack') +
+  ylab('Cumulate Abnormal Returns (%)')+
+  ggtitle('London 7/7 Bombings, Cumulative Abnormal Returns', subtitle = 'FTSE ALL SHARE Price Index, log differenced - 7 July 2005') +
+  ylim(-3, 3.5) +
+  theme_minimal() 
+
+omagh.plot <- ggplot(omagh.bombing.event.study, aes(time.delta, event.car)) +
+  geom_line(size = 2, colour = 'pink') +
+  geom_line(aes(time.delta, event.car + event.confidence.interval), linetype = 'longdash', alpha = 0.3) +
+  geom_line(aes(time.delta, event.car - event.confidence.interval), linetype = 'longdash', alpha = 0.3) +
+  geom_hline(aes(yintercept = 0), linetype = 'longdash', size = 1, colour = 'red', alpha = 0.4) +
+  xlab('Days Since Attack') +
+  ylab('Cumulate Abnormal Returns (%)')+
+  ggtitle('Omagh Bombing, Cumulative Abnormal Returns', subtitle = 'FTSE ALL SHARE Price Index, log differenced - 15 August 1998') +
+  theme_minimal()
+
+manchester.plot <- ggplot(manchester.bombing.1996.event.study, aes(time.delta, event.car)) +
+  geom_line(size = 2, colour = 'pink') +
+  geom_line(aes(time.delta, event.car + event.confidence.interval), linetype = 'longdash', alpha = 0.3) +
+  geom_line(aes(time.delta, event.car - event.confidence.interval), linetype = 'longdash', alpha = 0.3) +
+  geom_hline(aes(yintercept = 0), linetype = 'longdash', size = 1, colour = 'red', alpha = 0.4) +
+  xlab('Days Since Attack') +
+  ylab('Cumulate Abnormal Returns (%)')+
+  ggtitle('1996 Manchester Bombing, Cumulative Abnormal Returns', subtitle = 'FTSE ALL SHARE Price Index, log differenced - 15 June 1996') +
+  ylim(-3, 3) +
+  theme_minimal()
+
+droppin.well.plot <- ggplot(droppin.well.bombing.event.study, aes(time.delta, event.car)) +
+  geom_line(size = 2, colour = 'pink') +
+  geom_line(aes(time.delta, event.car + event.confidence.interval), linetype = 'longdash', alpha = 0.3) +
+  geom_line(aes(time.delta, event.car - event.confidence.interval), linetype = 'longdash', alpha = 0.3) +
+  geom_hline(aes(yintercept = 0), linetype = 'longdash', size = 1, colour = 'red', alpha = 0.4) +
+  xlab('Days Since Attack') +
+  ylab('Cumulate Abnormal Returns (%)')+
+  ggtitle('Droppin Well Disco Bombing, Cumulative Abnormal Returns', subtitle = 'FTSE ALL SHARE Price Index, log differenced - 6 December 1982') +
+  ylim(-5, 3) +
+  theme_minimal()
+
+# lockerbie.plot
+# london.7.7.plot
+# omagh.plot
+# manchester.plot
+# droppin.well.plot
