@@ -280,8 +280,19 @@ decade.event.study <- function(index, event, car.length){
 
 }
 
-CAR.11.80s <- decade.event.study(zoo.NA.list[[1]], event.dates.list[[1]], car.length = 11)
 
+
+
+CAR.11.80s.2 <- decade.2.event.study(zoo.NA.list[[1]],
+                                     event.dates.list[[1]],
+                                     car.length = 11)
+
+
+
+
+CAR.11.80s <- decade.event.study(zoo.NA.list[[1]], event.dates.list[[1]], car.length = 11)
+CAR.11.80s.2[[2]]
+CAR.11.80s
 
 CAR.11.90s <- decade.event.study(zoo.NA.list[[2]], event.dates.list[[2]], car.length = 11)
 
@@ -528,7 +539,7 @@ attack.time.delta <- function(es.object){
   return(return.df)
 }
 
-# lockerbie.bombing.es <- attack.time.delta(lockerbie.bombing.es)
+lockerbie.bombing.es <- attack.time.delta(lockerbie.bombing.es)
 # ggplot(lockerbie.bombing.es, aes(Date, event.car, event.ar)) +
 #   geom_smooth(size = 2, colour = 'red', se = F) +
 #   geom_smooth(aes(Date, event.car + CI.width), linetype = 'longdash', se= F) +
@@ -651,3 +662,15 @@ es.test <- ES(index = zoo.NA.list[[1]],
               car.length = 11
               )
 es.test
+
+es.full.test <- Full.ES(zoo.NA.list[[1]],
+                        events = event.dates.list[[1]],
+                        n = 1,
+                        car.length = 10)
+es.full.test
+
+lockerbie.bombing.es
+london.7.7.bombings.es
+omagh.bombing.es
+manchester.bombing.1996.es
+droppin.well.bombing.es
