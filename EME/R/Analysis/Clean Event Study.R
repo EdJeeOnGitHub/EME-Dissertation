@@ -15,6 +15,7 @@ library(tibble) # Data manipulation
 library(ggplot2) # Plotting graphics
 library(ggthemes) # Some extra themes for plotting
 library(eventstudies) # Package useful for calculating CAARs
+library(knitr) # Presentations
 ##### Index Data Cleaning #####
 
 # Reading in file, using projroot library so only relative path needed
@@ -607,6 +608,8 @@ all.CAR.10.day.ALLSHARE <- calculate.CI.rolling.CAAR(all.CAR.10.day.ALLSHARE)
 
 ## Histograms ##
 
+
+## @knitr histogram.wounded.small
 histogram.wounded.small <- ggplot(terror.data[(terror.data$nwound > 0), ], aes(nwound, fill = cut(nwound, 100))) +
   geom_histogram(show.legend = FALSE) +
   xlim(0, 100) +
@@ -614,18 +617,21 @@ histogram.wounded.small <- ggplot(terror.data[(terror.data$nwound > 0), ], aes(n
   ggtitle('Number of wounded from UK Terror Attacks, 1970-2016', subtitle = 'xlim(0, 100)') +
   theme_minimal()
 
+## @knitr histogram.wounded.large
 histogram.wounded.large <- ggplot(terror.data[(terror.data$nwound > 0), ], aes(nwound, fill = cut(nwound, 100))) +
   geom_histogram(show.legend = FALSE, binwidth = 5) +
   xlab('Number of wounded | at least one person is wounded') +
   ggtitle('Number of wounded from UK Terror Attacks, 1970-2016') +
   theme_minimal()
 
+## @knitr histogram.killed.at.least.1
 histogram.killed.at.least.1 <- ggplot(terror.data[(terror.data$nkill > 0), ], aes(nkill, fill = cut(nkill, 100))) +
   geom_histogram(show.legend = FALSE, binwidth = 5) +
   xlab('Number of fatalities | at least one person is killed') +
   ggtitle('Number of fatalities from UK Terror Attacks, 1970-2016') +
   theme_minimal()
 
+## @knitr histogram.killed
 histogram.killed <- ggplot(terror.data, aes(nkill, fill = cut(nkill, 100))) +
   geom_histogram(show.legend = FALSE, binwidth = 5) +
   xlab('Number of fatalities') +
@@ -633,6 +639,7 @@ histogram.killed <- ggplot(terror.data, aes(nkill, fill = cut(nkill, 100))) +
   ggtitle('Number of fatalities from UK Terror Attacks, 1970-2016') +
   theme_minimal()
 
+## @knitr histogram.prop.damage.at.least.1
 histogram.prop.damage.at.least.1 <- ggplot(terror.data[(terror.data$propvalue > 0), ], aes(propvalue)) +
   geom_histogram(show.legend = FALSE) +
   xlab('Recorded Property Damage | Property Damage > 0') +
@@ -641,12 +648,15 @@ histogram.prop.damage.at.least.1 <- ggplot(terror.data[(terror.data$propvalue > 
   annotate('text', x = 1.2*10^9, y = 15, label = '1996 Manchester Bombing', colour = 'red') +
   theme_minimal()
 
+## @knitr histogram.terror.intensity
 histogram.terror.intensity <- ggplot(terror.data, aes(log(terror.intensity), fill = cut(log(terror.intensity), 1000))) +
   geom_histogram(show.legend = FALSE) +
   ggtitle('Log(Terror Intensity) from 1983-2016 in the UK') +
   theme_minimal()
 
 ## Scatter Graphs ##
+
+## @knitr scatter.fatalities.over.time
 scatter.fatalities.over.time <- ggplot(terror.data, aes(Date, nkill, colour = cut(nkill, 10000))) +
   geom_point(size = 1, show.legend = FALSE, aes(size = terror.intensity)) +
   xlab('Year of Attack') +
@@ -654,6 +664,7 @@ scatter.fatalities.over.time <- ggplot(terror.data, aes(Date, nkill, colour = cu
   ggtitle('Deaths Attributed to Terror in the UK, 1970-2016') +
   theme_minimal()
 
+## @knitr scatter.log.fatalities.over.time
 scatter.log.fatalities.over.time <- ggplot(terror.data, aes(Date, nkill, colour = cut(nkill, 10000))) +
   geom_point( aes(size = terror.intensity), show.legend = FALSE) +
   scale_y_log10() +
@@ -664,6 +675,7 @@ scatter.log.fatalities.over.time <- ggplot(terror.data, aes(Date, nkill, colour 
   annotate('text', x = as.Date('2000-01-01'), y = 5, label = 'End of The Troubles', angle = 270) +
   theme_minimal()
 
+## @knitr scatter.wounded.over.time
 scatter.wounded.over.time <- ggplot(terror.data, aes(Date, nwound, Terror.intensity,  colour = cut(nwound, 100))) +
   geom_point(show.legend = FALSE, aes(size = terror.intensity)) +
   ylab('Number of wounded') +
@@ -671,6 +683,7 @@ scatter.wounded.over.time <- ggplot(terror.data, aes(Date, nwound, Terror.intens
   ggtitle('Injuries Attributed to Terror in the UK, 1970-2016') + 
   theme_minimal()
 
+## @knitr scatter.log.wounded.over.time
 scatter.log.wounded.over.time <- ggplot(terror.data, aes(Date, log(nwound), colour = cut(nwound, 100))) +
   geom_point(show.legend = FALSE, aes(size = terror.intensity)) +
   ylab('Log Number of wounded') +
@@ -680,6 +693,7 @@ scatter.log.wounded.over.time <- ggplot(terror.data, aes(Date, log(nwound), colo
   annotate('text', x = as.Date('2000-01-01'), y = 5, label = 'End of The Troubles', angle = 270) +
   theme_minimal()
 
+## @knitr scatter.terror.intensity.over.time
 scatter.terror.intensity.over.time <- ggplot(terror.data, aes(Date, terror.intensity, colour = cut(terror.intensity, 100))) +
   geom_point(show.legend = FALSE) +
   ylab('Terror Intensity') +
@@ -687,6 +701,7 @@ scatter.terror.intensity.over.time <- ggplot(terror.data, aes(Date, terror.inten
   ggtitle('Terror Intensity, UK 1970-2016') + 
   theme_minimal()
 
+## @knitr scatter.log.terror.intensity.over.time
 scatter.log.terror.intensity.over.time <- ggplot(terror.data, aes(as.Date(Date), log(terror.intensity), colour = cut(log(terror.intensity), 100))) +
   geom_point(show.legend = FALSE) +
   ylab('Log Terror Intensity') +
@@ -700,6 +715,7 @@ scatter.log.terror.intensity.over.time <- ggplot(terror.data, aes(as.Date(Date),
 
 #### Largest Events Graphics ####
 
+## @knitr lockerbie.plot
 lockerbie.plot <- ggplot(lockerbie.bombing.event.study, aes(time.delta, event.car)) +
   geom_line(size = 2, colour = 'pink') +
   geom_line(aes(time.delta, event.car + event.confidence.interval), linetype = 'longdash', alpha = 0.3) +
@@ -711,6 +727,7 @@ lockerbie.plot <- ggplot(lockerbie.bombing.event.study, aes(time.delta, event.ca
   ylim(-3, 4) +
   theme_minimal()
 
+## @knitr london.7.7.plot
 london.7.7.plot <-ggplot(london.7.7.bombing.event.study, aes(time.delta, event.car)) +
   geom_line(size = 2, colour = 'pink') +
   geom_line(aes(time.delta, event.car + event.confidence.interval), linetype = 'longdash', alpha = 0.3) +
@@ -722,6 +739,7 @@ london.7.7.plot <-ggplot(london.7.7.bombing.event.study, aes(time.delta, event.c
   ylim(-3, 3.5) +
   theme_minimal() 
 
+## @knitr omagh.plot
 omagh.plot <- ggplot(omagh.bombing.event.study, aes(time.delta, event.car)) +
   geom_line(size = 2, colour = 'pink') +
   geom_line(aes(time.delta, event.car + event.confidence.interval), linetype = 'longdash', alpha = 0.3) +
@@ -732,6 +750,7 @@ omagh.plot <- ggplot(omagh.bombing.event.study, aes(time.delta, event.car)) +
   ggtitle('Omagh Bombing, Cumulative Abnormal Returns', subtitle = 'FTSE ALL SHARE Price Index, log differenced - 15 August 1998') +
   theme_minimal()
 
+## @knitr manchester.plot
 manchester.plot <- ggplot(manchester.bombing.1996.event.study, aes(time.delta, event.car)) +
   geom_line(size = 2, colour = 'pink') +
   geom_line(aes(time.delta, event.car + event.confidence.interval), linetype = 'longdash', alpha = 0.3) +
@@ -743,6 +762,7 @@ manchester.plot <- ggplot(manchester.bombing.1996.event.study, aes(time.delta, e
   ylim(-3, 3) +
   theme_minimal()
 
+## @knitr droppin.well.plot
 droppin.well.plot <- ggplot(droppin.well.bombing.event.study, aes(time.delta, event.car)) +
   geom_line(size = 2, colour = 'pink') +
   geom_line(aes(time.delta, event.car + event.confidence.interval), linetype = 'longdash', alpha = 0.3) +
@@ -760,14 +780,19 @@ droppin.well.plot <- ggplot(droppin.well.bombing.event.study, aes(time.delta, ev
 # manchester.plot
 # droppin.well.plot
 
+
+## @knitr rolling.CAAR.plot
 # Now graphing rolling CAAR
 rolling.CAAR.plot <- ggplot(all.CAR.10.day.ALLSHARE, aes(n, rolling.CAAR))+
-  geom_point() +
+  geom_point(shape = 16, size = 1, colour = "#fdafee", show.legend = FALSE) +
   geom_line(aes(n, rolling.CAAR - rolling.ci), alpha = 0.3, linetype = 'longdash') +
   geom_line(aes(n, rolling.CAAR + rolling.ci), alpha = 0.3, linetype = 'longdash') +
-  ylim(-10, 10) +
+  ylim(-5, 5) +
+  xlab('Largest N attacks') +
+  ylab('Rolling Cumulative Average Abnormal Return (%)') +
+  ggtitle('Rolling mean of Cumulative Abnormal Return', subtitle = 'UK Terror Attacks with FTSE ALLSHARE data, 1980-2016') +
   theme_minimal()
-rolling.CAAR.plot
+
 #### Decade Graphics ####
 
 
@@ -775,7 +800,7 @@ rolling.CAAR.plot
 decade.event.study.CAR10$market.date <- factor(decade.event.study.CAR10$market.date)
 decade.event.study.CAR10$market.date <- factor(decade.event.study.CAR10$market.date,
                                         levels = decade.event.study.CAR10$market.date[order(-decade.event.study.CAR10$event.car)])
-
+## @knitr bar.chart.decade.event.study.by.CAR
 bar.chart.decade.event.study.by.CAR <- ggplot(decade.event.study.CAR10, aes(market.date, event.car, event.p.value, alpha = -event.p.value)) +
   geom_col(fill = 'red') +
   coord_flip() +
@@ -792,7 +817,7 @@ bar.chart.decade.event.study.by.CAR <- ggplot(decade.event.study.CAR10, aes(mark
 decade.event.study.CAR10$market.date <- factor(decade.event.study.CAR10$market.date)
 decade.event.study.CAR10$market.date <- factor(decade.event.study.CAR10$market.date,
                                                levels = decade.event.study.CAR10$market.date[order(decade.event.study.CAR10$Date)])
-
+## @knitr bar.chart.decade.event.study.by.time
 bar.chart.decade.event.study.by.time <- ggplot(decade.event.study.CAR10, aes(market.date, event.car, event.p.value, alpha = -event.p.value)) +
   geom_col(fill = 'red') +
   ylab('10 Day Cumulative Abnormal Return') +
