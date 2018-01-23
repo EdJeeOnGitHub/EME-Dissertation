@@ -146,7 +146,7 @@ removal.list.index <- c('root',
                  'path.index',
                  'index.data.UK.decade.list',
                  'removal.list.index',
-                 'index.data.UK.ALLSHARE',
+                 # 'index.data.UK.ALLSHARE',
                  'index.zoo.UK.decade.list.ALLSHARE',
                  'eventstudies.index.ALLSHARE',
                  'eventstudies.index.UK.FTSE100')
@@ -609,7 +609,6 @@ all.CAR.10.day.ALLSHARE <- calculate.CI.rolling.CAAR(all.CAR.10.day.ALLSHARE)
 ## Histograms ##
 
 
-## @knitr histogram.wounded.small
 histogram.wounded.small <- ggplot(terror.data[(terror.data$nwound > 0), ], aes(nwound, fill = cut(nwound, 100))) +
   geom_histogram(show.legend = FALSE) +
   xlim(0, 100) +
@@ -617,21 +616,18 @@ histogram.wounded.small <- ggplot(terror.data[(terror.data$nwound > 0), ], aes(n
   ggtitle('Number of wounded from UK Terror Attacks, 1970-2016', subtitle = 'xlim(0, 100)') +
   theme_minimal()
 
-## @knitr histogram.wounded.large
 histogram.wounded.large <- ggplot(terror.data[(terror.data$nwound > 0), ], aes(nwound, fill = cut(nwound, 100))) +
   geom_histogram(show.legend = FALSE, binwidth = 5) +
   xlab('Number of wounded | at least one person is wounded') +
   ggtitle('Number of wounded from UK Terror Attacks, 1970-2016') +
   theme_minimal()
 
-## @knitr histogram.killed.at.least.1
 histogram.killed.at.least.1 <- ggplot(terror.data[(terror.data$nkill > 0), ], aes(nkill, fill = cut(nkill, 100))) +
   geom_histogram(show.legend = FALSE, binwidth = 5) +
   xlab('Number of fatalities | at least one person is killed') +
   ggtitle('Number of fatalities from UK Terror Attacks, 1970-2016') +
   theme_minimal()
 
-## @knitr histogram.killed
 histogram.killed <- ggplot(terror.data, aes(nkill, fill = cut(nkill, 100))) +
   geom_histogram(show.legend = FALSE, binwidth = 5) +
   xlab('Number of fatalities') +
@@ -639,7 +635,6 @@ histogram.killed <- ggplot(terror.data, aes(nkill, fill = cut(nkill, 100))) +
   ggtitle('Number of fatalities from UK Terror Attacks, 1970-2016') +
   theme_minimal()
 
-## @knitr histogram.prop.damage.at.least.1
 histogram.prop.damage.at.least.1 <- ggplot(terror.data[(terror.data$propvalue > 0), ], aes(propvalue)) +
   geom_histogram(show.legend = FALSE) +
   xlab('Recorded Property Damage | Property Damage > 0') +
@@ -648,15 +643,26 @@ histogram.prop.damage.at.least.1 <- ggplot(terror.data[(terror.data$propvalue > 
   annotate('text', x = 1.2*10^9, y = 15, label = '1996 Manchester Bombing', colour = 'red') +
   theme_minimal()
 
-## @knitr histogram.terror.intensity
 histogram.terror.intensity <- ggplot(terror.data, aes(log(terror.intensity), fill = cut(log(terror.intensity), 1000))) +
   geom_histogram(show.legend = FALSE) +
   ggtitle('Log(Terror Intensity) from 1983-2016 in the UK') +
   theme_minimal()
 
+
+bar.5.largest.events <- ggplot(events.top5, aes(event.name, terror.intensity)) +
+  geom_col(aes(event.name, terror.intensity, fill = -terror.intensity), show.legend = FALSE) +
+  xlab('Event') +
+  ylab('Terror Intensity') +
+  ggtitle('Terror Intensity, \nTop 5 Events') +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.ticks.y = element_blank()) 
+
+
 ## Scatter Graphs ##
 
-## @knitr scatter.fatalities.over.time
 scatter.fatalities.over.time <- ggplot(terror.data, aes(Date, nkill, colour = cut(nkill, 10000))) +
   geom_point(size = 1, show.legend = FALSE, aes(size = terror.intensity)) +
   xlab('Year of Attack') +
@@ -664,7 +670,6 @@ scatter.fatalities.over.time <- ggplot(terror.data, aes(Date, nkill, colour = cu
   ggtitle('Deaths Attributed to Terror in the UK, 1970-2016') +
   theme_minimal()
 
-## @knitr scatter.log.fatalities.over.time
 scatter.log.fatalities.over.time <- ggplot(terror.data, aes(Date, nkill, colour = cut(nkill, 10000))) +
   geom_point( aes(size = terror.intensity), show.legend = FALSE) +
   scale_y_log10() +
@@ -675,7 +680,6 @@ scatter.log.fatalities.over.time <- ggplot(terror.data, aes(Date, nkill, colour 
   annotate('text', x = as.Date('2000-01-01'), y = 5, label = 'End of The Troubles', angle = 270) +
   theme_minimal()
 
-## @knitr scatter.wounded.over.time
 scatter.wounded.over.time <- ggplot(terror.data, aes(Date, nwound, Terror.intensity,  colour = cut(nwound, 100))) +
   geom_point(show.legend = FALSE, aes(size = terror.intensity)) +
   ylab('Number of wounded') +
@@ -683,7 +687,6 @@ scatter.wounded.over.time <- ggplot(terror.data, aes(Date, nwound, Terror.intens
   ggtitle('Injuries Attributed to Terror in the UK, 1970-2016') + 
   theme_minimal()
 
-## @knitr scatter.log.wounded.over.time
 scatter.log.wounded.over.time <- ggplot(terror.data, aes(Date, log(nwound), colour = cut(nwound, 100))) +
   geom_point(show.legend = FALSE, aes(size = terror.intensity)) +
   ylab('Log Number of wounded') +
@@ -693,7 +696,6 @@ scatter.log.wounded.over.time <- ggplot(terror.data, aes(Date, log(nwound), colo
   annotate('text', x = as.Date('2000-01-01'), y = 5, label = 'End of The Troubles', angle = 270) +
   theme_minimal()
 
-## @knitr scatter.terror.intensity.over.time
 scatter.terror.intensity.over.time <- ggplot(terror.data, aes(Date, terror.intensity, colour = cut(terror.intensity, 100))) +
   geom_point(show.legend = FALSE) +
   ylab('Terror Intensity') +
@@ -701,7 +703,6 @@ scatter.terror.intensity.over.time <- ggplot(terror.data, aes(Date, terror.inten
   ggtitle('Terror Intensity, UK 1970-2016') + 
   theme_minimal()
 
-## @knitr scatter.log.terror.intensity.over.time
 scatter.log.terror.intensity.over.time <- ggplot(terror.data, aes(as.Date(Date), log(terror.intensity), colour = cut(log(terror.intensity), 100))) +
   geom_point(show.legend = FALSE) +
   ylab('Log Terror Intensity') +
@@ -710,6 +711,19 @@ scatter.log.terror.intensity.over.time <- ggplot(terror.data, aes(as.Date(Date),
   geom_vline(aes(xintercept = as.Date('1998-01-01')), linetype = 'longdash', colour = 'green', size = 1) +
   annotate('text', x = as.Date('2000-01-01'), y = 5, label = 'End of The Troubles', angle = 270) +
   theme_minimal()
+
+## Index Returns Plots
+
+line.ALLSHARE.time <- ggplot(na.omit(index.data.UK.ALLSHARE), aes(Date, FTSE.ALL.SHARE...PRICE.INDEX)) +
+  geom_line() +
+  geom_vline(data = events.top5, aes(xintercept = Date), linetype = 'dotted') +
+  ylab('FTSE All-Share Price') +
+  xlab('Time') +
+  ggtitle('FTSE All-Share Price', subtitle = 'Five largest terror attacks shown') +
+  theme_minimal()
+
+
+
 
 
 
@@ -790,7 +804,7 @@ rolling.CAAR.plot <- ggplot(all.CAR.10.day.ALLSHARE, aes(n, rolling.CAAR))+
   ylim(-5, 5) +
   xlab('Largest N attacks') +
   ylab('Rolling Cumulative Average Abnormal Return (%)') +
-  ggtitle('Rolling mean of Cumulative Abnormal Return', subtitle = 'UK Terror Attacks with FTSE ALLSHARE data, 1980-2016') +
+  ggtitle('Rolling mean of Cumulative Abnormal Returns', subtitle = 'UK Terror Attacks with FTSE ALLSHARE data, 1980-2016') +
   theme_minimal()
 
 #### Decade Graphics ####
