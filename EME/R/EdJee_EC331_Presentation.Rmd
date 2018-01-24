@@ -1,0 +1,198 @@
+---
+title: "EC331 Presentation"
+subtitle: 'Estimating the Costs of Terror'
+author: "Ed Jee"
+date: "January 24, 2018"
+output:
+   beamer_presentation:
+    theme: "Boadilla"
+    colortheme: "dolphin"
+    fonttheme: "structurebold"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+```{r running.script, echo=FALSE, results='hide', warning=FALSE, message=FALSE, cache=FALSE}
+library(stargazer)
+library(rprojroot)
+root <- has_file(".git/index")
+root.file <- root$make_fix_file()
+path <- root.file('EME' , 'R' , 'Analysis' ,'Clean Event Study.R')
+source(path)
+
+```
+## Introduction
+
+* Research aims to estimate the economic impact/cost of terrorism.
+    + Currently only looking at the UK from 1970-2016.
+* Using asset market responses as a proxy for economic costs.
+    + Clear issues with this approach but offers best identification of terror response.
+* Results so far suggest that only events at the tail of the terror distribution move markets significantly.
+
+## The Big Picture - Why does this matter?
+
+* Modern macro models often struggle to explain equity premium puzzle.
+* Barro (2006) argues that incorporating rare disaster 'black swan' risk can solve this.
+* Previous literature either treats disasters as endogenous e.g. measuring a disaster as >10% fall in GDP or uses warfare as a proxy for disaster.
+* The UK has been involved with a handful of conflicts since 1980 but subjected to `r nrow(terror.data)` terror attacks.
+* An estimate of the cost and distribution of terror attacks would let us test the hypothesis that terror attacks can help explain this puzzle.
+
+## Methodology
+* Event Study
+
+    + Calculating Cumulative Abnormal Returns and then taking an average across events to get a Cumulative Average Abnormal Return.
+    
+* Non-parametric approach
+    + Kernel regression on index returns to produce an empirical distribution of returns, compare post terror event returns to non-parametric conditional distribution to determine whether events can be labeled extreme.
+    
+## Event Study
+```{r method.figure, message=FALSE, echo=FALSE, results='markup'}
+#path.figure <- root.file('EME', 'R', 'plots', 'Event Study Method Figure.png')
+
+```
+
+![](C:/Users/ed/Documents/R Working Directory/Dissertation/EME/R/plots/Event Study Method Figure.png)
+
+* Formulae for cumulative abnormal returns:
+    + $AR_{i,\tau}=R_{i,\tau}-E[R_{i,\tau}\vert\Omega_{i,\tau}]$
+    + $CAR_{i(\tau_{1},\tau_{2})}=\sum_{t=\tau_{1}}^{\tau_{2}} AR_{i,t}$
+* And then taking an average: $CAAR_{(\tau_{1},\tau_{2})}=\frac{1}N \sum_{i=1}^{N} CAR_{i(\tau_{1},\tau_{2})}$ 
+
+* There's a range of different ways of specifying $E[R_{i,\tau}\vert\Omega_{i,\tau}]$
+* But for index data can only use constant mean return model.
+
+
+
+## Terror Data
+
+* Using terror data from the Global Terrorism Database compiled by the National Consortium for the Study of Terrorism and Responses to Terrorism (START) at the University of Maryland.
+    + Includes a range of variables such as wounded, killed, property damage, target, perpetrator group, ideology and weapon used.
+    + All data from 1993 is missing - potentially quite problematic as 1993 Bishopsgate Bombing is one of the largest terror events ever on UK soil.
+    + Since 1970 there have been `r nrow(terror.data)` events classed as terrorism by the GTD.
+    + On average that implies an attack occurs every 6 days.
+* Only two data transformations:
+    + Terror attacks occurring on weekends (i.e. non-market days) moved to following Monday.
+    + Construction of a terrorism intensity variable similar to Global Terrorism Index approach.
+
+
+## Index Data
+
+* Index data comes from Thomson Reuters' Datastream and is collected at the daily level.
+    + UK indices include:
+        + FTSE ALLSHARE, `r NROW(index.zoo.UK.ALLSHARE.omitted)` market day observations.
+        + FTSE 100 (from 1983 onwards).
+        + FT 30 (predecessor to the FTSE).
+        + MSCI UK.
+        + GBP:USD forex data.
+
+
+## Summary Statistics I
+```{r summ.plot1, echo = FALSE}
+plot(histogram.wounded.small)
+```
+
+## Summary Statistics II
+```{r summ.plot2}
+plot(histogram.wounded.large)
+```
+
+## Summary Statistics III
+```{r summ.plot3}
+plot(histogram.killed.at.least.1)
+```
+
+## Summary Statistics IV
+```{r summ.plot4}
+plot(histogram.killed)
+```
+
+
+## Summary Statistics V
+```{r summ.plot5}
+plot(histogram.terror.intensity)
+```
+
+## Terror Trends Over Time I
+```{r summ.plot6}
+plot(scatter.wounded.over.time)
+```
+
+## Terror Trends Over Time II
+```{r summ.plot7}
+plot(scatter.log.wounded.over.time)
+```
+
+## Index Returns and Terror Attacks
+```{r}
+plot(line.ALLSHARE.time)
+```
+
+## Terror Attacks
+```{r, results= 'asis'}
+events.top5.df <- data.frame(events.top5)
+keep <- c('Date', 'nkill', 'nwound', 'propvalue', 'terror.intensity', 'event.name')
+events.top5.df <- events.top5.df[keep]
+# stargazer(events.top5.df, header=FALSE, summary = FALSE, type = 'latex')
+kable(events.top5.df)
+
+```
+
+
+## Terror Intensity
+```{r}
+plot(bar.5.largest.events)
+```
+
+
+## Results I - Lockerbie Bombing
+
+```{r result.plot1}
+plot(lockerbie.plot)
+```
+
+## Results II - 7/7 London
+```{r result.plot2}
+plot(london.7.7.plot)
+```
+
+## Results III - Omagh Bombing
+```{r}
+plot(omagh.plot)
+```
+
+## Results IV - 1996 Manchester Bombing
+```{r}
+plot(manchester.plot)
+```
+
+## Results V - Droppin Well Disco Bombing
+```{r}
+plot(droppin.well.plot)
+```
+
+## Results VI - Cumulative Average Abnormal Returns
+```{r}
+plot(rolling.CAAR.plot)
+```
+
+
+## Conclusion/To Do
+
+* Slicing data by industry rather than just looking at index data.
+* Other stock market indicators such as volatility.
+* Non-parametric approach and robustness/sensitivity checks.
+* Come up with a model to link asset responses to economic costs.
+    + Tobin's Q?
+    + Consumption Euler equation, linking real returns on an asset to stochastic discount factor?
+    + Lucas 'Tree' Asset Pricing model?
+  
+## Bibliography
+
+* Figure 1 on slide 5 from https://eventstudymetrics.com/index.php/event-study-methodology/
+* Barro (2006) refers to: Barro, Robert J. 2006. Rare disasters and asset markets in the
+twentieth century. The Quarter Journal of Economics 121, no. 3: 823-866.
+
+
+
+
