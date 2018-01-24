@@ -8,11 +8,9 @@ try(dev.off(), silent = TRUE)
 
 # Libraries
 library(rprojroot) # Allows use of relative instead of absolute paths when reading in files
-library(dplyr) # Data manipulation
+library(tidyverse) # Range of data manipulation packages
 library(zoo) # Time series manipulation
 library(readxl) # Reading in excel
-library(tibble) # Data manipulation
-library(ggplot2) # Plotting graphics
 library(ggthemes) # Some extra themes for plotting
 library(eventstudies) # Package useful for calculating CAARs
 library(knitr) # Presentations
