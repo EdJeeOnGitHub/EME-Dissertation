@@ -11,14 +11,11 @@ library(rprojroot) # Allows use of relative instead of absolute paths when readi
 library(tidyverse) # Range of data manipulation packages
 library(zoo) # Time series manipulation
 library(readxl) # Reading in excel
-<<<<<<< HEAD
-library(ggplot2) # Plotting graphics
-=======
->>>>>>> 26d42f64a51050d7181f6335226799d87b61ac75
 library(ggthemes) # Some extra themes for plotting
 library(eventstudies) # Package useful for calculating CAARs
 library(knitr) # Presentations
 library(np) # Non-parametric techniques
+library(KernSmooth)
 ##### Index Data Cleaning #####
 
 # Reading in file, using projroot library so only relative path needed
@@ -505,16 +502,18 @@ calculate.CI.rolling.CAAR <- function(all.events.CAR){
 calculate.event.day.return <- function(event.date, n, index){
   event.date <- event.date[[n, 'Date']]
   event.day.return <- index[event.date]
-  
+  event.day.return.L1 <- index[event.date - 1]
   
   # The usual weekend adjustment
   if (length(event.day.return) == 0){
     event.day.return <- index[event.date + 1]
+    event.day.return.L1 <- index[event.date]
     if (length(event.day.return) == 0){
       event.day.return <- index[event.date + 2]
+      event.day.return.L1 <- index[event.date + 1]
     }
   }
-  return.vector <- list(event.day.return, event.date)
+  return.vector <- list(event.day.return, event.day.return.L1, event.date)
   return(return.vector)
 }
 
@@ -523,7 +522,8 @@ calculate.event.day.return <- function(event.date, n, index){
 calculate.np.variables <- function(event.day.return.vector, index,  estimation.length = 200){
   
   event.day.return <- event.day.return.vector[[1]]
-  event.date <- event.day.return.vector[[2]]
+  event.day.return.L1 <- event.day.return.vector[[2]]
+  event.date <- event.day.return.vector[[3]]
   
   estimation.window <- find.estimation.window(index = index,
                                               events = event.date,
@@ -533,12 +533,11 @@ calculate.np.variables <- function(event.day.return.vector, index,  estimation.l
   estimation.window.returns <- coredata(estimation.window)
   index.df <- data.frame(estimation.window.returns)
   index.df$event.day.return <- event.day.return
-  index.df <- mutate(index.df, Y = as.numeric(estimation.window < event.day.return))
+  index.df$event.day.return.L1 <- event.day.return.L1
+  index.df <- mutate(index.df, Y = as.numeric(estimation.window > event.day.return))
   index.df$X <- coredata(lag(estimation.window, 1))
-  index.df$X.transformed <- index.df$X - index.df$event.day.return
+  index.df$X.transformed <- index.df$X - index.df$event.day.return.L1
   return(index.df)
-  
-  
 }
 
 
@@ -668,6 +667,12 @@ lockerbie.np.cdf <- npreg(bws = lockerbie.bw)
 
 plot(lockerbie.np.cdf)
 
+lockerbie.locpoly <- locpoly(x = na.omit(lockerbie.np.df$X.transformed),
+                             y = lockerbie.np.df$Y,
+                             bandwidth = 0.25)
+plot(lockerbie.locpoly)
+summary(lockerbie.locpoly)
+lines(lockerbie.locpoly)
 #### Summary Statistics Graphics ####
 
 ## Histograms ##
