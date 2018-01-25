@@ -11,11 +11,11 @@ library(rprojroot) # Allows use of relative instead of absolute paths when readi
 library(dplyr) # Data manipulation
 library(zoo) # Time series manipulation
 library(readxl) # Reading in excel
-library(tibble) # Data manipulation
 library(ggplot2) # Plotting graphics
 library(ggthemes) # Some extra themes for plotting
 library(eventstudies) # Package useful for calculating CAARs
 library(knitr) # Presentations
+library(np) # Non-parametric techniques
 ##### Index Data Cleaning #####
 
 # Reading in file, using projroot library so only relative path needed
@@ -409,7 +409,7 @@ perform.one.day.event.study <- function(index, events, n, car.length = 11, estim
                           event.p.value,
                           event.confidence.interval)
   return.df <- data.frame(return.zoo[car.length, ])
-  return.df <- rownames_to_column(return.df, 'Date')
+  return.df <- tibble::rownames_to_column(return.df, 'Date')
   return.df$Date <- as.Date(return.df$Date)
   return.df$stars <- gtools::stars.pval(return.df$event.p.value)
   return.df$market.date <- event.market.date
@@ -495,6 +495,47 @@ calculate.CI.rolling.CAAR <- function(all.events.CAR){
  # # all.events.CAR$rolling.sd <- sqrt(cumsum(all.events.CAR$temp.diff)/all.events.CAR$df)
  # # all.events.CAR$ci <- qt(0.975, df = df)*(all.events.CAR$rolling.sd/(sqrt(all.events.CAR$n)))
  return(all.events.CAR)                                         
+}
+
+
+## Functions used for non-parametric results
+calculate.event.day.return <- function(event.date, n, index){
+  event.date <- event.date[[n, 'Date']]
+  event.day.return <- index[event.date]
+  
+  
+  # The usual weekend adjustment
+  if (length(event.day.return) == 0){
+    event.day.return <- index[event.date + 1]
+    if (length(event.day.return) == 0){
+      event.day.return <- index[event.date + 2]
+    }
+  }
+  return.vector <- list(event.day.return, event.date)
+  return(return.vector)
+}
+
+# Now the indicator function
+
+calculate.np.variables <- function(event.day.return.vector, index,  estimation.length = 200){
+  
+  event.day.return <- event.day.return.vector[[1]]
+  event.date <- event.day.return.vector[[2]]
+  
+  estimation.window <- find.estimation.window(index = index,
+                                              events = event.date,
+                                              n = 1,
+                                              window.end = 0,
+                                              window.length = estimation.length)
+  estimation.window.returns <- coredata(estimation.window)
+  index.df <- data.frame(estimation.window.returns)
+  index.df$event.day.return <- event.day.return
+  index.df <- mutate(index.df, Y = as.numeric(estimation.window < event.day.return))
+  index.df$X <- coredata(lag(estimation.window, 1))
+  index.df$X.transformed <- index.df$X - index.df$event.day.return
+  return(index.df)
+  
+  
 }
 
 
@@ -603,6 +644,26 @@ all.CAR.10.day.ALLSHARE <- calculate.CI.rolling.CAAR(all.CAR.10.day.ALLSHARE)
 
 
 
+
+#### Non-parametric Results ####
+
+
+lockerbie.np.event.day.return <- calculate.event.day.return(event.date = events.top5,
+                                                            n = 1,
+                                                            index = index.zoo.UK.ALLSHARE.omitted)
+lockerbie.np.df <- calculate.np.variables(lockerbie.np.event.day.return,
+                                          index = index.zoo.UK.ALLSHARE.omitted,
+                                          estimation.length = 200)
+
+
+
+lockerbie.bw <- npregbw(lockerbie.np.df,
+                          formula = Y ~ X.transformed ,
+                          na.action = na.omit)
+
+lockerbie.np.cdf <- npreg(bws = lockerbie.bw)
+
+plot(lockerbie.np.cdf)
 
 #### Summary Statistics Graphics ####
 
