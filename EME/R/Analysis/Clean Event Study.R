@@ -540,8 +540,62 @@ calculate.np.variables <- function(event.day.return.vector, index,  estimation.l
   return(index.df)
 }
 
+calculate.np.probability <- function(loc.poly.object, event.day.return.vector, window){
+  event.day.return <- event.day.return.vector[[1]]
+  
+  loc.poly.df <- data.frame(loc.poly.object)
+  loc.poly.prob <- loc.poly.df[(loc.poly.df$x > (coredata(event.day.return) - window)), ]
+  loc.poly.prob <- loc.poly.prob[(loc.poly.prob$x < ( coredata(event.day.return) + window)), ]
+  return(loc.poly.prob)
+}
 
+perform.AR.conditional.probability <- function(event.date, n, index, cp.window, estimation.length = 200){
+  
+  event.day.return.vector <- calculate.event.day.return(event.date = event.date,
+                                                        n = n,
+                                                        index = index)
+  
+  event.np.df <- calculate.np.variables(event.day.return.vector = event.day.return.vector,
+                                        index = index,
+                                        estimation.length = estimation.length)
+  
 
+  
+  event.bandwidth <- dpill(x = event.np.df$X.transformed,
+                           y = event.np.df$Y)
+  
+  event.locpoly <- locpoly(x = na.omit(event.np.df$X.transformed),
+                           y = event.np.df$Y,
+                           bandwidth = event.bandwidth)
+  
+  event.cp <- calculate.np.probability(loc.poly.object = event.locpoly,
+                                      event.day.return.vector = event.day.return.vector,
+                                       window = cp.window)
+  
+  
+  return(event.cp)
+}
+
+perform.local.polynomial.regression <- function(event.date, n, index,  estimation.length = 200){
+  
+  event.day.return.vector <- calculate.event.day.return(event.date = event.date,
+                                                        n = n,
+                                                        index = index)
+  
+  event.np.df <- calculate.np.variables(event.day.return.vector = event.day.return.vector,
+                                        index = index,
+                                        estimation.length = estimation.length)
+  
+
+  
+  event.bandwidth <- dpill(x = event.np.df$X.transformed,
+                           y = event.np.df$Y)
+  
+  event.locpoly <- locpoly(x = na.omit(event.np.df$X.transformed),
+                           y = event.np.df$Y,
+                           bandwidth = event.bandwidth)
+  return(event.locpoly)
+}
 #### Decade Results ####
 
 # CAR10
@@ -648,10 +702,6 @@ all.CAR.10.day.ALLSHARE <- calculate.CI.rolling.CAAR(all.CAR.10.day.ALLSHARE)
 
 
 #### Non-parametric Results ####
-
-
-
-## Using kern smooth
 lockerbie.np.event.day.return <- calculate.event.day.return(event.date = events.top5,
                                                             n = 1,
                                                             index = index.zoo.UK.ALLSHARE.omitted)
@@ -663,23 +713,24 @@ lockerbie.np.df <- calculate.np.variables(lockerbie.np.event.day.return,
 
 lockerbie.bw <- dpill( x = lockerbie.np.df$X.transformed, y = lockerbie.np.df$Y)
 
-lockerbie.locpoly <- locpoly(x = na.omit(lockerbie.np.df$X.transformed),
-                             y = lockerbie.np.df$Y,
-                             bandwidth = lockerbie.bw)
+lockerbie.loc2 <- locpoly(x =lockerbie.np.df$X.transformed,
+                          y = lockerbie.np.df$Y,
+                          bandwidth = lockerbie.bw)
+plot(lockerbie.loc2)
+
+## Using kern smooth
+
+
+lockerbie.locpoly <- perform.local.polynomial.regression(event.date = events.top5,
+                                                         n = 1,
+                                                         index = index.zoo.UK.ALLSHARE.omitted)
 plot(lockerbie.locpoly)
-summary(lockerbie.locpoly)
-lines(lockerbie.locpoly)
 
-## Using nprobust package
-library(nprobust)
+lockerbie.cp <- perform.AR.conditional.probability(lockerbie.locpoly, lockerbie.np.event.day.return, 0.01)
 
-lockerbie.np.df.omitted <- na.omit(lockerbie.np.df)
+lockerbie.cp
+calculate.np.probability(lockerbie.locpoly, lockerbie.np.event.day.return, window = 0.1)
 
-lockerbie.locpoly2 <- lprobust(y = lockerbie.np.df.omitted$Y,
-                               x = lockerbie.np.df.omitted$X.transformed,
-                               p = 5)
-
-plot(lockerbie.locpoly2)
 
 #### Summary Statistics Graphics ####
 
