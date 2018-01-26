@@ -650,6 +650,8 @@ all.CAR.10.day.ALLSHARE <- calculate.CI.rolling.CAAR(all.CAR.10.day.ALLSHARE)
 #### Non-parametric Results ####
 
 
+
+## Using kern smooth
 lockerbie.np.event.day.return <- calculate.event.day.return(event.date = events.top5,
                                                             n = 1,
                                                             index = index.zoo.UK.ALLSHARE.omitted)
@@ -659,20 +661,26 @@ lockerbie.np.df <- calculate.np.variables(lockerbie.np.event.day.return,
 
 
 
-lockerbie.bw <- npregbw(lockerbie.np.df,
-                          formula = Y ~ X.transformed ,
-                          na.action = na.omit)
-
-lockerbie.np.cdf <- npreg(bws = lockerbie.bw)
-
-plot(lockerbie.np.cdf)
+lockerbie.bw <- dpill( x = lockerbie.np.df$X.transformed, y = lockerbie.np.df$Y)
 
 lockerbie.locpoly <- locpoly(x = na.omit(lockerbie.np.df$X.transformed),
                              y = lockerbie.np.df$Y,
-                             bandwidth = 0.25)
+                             bandwidth = lockerbie.bw)
 plot(lockerbie.locpoly)
 summary(lockerbie.locpoly)
 lines(lockerbie.locpoly)
+
+## Using nprobust package
+library(nprobust)
+
+lockerbie.np.df.omitted <- na.omit(lockerbie.np.df)
+
+lockerbie.locpoly2 <- lprobust(y = lockerbie.np.df.omitted$Y,
+                               x = lockerbie.np.df.omitted$X.transformed,
+                               p = 5)
+
+plot(lockerbie.locpoly2)
+
 #### Summary Statistics Graphics ####
 
 ## Histograms ##
