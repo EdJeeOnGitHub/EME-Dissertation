@@ -729,7 +729,35 @@ lockerbie.cp <- perform.AR.conditional.probability( event.date = events.top5,
 plot(lockerbie.locpoly)
 lockerbie.cp
 
+# loess attempt
 
+lock.event.day.return <- calculate.event.day.return(event.date = events.top5,
+                                                    n = 1, 
+                                                    index = index.zoo.UK.ALLSHARE.omitted)
+lock.loess.df <- calculate.np.variables(event.day.return.vector = lock.event.day.return,
+                                        index = index.zoo.UK.ALLSHARE.omitted,
+                                        estimation.length = 500)
+
+loess.attempt <- loess(y ~ x, data = lockerbie.locpoly, span = 0.3, degree = 1,
+                       normalize = FALSE,
+                       family = 'gaussian',
+                       na.action = na.omit)
+loess.smooth <- predict(loess.attempt)
+
+
+## Need to copy kernsmooth's locpoly function in interpolating x values and then apply loess to it.
+
+
+
+ed.loess <- data.frame(loess.attempt$x, loess.attempt$fitted, loess.smooth)
+ed.locpoly <- data.frame(lockerbie.locpoly$x, lockerbie.locpoly$y)
+plot(loess.smooth)
+x.test <- 1
+s.text <- data.frame(x.test)
+test <- loess(y ~ x, data = lockerbie.locpoly, control = loess.control(surface = "direct"))
+test.df <- data.frame(x = seq(0, 2, 0.1))
+test2 <- predict(test, test.df, se = TRUE)
+plot(test.df$x, test2$fit)
 #### Summary Statistics Graphics ####
 
 ## Histograms ##
