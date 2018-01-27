@@ -499,6 +499,8 @@ calculate.CI.rolling.CAAR <- function(all.events.CAR){
 
 
 ## Functions used for non-parametric results
+
+# Finding the return on the day pf the event
 calculate.event.day.return <- function(event.date, n, index){
   event.date <- event.date[[n, 'Date']]
   event.day.return <- index[event.date]
@@ -517,8 +519,12 @@ calculate.event.day.return <- function(event.date, n, index){
   return(return.vector)
 }
 
-# Now the indicator function
+# Now the indicator function: Y = I(R < r) where R is observed return and r is the return the day of the attack
+# The X variable is just R lagged
+# The X.transformed variable is X - r(t-1) i.e X minus the return the day before the terror attack. This needs to be rewritten as an average for the
+# CAR case.
 
+# We regress Y on X.transformed using a local polynomial fitting - this is equivalent to finding the conditional cumulative density function of returns
 calculate.np.variables <- function(event.day.return.vector, index,  estimation.length = 200){
   
   event.day.return <- event.day.return.vector[[1]]
@@ -540,6 +546,8 @@ calculate.np.variables <- function(event.day.return.vector, index,  estimation.l
   return(index.df)
 }
 
+
+# Calculates the conditional probability
 calculate.np.probability <- function(loc.poly.object, event.day.return.vector, window){
   event.day.return <- event.day.return.vector[[1]]
   
@@ -549,6 +557,7 @@ calculate.np.probability <- function(loc.poly.object, event.day.return.vector, w
   return(loc.poly.prob)
 }
 
+# Packs all the above into one fucntion
 perform.AR.conditional.probability <- function(event.date, n, index, cp.window, estimation.length = 200){
   
   event.day.return.vector <- calculate.event.day.return(event.date = event.date,
@@ -559,7 +568,7 @@ perform.AR.conditional.probability <- function(event.date, n, index, cp.window, 
                                         index = index,
                                         estimation.length = estimation.length)
   
-
+  
   
   event.bandwidth <- dpill(x = event.np.df$X.transformed,
                            y = event.np.df$Y)
@@ -576,6 +585,8 @@ perform.AR.conditional.probability <- function(event.date, n, index, cp.window, 
   return(event.cp)
 }
 
+
+# Wraps everything up into one function to find the CDF
 perform.local.polynomial.regression <- function(event.date, n, index,  estimation.length = 200){
   
   event.day.return.vector <- calculate.event.day.return(event.date = event.date,
@@ -702,34 +713,21 @@ all.CAR.10.day.ALLSHARE <- calculate.CI.rolling.CAAR(all.CAR.10.day.ALLSHARE)
 
 
 #### Non-parametric Results ####
-lockerbie.np.event.day.return <- calculate.event.day.return(event.date = events.top5,
-                                                            n = 1,
-                                                            index = index.zoo.UK.ALLSHARE.omitted)
-lockerbie.np.df <- calculate.np.variables(lockerbie.np.event.day.return,
-                                          index = index.zoo.UK.ALLSHARE.omitted,
-                                          estimation.length = 200)
 
-
-
-lockerbie.bw <- dpill( x = lockerbie.np.df$X.transformed, y = lockerbie.np.df$Y)
-
-lockerbie.loc2 <- locpoly(x =lockerbie.np.df$X.transformed,
-                          y = lockerbie.np.df$Y,
-                          bandwidth = lockerbie.bw)
-plot(lockerbie.loc2)
-
-## Using kern smooth
-
-
+## Lockerbie
 lockerbie.locpoly <- perform.local.polynomial.regression(event.date = events.top5,
                                                          n = 1,
                                                          index = index.zoo.UK.ALLSHARE.omitted)
+
+lockerbie.cp <- perform.AR.conditional.probability( event.date = events.top5,
+                                                   n = 1, index = index.zoo.UK.ALLSHARE.omitted,
+                                                   cp.window = 0.01,
+                                                    estimation.length = 200)
+
+
+
 plot(lockerbie.locpoly)
-
-lockerbie.cp <- perform.AR.conditional.probability(lockerbie.locpoly, lockerbie.np.event.day.return, 0.01)
-
 lockerbie.cp
-calculate.np.probability(lockerbie.locpoly, lockerbie.np.event.day.return, window = 0.1)
 
 
 #### Summary Statistics Graphics ####
