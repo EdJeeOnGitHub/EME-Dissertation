@@ -14,8 +14,8 @@ library(readxl) # Reading in excel
 library(ggthemes) # Some extra themes for plotting
 library(eventstudies) # Package useful for calculating CAARs
 library(knitr) # Presentations
-library(np) # Non-parametric techniques
-library(KernSmooth)
+library(KernSmooth) # Local Polynomial fitting
+library(locfit) # More local polynomial fitting
 ##### Index Data Cleaning #####
 
 # Reading in file, using projroot library so only relative path needed
@@ -456,25 +456,45 @@ perform.decade.event.study <- function(index, events, car.length, estimation.win
   return(decade.event.study)
 }
 
-# This function takes every event given in events and calculates the appropriate CAR
-calculate.every.CAR <- function(events, index, estimation.window.length = 20, estimation.window.end = 10, car.length = 11){
+# # This function takes every event given in events and calculates the appropriate CAR
+# calculate.every.CAR <- function(events, index, estimation.window.length = 20, estimation.window.end = 10, car.length = 11){
+#   
+#   all.events.CAR <- perform.one.day.event.study(index = index,
+#                                                 events = events,
+#                                                 n = 1, 
+#                                                 estimation.window.length = estimation.window.length,
+#                                                 estimation.window.end = estimation.window.end,
+#                                                 car.length = car.length)
+#   for (i in 2:nrow(events)){
+#     temp.event.CAR <- perform.one.day.event.study(n = i,
+#                                                   index = index,
+#                                                   events = events,
+#                                                   estimation.window.length = estimation.window.length,
+#                                                   estimation.window.end = estimation.window.end,
+#                                                   car.length = car.length)
+#     all.events.CAR <- rbind(all.events.CAR, temp.event.CAR)
+#   }
+#   return(all.events.CAR)
+#   
+# }
+
+# Using purrrs's map() function instead of a for loop
+calculate.every.car.purrr <- function(events, index, estimation.window.length = 20, estimation.window.end = 10, car.length = 11){
   
-  all.events.CAR <- perform.one.day.event.study(index = index,
-                                                events = events,
-                                                n = 1, 
-                                                estimation.window.length = estimation.window.length,
-                                                estimation.window.end = estimation.window.end,
-                                                car.length = car.length)
-  for (i in 2:nrow(events)){
-    temp.event.CAR <- perform.one.day.event.study(n = i,
-                                                  index = index,
-                                                  events = events,
-                                                  estimation.window.length = estimation.window.length,
-                                                  estimation.window.end = estimation.window.end,
-                                                  car.length = car.length)
-    all.events.CAR <- rbind(all.events.CAR, temp.event.CAR)
-  }
-  return(all.events.CAR)
+  
+  n.vector <- seq(nrow(events))
+  all.CARS.CAARS <-
+    n.vector %>% 
+    map_dfr(perform.one.day.event.study,
+        index = index,
+        events = events,
+        estimation.window.length = estimation.window.length,
+        estimation.window.end = estimation.window.end,
+        car.length = car.length)
+    
+  
+  
+  return(all.CARS.CAARS)
   
 }
 
@@ -501,39 +521,6 @@ calculate.CI.rolling.CAAR <- function(all.events.CAR){
 
 
 ## Functions used for non-parametric results
-
-
-
-
-*****************
------------------
-*****************
-  
-  
-#  Need to use find.NA.index.number here I think
-##
-
-
-
-
-# Finding the return on the day pf the event
-# calculate.event.day.return <- function(event.date, n, index){
-#   event.date <- event.date[[n, 'Date']]
-#   event.day.return <- index[event.date]
-#   event.day.return.L1 <- index[event.date - 1]
-#   
-#   # The usual weekend adjustment
-#   if (length(event.day.return) == 0){
-#     event.day.return <- index[event.date + 1]
-#     event.day.return.L1 <- index[event.date - 1]
-#     if (length(event.day.return) == 0){
-#       event.day.return <- index[event.date + 2]
-#       event.day.return.L1 <- index[event.date + -1]
-#     }
-#   }
-#   return.vector <- list(event.day.return, event.day.return.L1, event.date)
-#   return(return.vector)
-# }
 
 
 calculate.event.day.return <- function(event.date, n, index){
@@ -584,7 +571,7 @@ calculate.np.variables <- function(event.day.return.vector, index,  estimation.l
 
 
 # Wraps everything up into one function to find the CDF
-perform.local.polynomial.regression <- function(event.date, n, index,  estimation.length = 200){
+perform.local.polynomial.regression.ks <- function(event.date, n, index,  estimation.length = 200){
   
   event.day.return.vector <- calculate.event.day.return(event.date = event.date,
                                                         n = n,
@@ -611,12 +598,12 @@ perform.local.polynomial.regression <- function(event.date, n, index,  estimatio
 }
 
 # Wrapping everything up to create a conditional probability function
-perform.event.conditional.probability <- function(event.date, n, index){
+perform.event.conditional.probability.ks <- function(event.date, n, index){
   event.day.return.vector <- calculate.event.day.return(event.date = event.date,
                                                  n = n,
                                                  index = index)
   event.day.return <- event.day.return.vector[[1]]
-  initial.fit <- perform.local.polynomial.regression(event.date = event.date,
+  initial.fit <- perform.local.polynomial.regression.ks(event.date = event.date,
                                                      n = n,
                                                      index = index)
   prediction.fit <- loess(y ~ x,
@@ -627,10 +614,52 @@ perform.event.conditional.probability <- function(event.date, n, index){
   predict.conditional.probability <- predict(prediction.fit,
                                              newdata = event.day.return[[1]],
                                              se = TRUE)
-  predict.conditional.probability <- data.frame(predict.conditional.probability)
+  predict.conditional.probability <- data.frame(predict.conditional.probability,
+                                                event.return = event.day.return.vector[[1]],
+                                                conditioning.return = event.day.return.vector[[2]],
+                                                event.date = event.day.return.vector[[3]])
   return(predict.conditional.probability)
   
 }
+
+
+# As above but with locfit package - doesn't rely on interpolated data points
+perform.lpr.locfit <- function(event.date, n, index, estimation.length = 200){
+  
+  event.day.return.vector <- calculate.event.day.return(event.date,
+                                                        n,
+                                                        index)
+  event.df <- calculate.np.variables(event.day.return.vector,
+                                     index,
+                                     estimation.length)
+  event.fit <- locfit(Y ~ lp(X.transformed, nn = 0.9), data = event.df)
+  return(event.fit)
+}
+
+
+# Now conditional probability with locfit
+perform.cp.locfit <- function(event.date, n, index, estimation.length = 200){
+  
+  event.day.return.vector <- calculate.event.day.return(event.date,
+                                                        n,
+                                                        index)
+  
+  event.locfit <- perform.lpr.locfit(event.date,
+                                     n,
+                                     index,
+                                     estimation.length)
+  
+  conditional.probability <- predict(event.locfit,
+                                     newdata = event.day.return.vector[[1]],
+                                     se.fit = TRUE)
+  
+  conditional.probability.df <- data.frame(conditional.probability,
+                                           event.return = event.day.return.vector[[1]],
+                                           conditioning.return = event.day.return.vector[[2]],
+                                           event.date = event.day.return.vector[[3]])
+  return(conditional.probability.df)
+}
+
 
 
 #### Decade Results ####
@@ -704,8 +733,9 @@ omagh.bombing.event.study
 manchester.bombing.1996.event.study
 droppin.well.bombing.event.study
 
+
 # Calculating rolling CAAR of the largest n events
-all.CAR.10.day.ALLSHARE <- calculate.every.CAR(events = events.sorted,
+all.CAR.10.day.ALLSHARE <- calculate.every.car.purrr(events = events.sorted,
                                                index = index.zoo.UK.ALLSHARE.omitted)
 
 all.CAR.10.day.ALLSHARE <- calculate.rolling.CAAR(all.CAR.10.day.ALLSHARE)
@@ -741,57 +771,88 @@ all.CAR.10.day.ALLSHARE <- calculate.CI.rolling.CAAR(all.CAR.10.day.ALLSHARE)
 #### Non-parametric Results ####
 
 
-lockerbie.locpoly <- perform.local.polynomial.regression(event.date = events.top5,
+lockerbie.locpoly.ks <- perform.local.polynomial.regression.ks(event.date = events.top5,
                                                          n = 1, 
                                                          index = index.zoo.UK.ALLSHARE.omitted)
 
 
 
-lockerbie.cp <- perform.event.conditional.probability(event.date = events.top5,
+lockerbie.cp.ks <- perform.event.conditional.probability.ks(event.date = events.top5,
                                                n = 1, 
                                                index = index.zoo.UK.ALLSHARE.omitted)
 
 
 
-london.cp <- perform.event.conditional.probability(event.date = events.top5,
+london.cp.ks <- perform.event.conditional.probability.ks(event.date = events.top5,
                                                    n = 2,
                                                    index = index.zoo.UK.ALLSHARE.omitted)
-london.locpoly <- perform.local.polynomial.regression(event.date = events.top5,
+london.locpoly.ks <- perform.local.polynomial.regression.ks(event.date = events.top5,
                                                       n = 2,
                                                       index = index.zoo.UK.ALLSHARE.omitted)
-omagh.cp <- perform.event.conditional.probability(event.date = events.top5,
+omagh.cp.ks <- perform.event.conditional.probability.ks(event.date = events.top5,
                                                   n = 3,
                                                   index = index.zoo.UK.ALLSHARE.omitted)
 
-omagh.locpoly <- perform.local.polynomial.regression(event.date = events.top5,
+omagh.locpoly.ks <- perform.local.polynomial.regression.ks(event.date = events.top5,
                                                      n = 3, 
                                                      index = index.zoo.UK.ALLSHARE.omitted)
 
-manchester.cp <- perform.event.conditional.probability(event.date = events.top5,
+manchester.cp.ks <- perform.event.conditional.probability.ks(event.date = events.top5,
                                                        n = 4,
                                                        index = index.zoo.UK.ALLSHARE.omitted)
-manchest.locpoly <- perform.local.polynomial.regression(event.date = events.top5,
+manchest.locpoly.ks <- perform.local.polynomial.regression.ks(event.date = events.top5,
                                                         n = 4, 
                                                         index = index.zoo.UK.ALLSHARE.omitted)
 
-droppin.well.cp <- perform.event.conditional.probability(event.date = events.top5,
+droppin.well.cp.ks <- perform.event.conditional.probability.ks(event.date = events.top5,
                                                          n = 5,
                                                          index = index.zoo.UK.ALLSHARE.omitted)
-droppin.well.locpoly <- perform.local.polynomial.regression(event.date = events.top5,
+droppin.well.locpoly.ks <- perform.local.polynomial.regression.ks(event.date = events.top5,
                                                        n = 5,
                                                        index = index.zoo.UK.ALLSHARE.omitted)
 
-lockerbie.cp
-london.cp
-omagh.cp
-manchester.cp
-droppin.well.cp
+lockerbie.cp.ks
+london.cp.ks
+omagh.cp.ks
+manchester.cp.ks
+droppin.well.cp.ks
 
-plot(lockerbie.locpoly)
-plot(london.locpoly)
-plot(omagh.locpoly)
-plot(manchest.locpoly)
-plot(droppin.well.locpoly)
+plot(lockerbie.locpoly.ks)
+plot(london.locpoly.ks)
+plot(omagh.locpoly.ks)
+plot(manchest.locpoly.ks)
+plot(droppin.well.locpoly.ks)
+
+
+
+## locfit package
+
+# Fitting LPRs
+lockerbie.locfit <- perform.lpr.locfit(event.date = events.top5, n = 1, index = index.zoo.UK.ALLSHARE.omitted)
+london.locfit <- perform.lpr.locfit(event.date = events.top5, n = 2, index = index.zoo.UK.ALLSHARE.omitted)
+omagh.locfit <- perform.lpr.locfit(event.date = events.top5, n = 3, index = index.zoo.UK.ALLSHARE.omitted)
+manchester.locfit <- perform.lpr.locfit(event.date = events.top5, n = 4, index = index.zoo.UK.ALLSHARE.omitted)
+droppin.well.locfit <- perform.lpr.locfit(event.date = events.top5, n = 5, index = index.zoo.UK.ALLSHARE.omitted)
+
+# Conditional Probabilities
+lockerbie.locfit.cp <- perform.cp.locfit(event.date = events.top5, n = 1, index = index.zoo.UK.ALLSHARE.omitted)
+london.locfit.cp <- perform.cp.locfit(event.date = events.top5, n = 2, index = index.zoo.UK.ALLSHARE.omitted)  
+omagh.locfit.cp <- perform.cp.locfit(event.date = events.top5, n = 3, index = index.zoo.UK.ALLSHARE.omitted)  
+manchester.locfit.cp <- perform.cp.locfit(event.date = events.top5, n = 4, index = index.zoo.UK.ALLSHARE.omitted)  
+droppin.wells.locfit.cp <- perform.cp.locfit(event.date = events.top5, n = 5, index = index.zoo.UK.ALLSHARE.omitted)  
+  
+plot(lockerbie.locfit, main = 'lockerbie')
+plot(london.locfit, main = 'london')  
+plot(omagh.locfit, main = 'omagh')  
+plot(manchester.locfit, main = 'manchester')  
+plot(droppin.well.locfit, main = 'droppin wells')
+
+lockerbie.locfit.cp
+london.locfit.cp
+omagh.locfit.cp
+manchester.locfit.cp
+droppin.wells.locfit.cp
+
 
 #### Summary Statistics Graphics ####
 
@@ -1036,7 +1097,6 @@ bar.chart.decade.event.study.by.time <- ggplot(decade.event.study.CAR10, aes(mar
   ggtitle('10 Day Cumulative Abnormal Returns in Response to Terror Event', subtitle = 'Top 5 Events per Decade') +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = 'none',
         axis.text.x = element_text(angle = 270, hjust = 1))
-bar.chart.decade.event.study.by.time
-bar.chart.decade.event.study.by.CAR
+
  
 
