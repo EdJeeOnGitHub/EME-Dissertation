@@ -93,8 +93,10 @@ index.zoo.UK.decade.list.ALLSHARE <- lapply(index.data.UK.decade.list.ALLSHARE, 
 
 # Transforming index data from prices to returns and dropping NA values
 prices.to.returns <- function(x) 100*diff(log(x))
-index.zoo.UK.decade.list.ALLSHARE <- lapply(index.zoo.UK.decade.list.ALLSHARE, prices.to.returns)
+
+
 index.zoo.UK.decade.list.ALLSHARE.omitted <- lapply(index.zoo.UK.decade.list.ALLSHARE, na.omit)
+index.zoo.UK.decade.list.ALLSHARE.omitted <- lapply(index.zoo.UK.decade.list.ALLSHARE.omitted, prices.to.returns)
 
 # Creating zoo indices that aren't split up into decades
 
@@ -104,8 +106,8 @@ index.data.UK.ALLSHARE <- select.index(raw.index.data.UK,
 index.zoo.UK.ALLSHARE.omitted <-
   index.data.UK.ALLSHARE %>%
   read.zoo %>%
-  prices.to.returns %>%
-  na.omit
+  na.omit %>%
+  prices.to.returns
 
 
 # Creating a zoo index in the eventstudies package format - a zoo with repeated columns of index data
@@ -117,8 +119,8 @@ eventstudies.index.ALLSHARE <- select.index(raw.index.data.UK,
 eventstudies.zoo.ALLSHARE <- 
   eventstudies.index.ALLSHARE %>%
   read.zoo %>%
-  prices.to.returns %>%
-  na.omit
+  na.omit %>%
+  prices.to.returns
 
 
 
@@ -131,8 +133,8 @@ eventstudies.index.UK.FTSE100 <- select.index(raw.index.data.UK,
 eventstudies.zoo.UK.FTSE100.omitted <-
   eventstudies.index.UK.FTSE100 %>%
   read.zoo %>%
-  prices.to.returns %>%
-  na.omit
+  na.omit %>%
+  prices.to.returns
 # Cleaning up unwanted variables
 removal.list.index <- c('root',
                  'raw.index.data',
@@ -500,24 +502,58 @@ calculate.CI.rolling.CAAR <- function(all.events.CAR){
 
 ## Functions used for non-parametric results
 
-# Finding the return on the day pf the event
-calculate.event.day.return <- function(event.date, n, index){
-  event.date <- event.date[[n, 'Date']]
-  event.day.return <- index[event.date]
-  event.day.return.L1 <- index[event.date - 1]
+
+
+
+*****************
+-----------------
+*****************
   
-  # The usual weekend adjustment
-  if (length(event.day.return) == 0){
-    event.day.return <- index[event.date + 1]
-    event.day.return.L1 <- index[event.date]
-    if (length(event.day.return) == 0){
-      event.day.return <- index[event.date + 2]
-      event.day.return.L1 <- index[event.date + 1]
-    }
-  }
-  return.vector <- list(event.day.return, event.day.return.L1, event.date)
-  return(return.vector)
+  
+#  Need to use find.NA.index.number here I think
+##
+
+
+
+
+# Finding the return on the day pf the event
+# calculate.event.day.return <- function(event.date, n, index){
+#   event.date <- event.date[[n, 'Date']]
+#   event.day.return <- index[event.date]
+#   event.day.return.L1 <- index[event.date - 1]
+#   
+#   # The usual weekend adjustment
+#   if (length(event.day.return) == 0){
+#     event.day.return <- index[event.date + 1]
+#     event.day.return.L1 <- index[event.date - 1]
+#     if (length(event.day.return) == 0){
+#       event.day.return <- index[event.date + 2]
+#       event.day.return.L1 <- index[event.date + -1]
+#     }
+#   }
+#   return.vector <- list(event.day.return, event.day.return.L1, event.date)
+#   return(return.vector)
+# }
+
+
+calculate.event.day.return <- function(event.date, n, index){
+  
+  terror.event.date <- event.date[[n, 'Date']]
+
+  
+  row.index <- find.NA.index.number(index.data = index,
+                                    events = event.date,
+                                    n = n)
+  
+  event.day.return <- index[row.index]
+  event.day.return.L1 <- index[(row.index - 1)]
+
+
+  return.list <- list(event.day.return, event.day.return.L1, terror.event.date)
+  return(return.list)
+  
 }
+
 
 # Now the indicator function: Y = I(R < r) where R is observed return and r is the return the day of the attack
 # The X variable is just R lagged
@@ -536,53 +572,14 @@ calculate.np.variables <- function(event.day.return.vector, index,  estimation.l
                                               n = 1,
                                               window.end = 0,
                                               window.length = estimation.length)
+  
   estimation.window.returns <- coredata(estimation.window)
-  index.df <- data.frame(estimation.window.returns)
-  index.df$event.day.return <- event.day.return
-  index.df$event.day.return.L1 <- event.day.return.L1
-  index.df <- mutate(index.df, Y = as.numeric(estimation.window > event.day.return))
+  index.df <- data.frame(estimation.window.returns, event.day.return, event.day.return.L1)
+
+  index.df <- mutate(index.df, Y = as.numeric(estimation.window.returns < event.day.return))
   index.df$X <- coredata(lag(estimation.window, 1))
   index.df$X.transformed <- index.df$X - index.df$event.day.return.L1
   return(index.df)
-}
-
-
-# Calculates the conditional probability
-calculate.np.probability <- function(loc.poly.object, event.day.return.vector, window){
-  event.day.return <- event.day.return.vector[[1]]
-  
-  loc.poly.df <- data.frame(loc.poly.object)
-  loc.poly.prob <- loc.poly.df[(loc.poly.df$x > (coredata(event.day.return) - window)), ]
-  loc.poly.prob <- loc.poly.prob[(loc.poly.prob$x < ( coredata(event.day.return) + window)), ]
-  return(loc.poly.prob)
-}
-
-# Packs all the above into one fucntion
-perform.AR.conditional.probability <- function(event.date, n, index, cp.window, estimation.length = 200){
-  
-  event.day.return.vector <- calculate.event.day.return(event.date = event.date,
-                                                        n = n,
-                                                        index = index)
-  
-  event.np.df <- calculate.np.variables(event.day.return.vector = event.day.return.vector,
-                                        index = index,
-                                        estimation.length = estimation.length)
-  
-  
-  
-  event.bandwidth <- dpill(x = event.np.df$X.transformed,
-                           y = event.np.df$Y)
-  
-  event.locpoly <- locpoly(x = na.omit(event.np.df$X.transformed),
-                           y = event.np.df$Y,
-                           bandwidth = event.bandwidth)
-  
-  event.cp <- calculate.np.probability(loc.poly.object = event.locpoly,
-                                      event.day.return.vector = event.day.return.vector,
-                                       window = cp.window)
-  
-  
-  return(event.cp)
 }
 
 
@@ -601,12 +598,41 @@ perform.local.polynomial.regression <- function(event.date, n, index,  estimatio
   
   event.bandwidth <- dpill(x = event.np.df$X.transformed,
                            y = event.np.df$Y)
+  if (is.nan(event.bandwidth)){
+    event.bandwidth <- 0.25
+    
+  }
   
   event.locpoly <- locpoly(x = na.omit(event.np.df$X.transformed),
                            y = event.np.df$Y,
                            bandwidth = event.bandwidth)
-  return(event.locpoly)
+  event.locpoly.df <- data.frame(x = event.locpoly$x, y = event.locpoly$y)
+  return(event.locpoly.df)
 }
+
+# Wrapping everything up to create a conditional probability function
+perform.event.conditional.probability <- function(event.date, n, index){
+  event.day.return.vector <- calculate.event.day.return(event.date = event.date,
+                                                 n = n,
+                                                 index = index)
+  event.day.return <- event.day.return.vector[[1]]
+  initial.fit <- perform.local.polynomial.regression(event.date = event.date,
+                                                     n = n,
+                                                     index = index)
+  prediction.fit <- loess(y ~ x,
+                          data = initial.fit,
+                          normalize = FALSE,
+                          control = loess.control(surface = 'direct',
+                                                  statistics = 'exact'))
+  predict.conditional.probability <- predict(prediction.fit,
+                                             newdata = event.day.return[[1]],
+                                             se = TRUE)
+  predict.conditional.probability <- data.frame(predict.conditional.probability)
+  return(predict.conditional.probability)
+  
+}
+
+
 #### Decade Results ####
 
 # CAR10
@@ -714,50 +740,59 @@ all.CAR.10.day.ALLSHARE <- calculate.CI.rolling.CAAR(all.CAR.10.day.ALLSHARE)
 
 #### Non-parametric Results ####
 
-## Lockerbie
+
 lockerbie.locpoly <- perform.local.polynomial.regression(event.date = events.top5,
-                                                         n = 1,
+                                                         n = 1, 
                                                          index = index.zoo.UK.ALLSHARE.omitted)
 
-lockerbie.cp <- perform.AR.conditional.probability( event.date = events.top5,
-                                                   n = 1, index = index.zoo.UK.ALLSHARE.omitted,
-                                                   cp.window = 0.01,
-                                                    estimation.length = 200)
 
 
+lockerbie.cp <- perform.event.conditional.probability(event.date = events.top5,
+                                               n = 1, 
+                                               index = index.zoo.UK.ALLSHARE.omitted)
+
+
+
+london.cp <- perform.event.conditional.probability(event.date = events.top5,
+                                                   n = 2,
+                                                   index = index.zoo.UK.ALLSHARE.omitted)
+london.locpoly <- perform.local.polynomial.regression(event.date = events.top5,
+                                                      n = 2,
+                                                      index = index.zoo.UK.ALLSHARE.omitted)
+omagh.cp <- perform.event.conditional.probability(event.date = events.top5,
+                                                  n = 3,
+                                                  index = index.zoo.UK.ALLSHARE.omitted)
+
+omagh.locpoly <- perform.local.polynomial.regression(event.date = events.top5,
+                                                     n = 3, 
+                                                     index = index.zoo.UK.ALLSHARE.omitted)
+
+manchester.cp <- perform.event.conditional.probability(event.date = events.top5,
+                                                       n = 4,
+                                                       index = index.zoo.UK.ALLSHARE.omitted)
+manchest.locpoly <- perform.local.polynomial.regression(event.date = events.top5,
+                                                        n = 4, 
+                                                        index = index.zoo.UK.ALLSHARE.omitted)
+
+droppin.well.cp <- perform.event.conditional.probability(event.date = events.top5,
+                                                         n = 5,
+                                                         index = index.zoo.UK.ALLSHARE.omitted)
+droppin.well.locpoly <- perform.local.polynomial.regression(event.date = events.top5,
+                                                       n = 5,
+                                                       index = index.zoo.UK.ALLSHARE.omitted)
+
+lockerbie.cp
+london.cp
+omagh.cp
+manchester.cp
+droppin.well.cp
 
 plot(lockerbie.locpoly)
-lockerbie.cp
+plot(london.locpoly)
+plot(omagh.locpoly)
+plot(manchest.locpoly)
+plot(droppin.well.locpoly)
 
-# loess attempt
-
-lock.event.day.return <- calculate.event.day.return(event.date = events.top5,
-                                                    n = 1, 
-                                                    index = index.zoo.UK.ALLSHARE.omitted)
-lock.loess.df <- calculate.np.variables(event.day.return.vector = lock.event.day.return,
-                                        index = index.zoo.UK.ALLSHARE.omitted,
-                                        estimation.length = 500)
-
-loess.attempt <- loess(y ~ x, data = lockerbie.locpoly, span = 0.3, degree = 1,
-                       normalize = FALSE,
-                       family = 'gaussian',
-                       na.action = na.omit)
-loess.smooth <- predict(loess.attempt)
-
-
-## Need to copy kernsmooth's locpoly function in interpolating x values and then apply loess to it.
-
-
-
-ed.loess <- data.frame(loess.attempt$x, loess.attempt$fitted, loess.smooth)
-ed.locpoly <- data.frame(lockerbie.locpoly$x, lockerbie.locpoly$y)
-plot(loess.smooth)
-x.test <- 1
-s.text <- data.frame(x.test)
-test <- loess(y ~ x, data = lockerbie.locpoly, control = loess.control(surface = "direct"))
-test.df <- data.frame(x = seq(0, 2, 0.1))
-test2 <- predict(test, test.df, se = TRUE)
-plot(test.df$x, test2$fit)
 #### Summary Statistics Graphics ####
 
 ## Histograms ##
@@ -961,6 +996,13 @@ rolling.CAAR.plot <- ggplot(all.CAR.10.day.ALLSHARE, aes(n, rolling.CAAR))+
   ggtitle('Rolling mean of Cumulative Abnormal Returns', subtitle = 'UK Terror Attacks with FTSE ALLSHARE data, 1980-2016') +
   theme_minimal()
 
+lockerbie.plot
+london.7.7.plot
+omagh.plot
+manchester.plot
+droppin.well.plot
+rolling.CAAR.plot
+
 #### Decade Graphics ####
 
 
@@ -994,5 +1036,7 @@ bar.chart.decade.event.study.by.time <- ggplot(decade.event.study.CAR10, aes(mar
   ggtitle('10 Day Cumulative Abnormal Returns in Response to Terror Event', subtitle = 'Top 5 Events per Decade') +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = 'none',
         axis.text.x = element_text(angle = 270, hjust = 1))
-
+bar.chart.decade.event.study.by.time
+bar.chart.decade.event.study.by.CAR
+ 
 
