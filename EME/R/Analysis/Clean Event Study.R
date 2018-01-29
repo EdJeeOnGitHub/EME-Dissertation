@@ -16,6 +16,7 @@ library(eventstudies) # Package useful for calculating CAARs
 library(knitr) # Presentations
 library(KernSmooth) # Local Polynomial fitting
 library(locfit) # More local polynomial fitting
+library(kedd) # Bandwidth selection for LPR
 ##### Index Data Cleaning #####
 
 # Reading in file, using projroot library so only relative path needed
@@ -565,9 +566,11 @@ calculate.np.variables <- function(event.day.return.vector, index,  estimation.l
   index.df$event.day.return <-  event.day.return
   index.df$event.day.return.L1 <- event.day.return.L1
 
-  index.df <- mutate(index.df, Y = as.numeric(estimation.window.returns > event.day.return))
+  index.df <- mutate(index.df, Y = as.numeric(estimation.window.returns < event.day.return))
   index.df$X <- coredata(lag(estimation.window, 1))
   index.df$X.transformed <- index.df$X - index.df$event.day.return.L1
+  
+  index.df <- mutate(index.df, X.T2 = index.df$X - mean(estimation.window.returns) )
   return(index.df)
 }
 
@@ -626,7 +629,7 @@ perform.event.conditional.probability.ks <- function(event.date, n, index){
 
 
 # As above but with locfit package - doesn't rely on interpolated data points
-perform.lpr.locfit <- function(event.date, n, index, estimation.length = 200){
+perform.lpr.locfit <- function(event.date, n, index, interp = FALSE, condition.on = 'mean', estimation.length = 200){
   
   event.day.return.vector <- calculate.event.day.return(event.date,
                                                         n,
@@ -634,24 +637,56 @@ perform.lpr.locfit <- function(event.date, n, index, estimation.length = 200){
   event.df <- calculate.np.variables(event.day.return.vector,
                                      index,
                                      estimation.length)
-  event.fit <- locfit(Y ~ lp(X.transformed, nn = 0.9), data = event.df)
+  
+  
+  if (condition.on == 'lag'){
+    X <- event.df$X.Transformed
+  } else {
+    X <- event.df$X.T2
+  }
+  
+  bw <- h.ccv(x = X)
+  if (interp == TRUE){
+    event.fit <- locfit(Y ~ lp(X),
+                        alpha=c(0, bw$h),
+                        data = event.df,
+                        ev = lfgrid())
+  }
+
+  event.fit <- locfit(Y ~ lp(X),
+                      alpha=c(0, bw$h),
+                      data = event.df,
+                      ev = dat())
   return(event.fit)
 }
 
 
 # Now conditional probability with locfit
-perform.cp.locfit <- function(event.date, n, index, estimation.length = 200){
+perform.cp.locfit <- function(event.date, n, index, condition.on = 'mean', estimation.length = 200){
   
   event.day.return.vector <- calculate.event.day.return(event.date,
                                                         n,
                                                         index)
-  
-  event.locfit <- perform.lpr.locfit(event.date,
-                                     n,
+  event.df <- calculate.np.variables(event.day.return.vector,
                                      index,
                                      estimation.length)
   
-  conditional.probability <- predict(event.locfit,
+  
+  if (condition.on == 'lag'){
+    X <- event.df$X.Transformed
+  } else {
+    X <- event.df$X.T2
+  }
+  
+  bw <- h.ccv(x = X)
+  
+    event.fit <- locfit(Y ~ lp(X),
+                        data = event.df,
+                        ev = lfgrid())
+ 
+  
+  
+  conditional.probability <- predict(event.fit,
                                      newdata = event.day.return.vector[[1]],
                                      se.fit = TRUE)
   
@@ -843,17 +878,19 @@ omagh.locfit.cp <- perform.cp.locfit(event.date = events.top5, n = 3, index = in
 manchester.locfit.cp <- perform.cp.locfit(event.date = events.top5, n = 4, index = index.zoo.UK.ALLSHARE.omitted)  
 droppin.wells.locfit.cp <- perform.cp.locfit(event.date = events.top5, n = 5, index = index.zoo.UK.ALLSHARE.omitted)  
   
-plot(lockerbie.locfit, main = 'lockerbie')
-plot(london.locfit, main = 'london')  
-plot(omagh.locfit, main = 'omagh')  
-plot(manchester.locfit, main = 'manchester')  
-plot(droppin.well.locfit, main = 'droppin wells')
+plot(lockerbie.locfit, main = 'lockerbie', band = 'local')
+plot(london.locfit, main = 'london', band = 'local')  
+plot(omagh.locfit, main = 'omagh', band = 'local')  
+plot(manchester.locfit, main = 'manchester', band = 'local')  
+plot(droppin.well.locfit, main = 'droppin wells', band = 'local')
 
 lockerbie.locfit.cp
 london.locfit.cp
 omagh.locfit.cp
 manchester.locfit.cp
 droppin.wells.locfit.cp
+
+
 
 
 #### Summary Statistics Graphics ####
