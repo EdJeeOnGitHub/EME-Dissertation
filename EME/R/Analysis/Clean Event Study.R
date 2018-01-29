@@ -561,9 +561,11 @@ calculate.np.variables <- function(event.day.return.vector, index,  estimation.l
                                               window.length = estimation.length)
   
   estimation.window.returns <- coredata(estimation.window)
-  index.df <- data.frame(estimation.window.returns, event.day.return, event.day.return.L1)
+  index.df <- data.frame(estimation.window.returns)
+  index.df$event.day.return <-  event.day.return
+  index.df$event.day.return.L1 <- event.day.return.L1
 
-  index.df <- mutate(index.df, Y = as.numeric(estimation.window.returns < event.day.return))
+  index.df <- mutate(index.df, Y = as.numeric(estimation.window.returns > event.day.return))
   index.df$X <- coredata(lag(estimation.window, 1))
   index.df$X.transformed <- index.df$X - index.df$event.day.return.L1
   return(index.df)
@@ -817,11 +819,11 @@ omagh.cp.ks
 manchester.cp.ks
 droppin.well.cp.ks
 
-plot(lockerbie.locpoly.ks)
-plot(london.locpoly.ks)
-plot(omagh.locpoly.ks)
-plot(manchest.locpoly.ks)
-plot(droppin.well.locpoly.ks)
+plot(lockerbie.locpoly.ks, main = 'lockerbie')
+plot(london.locpoly.ks, main = 'london')
+plot(omagh.locpoly.ks, main = 'omagh')
+plot(manchest.locpoly.ks, main = 'manchester')
+plot(droppin.well.locpoly.ks, main = 'dropping')
 
 
 
