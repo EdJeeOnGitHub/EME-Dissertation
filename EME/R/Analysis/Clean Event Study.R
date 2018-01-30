@@ -571,6 +571,7 @@ calculate.np.variables <- function(event.day.return.vector, index,  estimation.l
   index.df$X.transformed <- index.df$X - index.df$event.day.return.L1
   
   index.df <- mutate(index.df, X.T2 = index.df$X - mean(estimation.window.returns) )
+  index.df <- na.omit(index.df)
   return(index.df)
 }
 
@@ -696,6 +697,30 @@ perform.cp.locfit <- function(event.date, n, index, condition.on = 'mean', estim
                                            event.date = event.day.return.vector[[3]])
   return(conditional.probability.df)
 }
+
+
+
+lockerbie.esrv <- calculate.event.day.return(events.top5, index.zoo.UK.ALLSHARE.omitted, n = 1)
+lockerbie.df <- calculate.np.variables(lockerbie.esrv, index.zoo.UK.ALLSHARE.omitted)
+
+london.esrv <- calculate.event.day.return(events.top5, index.zoo.UK.ALLSHARE.omitted, n = 2)
+london.df <- calculate.np.variables(london.esrv, index.zoo.UK.ALLSHARE.omitted)
+
+omagh.esrv <- calculate.event.day.return(events.top5, index.zoo.UK.ALLSHARE.omitted, n = 3)
+omagh.df <- calculate.np.variables(omagh.esrv, index.zoo.UK.ALLSHARE.omitted)
+
+manchester.esrv <- calculate.event.day.return(events.top5, n = 4, index.zoo.UK.ALLSHARE.omitted)
+manchester.df <- calculate.np.variables(manchester.esrv, index.zoo.UK.ALLSHARE.omitted)
+
+dropping.esrv <- calculate.event.day.return(events.top5, n = 5, index.zoo.UK.ALLSHARE.omitted)
+dropping.df <- calculate.np.variables(dropping.esrv, index.zoo.UK.ALLSHARE.omitted)
+
+summary(lockerbie.df)
+summary(london.df)
+summary(omagh.df)
+summary(manchester.df)
+summary(dropping.df)
+
 
 
 
