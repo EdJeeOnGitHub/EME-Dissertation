@@ -644,23 +644,24 @@ perform.lpr.locfit <- function(event.date, n, index, interp = FALSE, condition.o
   
   
   if (condition.on == 'lag'){
-    X <- event.df$X.Transformed
+    X.reg <- event.df$X.transformed
   } else {
-    X <- event.df$X.T2
+    X.reg <- event.df$X.T2
   }
   
-  bw <- h.ccv(x = X)
+  bw <- h.ccv(x = X.reg)
   if (interp == TRUE){
-    event.fit <- locfit(Y ~ lp(X),
+    event.fit <- locfit(Y ~ lp(X.reg),
                         alpha=c(0, bw$h),
                         data = event.df,
                         ev = lfgrid())
-  }
+  } else {
 
-  event.fit <- locfit(Y ~ lp(X),
+  event.fit <- locfit(Y ~ lp(X.reg),
                       alpha=c(0, bw$h),
                       data = event.df,
                       ev = dat())
+  }
   return(event.fit)
 }
 
@@ -726,6 +727,9 @@ summary(dropping.df)
 
 
 
+ggplot(london.df, aes(X.T2, Y)) +
+  geom_point() +
+  ggtitle('London Conditional Probability specification')
 
 #### Decade Results ####
 
@@ -896,7 +900,7 @@ plot(droppin.well.locpoly.ks, main = 'dropping')
 lockerbie.locfit <- perform.lpr.locfit(event.date = events.top5, n = 1, index = index.zoo.UK.ALLSHARE.omitted)
 london.locfit <- perform.lpr.locfit(event.date = events.top5, n = 2, index = index.zoo.UK.ALLSHARE.omitted)
 omagh.locfit <- perform.lpr.locfit(event.date = events.top5, n = 3, index = index.zoo.UK.ALLSHARE.omitted)
-manchester.locfit <- perform.lpr.locfit(event.date = events.top5, n = 4, index = index.zoo.UK.ALLSHARE.omitted)
+manchester.locfit <- perform.lpr.locfit(event.date = events.top5, n = 4, interp = FALSE, condition.on = 'mean', index = index.zoo.UK.ALLSHARE.omitted)
 droppin.well.locfit <- perform.lpr.locfit(event.date = events.top5, n = 5, index = index.zoo.UK.ALLSHARE.omitted)
 
 # Conditional Probabilities
@@ -917,7 +921,6 @@ london.locfit.cp
 omagh.locfit.cp
 manchester.locfit.cp
 droppin.wells.locfit.cp
-
 
 
 
