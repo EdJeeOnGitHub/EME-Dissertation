@@ -20,8 +20,10 @@ library(KernSmooth) # Local Polynomial fitting
 library(locfit) # More local polynomial fitting
 library(kedd) # Bandwidth selection for LPR
 library(purrr) # Mapping functions
+library(rstan)
 
-
+rstan_options(auto_write = TRUE)
+options(mc.cores = parallel::detectCores())
 ##### Index Data Cleaning #####
 
 # Reading in file, using projroot library so only relative path needed
@@ -234,3 +236,23 @@ calculate.variables <- function(event.day.return.vector, index,  estimation.leng
 
 ## Regression data
 
+test.data <-
+  calculate.event.day.return(all.events.sorted, n = 2, index = index.zoo.UK.ALLSHARE.omitted) %>%
+  calculate.variables(index = index.zoo.UK.ALLSHARE.omitted, estimation.length = 201)
+
+fit.data <- test.data[c('Y', 'X.mean.conditioned')]
+colnames(fit.data) <- c('Y', 'returns')
+fit.data$N <- nrow(fit.data)
+
+fit.data.list <- list( N = 200,
+                       returns = fit.data$returns,
+                       Y = fit.data$Y)
+
+Y <- fit.data$Y
+
+fit <- stan(file = 'FirstLogit.stan',
+            data = fit.data.list,
+            iter = 1000, 
+            chains = 4)
+  
+shinystan::launch_shinystan(fit)
