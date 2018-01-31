@@ -8,7 +8,9 @@ try(dev.off(), silent = TRUE)
 
 # Libraries
 library(rprojroot) # Allows use of relative instead of absolute paths when reading in files
-library(tidyverse) # Range of data manipulation packages
+library(ggplot2) # Plotting
+library(dplyr) # Data manipulation
+library(tibble) # Nicer data.frames
 library(zoo) # Time series manipulation
 library(readxl) # Reading in excel
 library(ggthemes) # Some extra themes for plotting
@@ -17,6 +19,7 @@ library(knitr) # Presentations
 library(KernSmooth) # Local Polynomial fitting
 library(locfit) # More local polynomial fitting
 library(kedd) # Bandwidth selection for LPR
+library(purrr) # Mapping functions
 ##### Index Data Cleaning #####
 
 # Reading in file, using projroot library so only relative path needed
@@ -1164,3 +1167,5 @@ bar.chart.decade.event.study.by.time <- ggplot(decade.event.study.CAR10, aes(mar
 
  
 
+bar.chart.decade.event.study.by.CAR
+bar.chart.decade.event.study.by.time
