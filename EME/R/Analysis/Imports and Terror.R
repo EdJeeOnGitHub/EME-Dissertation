@@ -6,7 +6,7 @@ library(readxl)
 library(rprojroot)
 library(tidyverse)
 library(zoo)
-
+library(foreign)
 
 ## Import data
 root <- has_file(".git/index")
@@ -75,5 +75,29 @@ merged.data
 # TODO: Add distance to capitals. Consider re-writing as functions?
 
 
+path.distance <- root.file('EME', 'Data', 'Original Data', 'geo_cepii.xls')
+distance.data <- read_excel(path.distance)
+distance.data
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# path.gravity <- root.file('EME', 'Data', 'Original Data', 'gravdata.dta')
+# gravity.data <- read.dta(path.gravity)
+# colnames(gravity.data)
+# 
+# uk.gravity <- as.tibble(gravity.data[(gravity.data$iso2_o == 'GB'),])
+# uk.gravity
