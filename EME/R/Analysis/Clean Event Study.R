@@ -255,31 +255,7 @@ rm(list = removal.list.terror)
 
 
 
-#### eventstudies Package Cleaning ####
-
-## Data transformation for the eventstudies package - namely creating a 'when' and 'name' column that 'eventstudies' package can read
-
-create.name.when.columns <- function(event.data, index.selected, n){
-  name.list <- c(index.selected, 2:n)
-  event.data$name <- name.list
-  event.data <- data.frame(event.data)
-  colnames(event.data) <- c('when', 'name')
-  return(event.data)
-}
-
-# Applying to largest events
-
-eventstudies.events.top5 <- 
-  events.top5 %>%
-  select.date.column %>%
-  create.name.when.columns(index.selected = "FTSE.100...PRICE.INDEX",
-                           n = 5)
-
-
-
-
-
-#### Analysis Functions #####
+#### Event Study Analysis Functions #####
 
 # To run our analysis we need to remove NA values however this creates a problem when the attacks we want to study occur on the weekend. To overcome this the function
 # checks if the event date is missing from the omitted zoo. If it is, it adds one day and checks again, if it's still missing it adds another day and checks again. If a check
@@ -420,68 +396,9 @@ perform.one.day.event.study <- function(index, events, n, car.length = 11, estim
   return(return.df)
 }
 
-# This will run the one day event study function n times to fill up an n-day event window
-perform.event.study <- function(index, events, n, car.length = 11, estimation.window.length = 20, estimation.window.end = 10){
-  
-  full.event.study <- perform.one.day.event.study(index = index,
-                                                     events = events,
-                                                     n = n,
-                                                     car.length = 1,
-                                                     estimation.window.length = estimation.window.length,
-                                                     estimation.window.end = estimation.window.end)
-  for (i in 2:car.length){
-    single.event.study <- perform.one.day.event.study(n = n,
-                                                      index = index,
-                                                      events = events,
-                                                      car.length = i,
-                                                      estimation.window.length = estimation.window.length,
-                                                      estimation.window.end = estimation.window.end)
 
-    full.event.study <- rbind(full.event.study, single.event.study)
-  }
-  full.event.study <- calculate.attack.time.delta(full.event.study)
-  return(full.event.study)
-}
-
-# Function performs a one.day event study for the largest n events grouped by decade
-perform.decade.event.study <- function(index, events, car.length, estimation.window.length = 20, estimation.window.end = 10){
-  n.events <- nrow(events)
-  decade.event.study <- perform.one.day.event.study(index = index,
-                                                    events = events,
-                                                    n = 1)
-  for (i in 2:n.events){
-    event.study <- perform.one.day.event.study(index = index,
-                                               events = events,
-                                               n = i)
-    decade.event.study <- rbind(decade.event.study, event.study)
-  }
-  return(decade.event.study)
-}
-
-# # This function takes every event given in events and calculates the appropriate CAR
-# calculate.every.CAR <- function(events, index, estimation.window.length = 20, estimation.window.end = 10, car.length = 11){
-#   
-#   all.events.CAR <- perform.one.day.event.study(index = index,
-#                                                 events = events,
-#                                                 n = 1, 
-#                                                 estimation.window.length = estimation.window.length,
-#                                                 estimation.window.end = estimation.window.end,
-#                                                 car.length = car.length)
-#   for (i in 2:nrow(events)){
-#     temp.event.CAR <- perform.one.day.event.study(n = i,
-#                                                   index = index,
-#                                                   events = events,
-#                                                   estimation.window.length = estimation.window.length,
-#                                                   estimation.window.end = estimation.window.end,
-#                                                   car.length = car.length)
-#     all.events.CAR <- rbind(all.events.CAR, temp.event.CAR)
-#   }
-#   return(all.events.CAR)
-#   
-# }
-
-# Using purrrs's map() function instead of a for loop
-calculate.every.car.purrr <- function(events, index, estimation.window.length = 20, estimation.window.end = 10, car.length = 11){
+# Using purrrs's map() function instead of a for loop to calculate CAR for every event in a given list
+calculate.every.car <- function(events, index, estimation.window.length = 20, estimation.window.end = 10, car.length = 11){
   
   
   n.vector <- seq(nrow(events))
@@ -521,8 +438,22 @@ calculate.CI.rolling.CAAR <- function(all.events.CAR){
  return(all.events.CAR)                                         
 }
 
+# Combines the above into one function
+calculate.CAAR <- function(events, index, estimation.window.length = 20, estimation.window.end = 10, car.length = 11){
+  
+  CAAR <-
+    calculate.every.car(events,
+                              index,
+                              estimation.window.length,
+                              estimation.window.end,
+                              car.length) %>%
+    calculate.rolling.CAAR %>%
+    calculate.CI.rolling.CAAR
+  return(CAAR)
+}
 
-## Functions used for non-parametric results
+#### Probability Analysis Functions ####
+## Functions used for probability methods
 
 
 calculate.event.day.return <- function(event.date, n, index){
@@ -577,7 +508,7 @@ calculate.np.variables <- function(event.day.return.vector, index,  estimation.l
 }
 
 
-# Wraps everything up into one function to find the CDF
+# Wraps everything up into one function to find the conditional probability using Kernsmooth
 perform.local.polynomial.regression.ks <- function(event.date, n, index,  estimation.length = 200){
   
   event.day.return.vector <- calculate.event.day.return(event.date = event.date,
@@ -604,7 +535,7 @@ perform.local.polynomial.regression.ks <- function(event.date, n, index,  estima
   return(event.locpoly.df)
 }
 
-# Wrapping everything up to create a conditional probability function
+# Same as the above but gives out of sample estimate using empirical terror return
 perform.event.conditional.probability.ks <- function(event.date, n, index){
   event.day.return.vector <- calculate.event.day.return(event.date = event.date,
                                                  n = n,
@@ -702,69 +633,32 @@ perform.cp.locfit <- function(event.date, n, index, condition.on = 'mean', estim
 
 
 
-lockerbie.esrv <- calculate.event.day.return(events.top5, index.zoo.UK.ALLSHARE.omitted, n = 1)
-lockerbie.df <- calculate.np.variables(lockerbie.esrv, index.zoo.UK.ALLSHARE.omitted)
-
-london.esrv <- calculate.event.day.return(events.top5, index.zoo.UK.ALLSHARE.omitted, n = 2)
-london.df <- calculate.np.variables(london.esrv, index.zoo.UK.ALLSHARE.omitted)
-
-omagh.esrv <- calculate.event.day.return(events.top5, index.zoo.UK.ALLSHARE.omitted, n = 3)
-omagh.df <- calculate.np.variables(omagh.esrv, index.zoo.UK.ALLSHARE.omitted)
-
-manchester.esrv <- calculate.event.day.return(events.top5, n = 4, index.zoo.UK.ALLSHARE.omitted)
-manchester.df <- calculate.np.variables(manchester.esrv, index.zoo.UK.ALLSHARE.omitted)
-
-dropping.esrv <- calculate.event.day.return(events.top5, n = 5, index.zoo.UK.ALLSHARE.omitted)
-dropping.df <- calculate.np.variables(dropping.esrv, index.zoo.UK.ALLSHARE.omitted)
-
-summary(lockerbie.df)
-summary(london.df)
-summary(omagh.df)
-summary(manchester.df)
-summary(dropping.df)
-
-
-
-ggplot(london.df, aes(X.T2, Y)) +
-  geom_point() +
-  ggtitle('London Conditional Probability specification')
 
 #### Decade Results ####
 
 # CAR10
-decade.event.study.80s.CAR10 <- perform.decade.event.study(index = index.zoo.UK.ALLSHARE.omitted,
-                                                     events = events.80s)
-decade.event.study.90s.CAR10 <- perform.decade.event.study(index = index.zoo.UK.ALLSHARE.omitted,
-                                                     events = events.90s)
-decade.event.study.00s.CAR10 <- perform.decade.event.study(index = index.zoo.UK.ALLSHARE.omitted,
-                                                     events = events.00s)
-decade.event.study.10s.CAR10 <- perform.decade.event.study(index = index.zoo.UK.ALLSHARE.omitted,
-                                                     events = events.10s)
-decade.event.study.CAR10 <- rbind(decade.event.study.80s.CAR10,
-                            decade.event.study.90s.CAR10,
-                            decade.event.study.00s.CAR10,
-                            decade.event.study.10s.CAR10)
+
+decade.event.study.CAR10 <- events.decade.list %>% 
+  map_dfr(calculate.every.car, index = index.zoo.UK.ALLSHARE.omitted)
+
 
 # CAR4 N.B. car.length set to 5 as it counts event day (i.e. t=0) inclusively
-decade.event.study.80s.CAR4 <- perform.decade.event.study(index = index.zoo.UK.ALLSHARE.omitted,
-                                                          events = events.80s,
-                                                          car.length = 5)
-decade.event.study.90s.CAR4 <- perform.decade.event.study(index = index.zoo.UK.ALLSHARE.omitted,
-                                                          events = events.90s,
-                                                          car.length = 5)
-decade.event.study.00s.CAR4 <- perform.decade.event.study(index = index.zoo.UK.ALLSHARE.omitted,
-                                                          events = events.00s,
-                                                          car.length = 5)
-decade.event.study.10s.CAR4 <- perform.decade.event.study(index = index.zoo.UK.ALLSHARE.omitted,
-                                                          events = events.10s,
-                                                          car.length = 5)
-decade.event.study.CAR4 <- rbind(decade.event.study.80s.CAR4,
-                                 decade.event.study.90s.CAR4,
-                                 decade.event.study.00s.CAR4,
-                                 decade.event.study.10s.CAR4)
+
+decade.event.study.CAR4 <- events.decade.list %>% 
+  map_dfr(calculate.every.car, index = index.zoo.UK.ALLSHARE.omitted, car.length = 5)
+
+
 
 decade.event.study.CAR10
 decade.event.study.CAR4
+# Calculating CAAR split by decade
+CAAR.decade.80s <- calculate.every.car(events.80s,
+                                             index.zoo.UK.ALLSHARE.omitted) %>% 
+  calculate.rolling.CAAR %>% 
+  calculate.CI.rolling.CAAR 
+  
+CAAR.decade.80s
+
 
 removal.list.decade <- c('decade.event.study.80s.CAR10',
                          'decade.event.study.90s.CAR10',
@@ -779,21 +673,26 @@ removal.list.decade <- c('decade.event.study.80s.CAR10',
 rm(list = removal.list.decade)
 
 #### Largest Event Results ####
-lockerbie.bombing.event.study <- perform.event.study(index = index.zoo.UK.ALLSHARE.omitted,
-                                                     events = events.top5,
-                                                     n = 1)
-london.7.7.bombing.event.study <- perform.event.study(index = index.zoo.UK.ALLSHARE.omitted,
-                                                      events = events.top5,
-                                                      n = 2)
-omagh.bombing.event.study <- perform.event.study(index = index.zoo.UK.ALLSHARE.omitted,
-                                                 events = events.top5,
-                                                 n = 3)
-manchester.bombing.1996.event.study <- perform.event.study(index = index.zoo.UK.ALLSHARE.omitted,
-                                                           events = events.top5,
-                                                           n = 4)
-droppin.well.bombing.event.study <- perform.event.study(index = index.zoo.UK.ALLSHARE.omitted,
-                                                        events = events.top5,
-                                                        n = 5)
+lockerbie.bombing.event.study <-
+  perform.event.study(index = index.zoo.UK.ALLSHARE.omitted,
+                      events = events.top5,
+                      n = 1)
+london.7.7.bombing.event.study <-
+  perform.event.study(index = index.zoo.UK.ALLSHARE.omitted,
+                      events = events.top5,
+                      n = 2)
+omagh.bombing.event.study <-
+  perform.event.study(index = index.zoo.UK.ALLSHARE.omitted,
+                      events = events.top5,
+                      n = 3)
+manchester.bombing.1996.event.study <-
+  perform.event.study(index = index.zoo.UK.ALLSHARE.omitted,
+                      events = events.top5,
+                      n = 4)
+droppin.well.bombing.event.study <-
+  perform.event.study(index = index.zoo.UK.ALLSHARE.omitted,
+                      events = events.top5,
+                      n = 5)
 lockerbie.bombing.event.study
 london.7.7.bombing.event.study
 omagh.bombing.event.study
@@ -802,38 +701,12 @@ droppin.well.bombing.event.study
 
 
 # Calculating rolling CAAR of the largest n events
-all.CAR.10.day.ALLSHARE <- calculate.every.car.purrr(events = events.sorted,
+all.CAR.10.day.ALLSHARE <- calculate.every.car(events = events.sorted,
                                                index = index.zoo.UK.ALLSHARE.omitted)
 
 all.CAR.10.day.ALLSHARE <- calculate.rolling.CAAR(all.CAR.10.day.ALLSHARE)
 
 all.CAR.10.day.ALLSHARE <- calculate.CI.rolling.CAAR(all.CAR.10.day.ALLSHARE)
-
-#### eventstudies Package Results ####
-
-####
-#### Need to come back to this with individual industry/firm level data rather than index level data.
-####
-
-
-
-# eventstudies.top5.constant.mean.return <- eventstudy(firm.returns = eventstudies.zoo.UK.FTSE100.omitted,
-#                                 event.list = eventstudies.events.top5,
-#                                 type = 'marketModel',
-#                                 inference = TRUE,
-#                                 inference.strategy = 'bootstrap',
-#                                 model.args = list(market.returns = eventstudies.zoo.ALLSHARE[, '2']))
-# 
-# 
-# eventstudies.top5.none <- eventstudy(firm.returns = eventstudies.zoo.ALLSHARE,
-#                                      event.list = eventstudies.events.top5,
-#                                      type = 'None',
-#                                      inference.strategy = 'classic')
-# plot(eventstudies.top5.constant.mean.return)
-# plot(eventstudies.top5.none)
-
-
-
 
 #### Non-parametric Results ####
 
