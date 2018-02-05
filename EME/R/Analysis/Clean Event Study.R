@@ -242,6 +242,29 @@ events.sorted <- filter.events(event.data = terror.data,
                                n.events = nrow(terror.data))
 
 
+# Removes any events that have other terror events occurring in their estimation window
+screen.overlapping.events <- function(events, window.end = 10, drop = TRUE,  window.length = 20){
+  events <- events %>%
+    mutate(
+      start.date = (Date - window.end - window.length),
+      end.date = (Date - window.end)
+    ) %>%
+    arrange(desc(Date)) %>% 
+    mutate(L.date = lead(Date),
+           L.start.date = L.date - window.end - window.length,
+           L.end.date = L.date - window.end,
+           estimation.interval = start.date %--% end.date,
+           L.interval = L.start.date %--% L.end.date,
+           overlap = int_overlaps(estimation.interval, L.interval)) %>% 
+    select(-c(start.date, end.date, L.date, L.start.date, L.end.date, estimation.interval, L.interval)) %>% 
+    arrange(desc(terror.intensity))
+  
+  if (drop == TRUE){
+    events <- filter(events, overlap == FALSE | is.na(overlap)) # lubridate's interval function and dplyr's tibble don't get along
+  }                                                             # therefore have this workaround where very earliest event is classed as NA but not
+  return(events)                                                # dropped, by definition the first event can't overlap so this is ok.
+}
+
 
 
 
@@ -420,7 +443,7 @@ perform.one.day.event.study <- function(index, events, n, car.length = 11, estim
   if (boot == TRUE){
   event.boot.se <- boot(data = estimation.car,
                           statistic = calculate.boot.se,
-                          R = 1000,
+                          R = 10000,
                         parallel = 'snow')
   mean.boot.se <- mean(event.boot.se$t)
   boot.t.stat <- round(calculate.boot.t.test(se = mean.boot.se,
@@ -508,14 +531,15 @@ calculate.CI.rolling.CAAR <- function(all.events.CAR){
  all.events.CAR <- mutate(all.events.CAR, 
                           temp.diff = (event.car - rolling.CAAR)^2,
                           rolling.sd = sqrt(cumsum(temp.diff)/df),
-                          rolling.ci = qt(0.975, df = df)*rolling.sd/(sqrt(n)))
+                          rolling.ci = qt(0.975, df = df)*rolling.sd/(sqrt(n)),
+                          rolling.t = rolling.CAAR/(rolling.sd/sqrt(n)))
  # all.events.CAR$temp.diff <- (all.events.CAR$event.CAR - all.events.CAR$rolling.CAAR)^2
  # # all.events.CAR$rolling.sd <- sqrt(cumsum(all.events.CAR$temp.diff)/all.events.CAR$df)
  # # all.events.CAR$ci <- qt(0.975, df = df)*(all.events.CAR$rolling.sd/(sqrt(all.events.CAR$n)))
  return(all.events.CAR)                                         
 }
 
-# Combines the above into one function
+# Given a dataframe with n-day CARs calculated, will calculate n-day CAAR with confidence intervals etc.
 calculate.CAAR <- function(events, index, estimation.window.length = 20, estimation.window.end = 10, car.length = 11){
   
   CAAR <-
@@ -525,7 +549,10 @@ calculate.CAAR <- function(events, index, estimation.window.length = 20, estimat
                               estimation.window.end,
                               car.length) %>%
     calculate.rolling.CAAR %>%
-    calculate.CI.rolling.CAAR
+    calculate.CI.rolling.CAAR %>% 
+    select(c(rolling.CAAR, n, rolling.sd, rolling.ci, rolling.t)) %>% 
+    .[nrow(.),]
+  colnames(CAAR) <- c('CAAR', 'number of events', 'st.dev', 'CI width', 'T statistic')
   return(CAAR)
 }
 
@@ -829,15 +856,53 @@ all.CAR.10.day.ALLSHARE <- calculate.rolling.CAAR(all.CAR.10.day.ALLSHARE)
 
 all.CAR.10.day.ALLSHARE <- calculate.CI.rolling.CAAR(all.CAR.10.day.ALLSHARE)
 
+# The same but now I screen for overlapping events, significantly reducing the number of events used
+all.CAR.10.day.ALLSHARE.no.overlap <- screen.overlapping.events(events.sorted)
+all.CAR.10.day.ALLSHARE.no.overlap <- calculate.car(all.CAR.10.day.ALLSHARE, index.zoo.UK.ALLSHARE.omitted) %>% 
+  calculate.rolling.CAAR %>% 
+  calculate.CI.rolling.CAAR %>% 
+  as.tibble
+
+
+
+
+
 # Calculating CAAR for the 5 largest events
 
-largest.5.events.CAAR <- events.top5 %>% 
-  calculate.car(index.zoo.UK.ALLSHARE.omitted, boot = TRUE) %>% 
-  calculate.rolling.CAAR %>% 
-  calculate.CI.rolling.CAAR 
+largest.5.events.CAAR <- calculate.CAAR(events.top5, index.zoo.UK.ALLSHARE.omitted)
+largest.10.events.CAAR <- calculate.CAAR(events.sorted[1:10,],
+                                         index.zoo.UK.ALLSHARE.omitted)
+largest.20.events.CAAR <- calculate.CAAR(events.sorted[1:20,],
+                                         index.zoo.UK.ALLSHARE.omitted)
+
+
+
+# The same but removing overlapping events that appear in the top 15 and 25 - N.B. not screening for tiny events occurring in window.
+events.top15.no.overlap <- screen.overlapping.events(events.sorted[1:15,])
+events.top25.no.overlap <- screen.overlapping.events(events.sorted[1:25,])
+
+
+largest.10.no.overlap.CAAR <- calculate.CAAR(events.top15.no.overlap[1:10,],
+                                             index.zoo.UK.ALLSHARE.omitted)
+largest.20.no.overlap.CAAR <- calculate.CAAR(events.top25.no.overlap[1:20,],
+                                             index.zoo.UK.ALLSHARE.omitted)
+
+
+
 
 
 largest.5.events.CAAR
+largest.10.events.CAAR
+largest.10.no.overlap.CAAR
+largest.20.events.CAAR
+largest.20.no.overlap.CAAR
+
+
+
+
+
+
+
 
 
 #### Local Polynomial (unused) Results ####
