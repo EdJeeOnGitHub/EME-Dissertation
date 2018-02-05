@@ -320,7 +320,7 @@ calculate.CAR.t.test <- function(esti.window, ev.window){
 
 # Bootstrapped standard errors for use in t tests
 calculate.boot.se <- function(data, indices){
-  d <- na.omit(data[indices,]) # allow boot to select sample
+  d <- na.omit(data[indices]) # allow boot to select sample
   estimation.sd <- sd(d)
   root.n <- sqrt(length(d))
   se <- estimation.sd/root.n
@@ -445,7 +445,8 @@ perform.one.day.event.study <- function(index, events, n, car.length = 11, estim
   event.boot.se <- boot(data = estimation.car,
                           statistic = calculate.boot.se,
                           R = 10000,
-                        parallel = 'snow')
+                        parallel = 'snow', 
+                        ncpus = 2)
   mean.boot.se <- mean(event.boot.se$t)
   boot.t.stat <- round(calculate.boot.t.test(se = mean.boot.se,
                                              ev.window = event.car), 4)
@@ -497,7 +498,10 @@ perform.event.study <- function(index, events, n, car.length = 11, estimation.wi
   return(full.event.study)
 }
 
-# Using purrrs's map() function instead of a for loop to calculate CAR for every event in a given list
+# Using purrrs's map() function instead of a for loop to calculate CAR for every event in a given list. This function and the above function
+# produce identical results although require slightly different arguments. calculate.car takes an event day argument, perform.event.study takes a
+# list of events and an indexer n for the specific event wanted. This second function is meant to be marginally quicker but the effect is 
+# negligible or non-existent
 calculate.car <- function(events, index, estimation.window.length = 20, estimation.window.end = 10, car.length = 11, boot = FALSE){
   
   
@@ -620,7 +624,7 @@ calculate.variables <- function(event.day.return.vector, index,  estimation.leng
   index.df$event.day.return.L1 <- event.day.return.L1
   
   index.df <- mutate(index.df, Y = as.numeric(estimation.window.returns < event.day.return))
-  index.df$X.temp <- coredata(lag(estimation.window, 1))
+  index.df$X.temp <- coredata(dplyr::lag(estimation.window, 1))
   index.df$X.L1.conditioned <- index.df$X.temp - index.df$event.day.return.L1
   
   index.df <- mutate(index.df, X.mean.conditioned = index.df$X.temp - mean(estimation.window.returns) )
@@ -818,6 +822,7 @@ try(rm(list = removal.list.decade), silent = TRUE)
 ## 80s
 first.event.80s.edrv <- calculate.event.day.return(events.80s, n = 1 ,
                                               index.zoo.UK.ALLSHARE.omitted)
+
 first.event.80s.data <- calculate.variables(first.event.80s.edrv,
                                                index.zoo.UK.ALLSHARE.omitted)
 
@@ -871,7 +876,7 @@ all.CAR.10.day.ALLSHARE <- calculate.CI.rolling.CAAR(all.CAR.10.day.ALLSHARE)
 
 # The same but now I screen for overlapping events, significantly reducing the number of events used
 all.CAR.10.day.ALLSHARE.no.overlap <- screen.overlapping.events(events.sorted)
-all.CAR.10.day.ALLSHARE.no.overlap <- calculate.car(all.CAR.10.day.ALLSHARE, index.zoo.UK.ALLSHARE.omitted) %>% 
+all.CAR.10.day.ALLSHARE.no.overlap <- calculate.car(all.CAR.10.day.ALLSHARE.no.overlap, index.zoo.UK.ALLSHARE.omitted) %>% 
   calculate.rolling.CAAR %>% 
   calculate.CI.rolling.CAAR %>% 
   as.tibble
@@ -911,12 +916,18 @@ largest.20.events.CAAR
 largest.20.no.overlap.CAAR
 
 
+## Calculating 10- and 4- day CAR for every event observed both screened and un-screened
+
+CAR.10.unfiltered <- calculate.car(events.sorted, index.zoo.UK.ALLSHARE.omitted)
+CAR.10.filtered <- calculate.car(screen.overlapping.events(events.sorted), index.zoo.UK.ALLSHARE.omitted)
+
+
+CAR.4.unfiltered <- calculate.car(events.sorted, index.zoo.UK.ALLSHARE.omitted)
+CAR.4.filtered <- calculate.car(screen.overlapiing.events(events.sorted), index.zoo.UK.ALLSHARE.omitted)
 
 
 
-
-
-
+#### Largest Event Logit Results ####
 
 #### Local Polynomial (unused) Results ####
 
