@@ -12,8 +12,6 @@ library(tidyverse) # Data manipulation
 library(zoo) # Time series manipulation
 library(readxl) # Reading in excel
 library(ggthemes) # Some extra themes for plotting
-library(eventstudies) # Package useful for calculating CAARs
-library(knitr) # Presentations
 library(KernSmooth) # Local Polynomial fitting
 library(locfit) # More local polynomial fitting
 library(kedd) # Bandwidth selection for LPR
@@ -319,6 +317,8 @@ calculate.CAR.t.test <- function(esti.window, ev.window){
   return(test)
 }
 
+
+# Bootstrapped standard errors for use in t tests
 calculate.boot.se <- function(data, indices){
   d <- na.omit(data[indices,]) # allow boot to select sample
   estimation.sd <- sd(d)
@@ -396,6 +396,7 @@ calculate.attack.time.delta <- function(event.study){
   event.study$time.delta <- seq(length(event.study[, 1])) - 1
   return(event.study)
 }
+
 # Pulling all the above together into a single function to run an event study. This will give an n-day CAR observation only.
 perform.one.day.event.study <- function(index, events, n, car.length = 11, estimation.window.length = 20, estimation.window.end = 10, boot = FALSE){
   
@@ -471,7 +472,7 @@ perform.one.day.event.study <- function(index, events, n, car.length = 11, estim
   return(return.df)
 }
 
-# When calculates the CAR for every day in the event window
+# Calculates the CAR for every day in the event window
 perform.event.study <- function(index, events, n, car.length = 11, estimation.window.length = 20, estimation.window.end = 10, boot = FALSE){
   
   full.event.study <- perform.one.day.event.study(index = index,
@@ -517,7 +518,7 @@ calculate.car <- function(events, index, estimation.window.length = 20, estimati
   
 }
 
-# Now gives rolling Cumulative Average Abnormal Returns
+# Gives rolling Cumulative Average Abnormal Returns for use in a plot of CAAR vs number of events included
 calculate.rolling.CAAR <- function(all.events.CAR){
   all.events.CAR$rolling.CAAR <- cumsum(all.events.CAR$event.car)/seq(along = all.events.CAR$event.car)
   n <- c(1:nrow(all.events.CAR))
@@ -525,7 +526,7 @@ calculate.rolling.CAAR <- function(all.events.CAR){
   return(all.events.CAR)
 }
 
-
+# Confidence intervals for the above function
 calculate.CI.rolling.CAAR <- function(all.events.CAR){
  all.events.CAR$df <- all.events.CAR$n - 1
  all.events.CAR <- mutate(all.events.CAR, 
@@ -539,6 +540,11 @@ calculate.CI.rolling.CAAR <- function(all.events.CAR){
  return(all.events.CAR)                                         
 }
 
+calculate.boot.CAAR <- function(data, indices){
+  CAR <- data[indices]
+  return(CAR)
+}
+
 # Given a dataframe with n-day CARs calculated, will calculate n-day CAAR with confidence intervals etc.
 calculate.CAAR <- function(events, index, estimation.window.length = 20, estimation.window.end = 10, car.length = 11){
   
@@ -550,11 +556,18 @@ calculate.CAAR <- function(events, index, estimation.window.length = 20, estimat
                               car.length) %>%
     calculate.rolling.CAAR %>%
     calculate.CI.rolling.CAAR %>% 
-    select(c(rolling.CAAR, n, rolling.sd, rolling.ci, rolling.t)) %>% 
-    .[nrow(.),]
-  colnames(CAAR) <- c('CAAR', 'number of events', 'st.dev', 'CI width', 'T statistic')
+    select(c(event.car, rolling.CAAR, n, rolling.sd, rolling.ci, rolling.t))
+  
+  colnames(CAAR) <- c('event.car', 'CAAR', 'number of events', 'st.dev', 'CI width', 'T statistic')
+  boot.CAARs <- boot(data = CAAR$event.car,
+                     statistic = calculate.boot.CAAR,
+                     R = 10000)
+  CAAR <- CAAR[nrow(CAAR), ]
+  CAAR$boot.ci.lower <- boot.ci(boot.CAARs, type = 'bca')$bca[4]
+  CAAR$boot.ci.upper <- boot.ci(boot.CAARs, type = 'bca')$bca[5]
   return(CAAR)
 }
+
 
 #### Probability Analysis Functions ####
 ## Functions used for probability methods
