@@ -17,7 +17,10 @@ library(knitr) # Presentations
 library(KernSmooth) # Local Polynomial fitting
 library(locfit) # More local polynomial fitting
 library(kedd) # Bandwidth selection for LPR
-
+library(lubridate) # Date manipulation
+library(rstanarm) # Bayesian package
+library(shinystan) # Bayesian model exploration
+options(mc.cores = parallel::detectCores())
 ##### Index Data Cleaning #####
 
 # Reading in file, using projroot library so only relative path needed
@@ -475,13 +478,17 @@ calculate.event.day.return <- function(event.date, n, index){
 }
 
 
-# Now the indicator function: Y = I(R < r) where R is observed return and r is the return the day of the attack
-# The X variable is just R lagged
-# The X.transformed variable is X - r(t-1) i.e X minus the return the day before the terror attack. This needs to be rewritten as an average for the
-# CAR case.
+# Performs the data transformations in order to calculate conditional probability as laid out by Marc Chesney, Ganna Reshetar, Mustafa Karaman
+# at https://doi.org/10.1016/j.jbankfin.2010.07.026
 
-# We regress Y on X.transformed using a local polynomial fitting - this is equivalent to finding the conditional cumulative density function of returns
-calculate.np.variables <- function(event.day.return.vector, index,  estimation.length = 200){
+# The indicator function: Y = I(R < r) where R is observed return and r is the return the day of the attack
+# The X.temp variable is just R lagged
+# The X.L1.conditioned variable is X - r(t-1) i.e X minus the return the day before the terror attack.
+# The X.mean.conditioned variable is X - mean(R) i.e. conditioning on the mean of estimation.length observations before the attack
+
+# A regression of Y on X.L1/.mean is equivalent to finding the conditional probability of observing a return as bad or worse on the 
+# day of the attack.
+calculate.variables <- function(event.day.return.vector, index,  estimation.length = 200){
   
   event.day.return <- event.day.return.vector[[1]]
   event.day.return.L1 <- event.day.return.vector[[2]]
@@ -497,12 +504,12 @@ calculate.np.variables <- function(event.day.return.vector, index,  estimation.l
   index.df <- data.frame(estimation.window.returns)
   index.df$event.day.return <-  event.day.return
   index.df$event.day.return.L1 <- event.day.return.L1
-
-  index.df <- mutate(index.df, Y = as.numeric(estimation.window.returns < event.day.return))
-  index.df$X <- coredata(lag(estimation.window, 1))
-  index.df$X.transformed <- index.df$X - index.df$event.day.return.L1
   
-  index.df <- mutate(index.df, X.T2 = index.df$X - mean(estimation.window.returns) )
+  index.df <- mutate(index.df, Y = as.numeric(estimation.window.returns < event.day.return))
+  index.df$X.temp <- coredata(lag(estimation.window, 1))
+  index.df$X.L1.conditioned <- index.df$X.temp - index.df$event.day.return.L1
+  
+  index.df <- mutate(index.df, X.mean.conditioned = index.df$X.temp - mean(estimation.window.returns) )
   index.df <- na.omit(index.df)
   return(index.df)
 }
@@ -634,7 +641,7 @@ perform.cp.locfit <- function(event.date, n, index, condition.on = 'mean', estim
 
 
 
-#### Decade Results ####
+#### Decade CAR Results ####
 
 # CAR10
 
@@ -652,12 +659,32 @@ decade.event.study.CAR4 <- events.decade.list %>%
 decade.event.study.CAR10
 decade.event.study.CAR4
 # Calculating CAAR split by decade
+# 80s
 CAAR.decade.80s <- calculate.every.car(events.80s,
                                              index.zoo.UK.ALLSHARE.omitted) %>% 
   calculate.rolling.CAAR %>% 
-  calculate.CI.rolling.CAAR 
+  calculate.CI.rolling.CAAR %>% 
+  select( c(rolling.CAAR, df, rolling.sd, rolling.ci)) %>% 
+  .[5,]
   
-CAAR.decade.80s
+
+# All of them together
+CAAR.10.by.decade <- events.decade.list %>% 
+  map( calculate.every.car, index = index.zoo.UK.ALLSHARE.omitted) %>% 
+  map(calculate.rolling.CAAR) %>% 
+  map(calculate.CI.rolling.CAAR) %>% 
+  map_dfr(. %>% filter(n ==5))
+
+CAAR.10.by.decade$Decade <- CAAR.by.decade$Date %>%
+  as.Date %>%
+  floor_date(years(10)) %>%
+  year
+
+CAAR.10.by.decade <- select(CAAR.by.decade, c(rolling.CAAR, rolling.sd, rolling.ci, Decade))
+colnames(CAAR.by.decade) <- c('CAAR', 'SD', 'CI', 'Decade')
+CAAR.by.decade
+
+
 
 
 removal.list.decade <- c('decade.event.study.80s.CAR10',
@@ -672,7 +699,27 @@ removal.list.decade <- c('decade.event.study.80s.CAR10',
 
 rm(list = removal.list.decade)
 
-#### Largest Event Results ####
+#### Decade Logit Results ####
+
+## 80s
+first.event.80s.edrv <- calculate.event.day.return(events.80s, n = 1 ,
+                                              index.zoo.UK.ALLSHARE.omitted)
+first.event.80s.data <- calculate.variables(first.event.80s.edrv,
+                                               index.zoo.UK.ALLSHARE.omitted)
+
+model1 <- Y ~ X.L1.conditioned + 0
+first.event.80s.fit1 <- stan_glm(model1,
+                                 data = first.event.80s.data,
+                                 family = binomial(link = 'logit'))
+first.event.80s.fit1
+
+first.event.80s.ci95 <- posterior_interval(first.event.80s.fit1, prob = 0.95,
+                                           pars = 'X.L1.conditioned')
+round(first.event.80s.ci95, 3)
+
+launch_shinystan(first.event.80s.fit1)
+
+#### Largest Event CAR Results ####
 lockerbie.bombing.event.study <-
   perform.event.study(index = index.zoo.UK.ALLSHARE.omitted,
                       events = events.top5,
@@ -708,7 +755,7 @@ all.CAR.10.day.ALLSHARE <- calculate.rolling.CAAR(all.CAR.10.day.ALLSHARE)
 
 all.CAR.10.day.ALLSHARE <- calculate.CI.rolling.CAAR(all.CAR.10.day.ALLSHARE)
 
-#### Non-parametric Results ####
+#### Local Polynomial (unused) Results ####
 
 
 lockerbie.locpoly.ks <- perform.local.polynomial.regression.ks(event.date = events.top5,
