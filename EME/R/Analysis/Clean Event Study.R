@@ -20,6 +20,9 @@ library(kedd) # Bandwidth selection for LPR
 library(lubridate) # Date manipulation
 library(rstanarm) # Bayesian package
 library(shinystan) # Bayesian model exploration
+library(boot) # Bootstrapping library
+
+
 options(mc.cores = parallel::detectCores())
 ##### Index Data Cleaning #####
 
@@ -293,12 +296,32 @@ calculate.CAR.t.test <- function(esti.window, ev.window){
   return(test)
 }
 
+calculate.boot.se <- function(data, indices){
+  d <- na.omit(data[indices,]) # allow boot to select sample
+  estimation.sd <- sd(d)
+  root.n <- sqrt(length(d))
+  se <- estimation.sd/root.n
+  return(se)
+}
+calculate.boot.t.test <- function(se, ev.window){
+  test <- ev.window/se
+  return(test)
+}
+
+
+
 # Calculating confidence intervals
 calculate.CI <- function(esti.window){
   esti.window <- na.omit(esti.window)
   estimation.stdev <- sd(esti.window)
   root.n <- sqrt(length(esti.window))
   ci <- qt(0.975, df = length(esti.window) - 1)*(estimation.stdev/root.n)
+  return(ci)
+}
+
+calculate.boot.CI <- function(esti.window, se){
+  esti.window <- na.omit(esti.window)
+  ci <- qt(0.975, df = length(esti.window) - 1)*se
   return(ci)
 }
 
@@ -351,7 +374,7 @@ calculate.attack.time.delta <- function(event.study){
   return(event.study)
 }
 # Pulling all the above together into a single function to run an event study. This will give an n-day CAR observation only.
-perform.one.day.event.study <- function(index, events, n, car.length = 11, estimation.window.length = 20, estimation.window.end = 10){
+perform.one.day.event.study <- function(index, events, n, car.length = 11, estimation.window.length = 20, estimation.window.end = 10, boot = FALSE){
   
   event.market.date <- events$Date[n]
   
@@ -377,20 +400,46 @@ perform.one.day.event.study <- function(index, events, n, car.length = 11, estim
   event.car <- calculate.CAR(window = event.window,
                              mean.return = constant.mean.return,
                              car.length = car.length)
-  
+
   event.t.stat <- calculate.CAR.t.test(esti.window = estimation.car,
                                        ev.window = event.car)
   
-  event.p.value <- calculate.p.value(t.stat = event.t.stat,
-                                     estimation.car = estimation.car)
+  event.p.value <- round(calculate.p.value(t.stat = event.t.stat,
+                                     estimation.car = estimation.car), 4)
   
+
   event.confidence.interval <- calculate.CI(esti.window = estimation.car)
-  
+ 
+
   return.zoo <- merge.zoo(event.ar,
                           event.car,
                           event.t.stat,
                           event.p.value,
                           event.confidence.interval)
+  
+  if (boot == TRUE){
+  event.boot.se <- boot(data = estimation.car,
+                          statistic = calculate.boot.se,
+                          R = 1000,
+                        parallel = 'snow')
+  mean.boot.se <- mean(event.boot.se$t)
+  boot.t.stat <- round(calculate.boot.t.test(se = mean.boot.se,
+                                             ev.window = event.car), 4)
+  boot.p.value <- round(calculate.p.value(t.stat = boot.t.stat,
+                                          estimation.car = estimation.car), 4)
+  boot.confidence.interval <- calculate.boot.CI(esti.window = estimation.car,
+                                                se = mean.boot.se)
+  return.zoo <- merge.zoo(event.ar,
+                          event.car,
+                          event.t.stat,
+                          boot.t.stat,
+                          event.p.value,
+                          boot.p.value,
+                          event.confidence.interval,
+                          boot.confidence.interval)
+  }
+  
+  
   return.df <- data.frame(return.zoo[car.length, ])
   return.df <- tibble::rownames_to_column(return.df, 'Date')
   return.df$Date <- as.Date(return.df$Date)
@@ -399,9 +448,33 @@ perform.one.day.event.study <- function(index, events, n, car.length = 11, estim
   return(return.df)
 }
 
+# When calculates the CAR for every day in the event window
+perform.event.study <- function(index, events, n, car.length = 11, estimation.window.length = 20, estimation.window.end = 10, boot = FALSE){
+  
+  full.event.study <- perform.one.day.event.study(index = index,
+                                                  events = events,
+                                                  n = n,
+                                                  car.length = 1,
+                                                  estimation.window.length = estimation.window.length,
+                                                  estimation.window.end = estimation.window.end,
+                                                  boot = boot)
+  for (i in 2:car.length){
+    single.event.study <- perform.one.day.event.study(n = n,
+                                                      index = index,
+                                                      events = events,
+                                                      car.length = i,
+                                                      estimation.window.length = estimation.window.length,
+                                                      estimation.window.end = estimation.window.end,
+                                                      boot = boot)
+    
+    full.event.study <- rbind(full.event.study, single.event.study)
+  }
+  full.event.study <- calculate.attack.time.delta(full.event.study)
+  return(full.event.study)
+}
 
 # Using purrrs's map() function instead of a for loop to calculate CAR for every event in a given list
-calculate.every.car <- function(events, index, estimation.window.length = 20, estimation.window.end = 10, car.length = 11){
+calculate.car <- function(events, index, estimation.window.length = 20, estimation.window.end = 10, car.length = 11, boot = FALSE){
   
   
   n.vector <- seq(nrow(events))
@@ -412,7 +485,8 @@ calculate.every.car <- function(events, index, estimation.window.length = 20, es
         events = events,
         estimation.window.length = estimation.window.length,
         estimation.window.end = estimation.window.end,
-        car.length = car.length)
+        car.length = car.length,
+        boot = boot)
     
   
   
@@ -445,7 +519,7 @@ calculate.CI.rolling.CAAR <- function(all.events.CAR){
 calculate.CAAR <- function(events, index, estimation.window.length = 20, estimation.window.end = 10, car.length = 11){
   
   CAAR <-
-    calculate.every.car(events,
+    calculate.car(events,
                               index,
                               estimation.window.length,
                               estimation.window.end,
@@ -646,13 +720,13 @@ perform.cp.locfit <- function(event.date, n, index, condition.on = 'mean', estim
 # CAR10
 
 decade.event.study.CAR10 <- events.decade.list %>% 
-  map_dfr(calculate.every.car, index = index.zoo.UK.ALLSHARE.omitted)
+  map_dfr(calculate.car, index = index.zoo.UK.ALLSHARE.omitted)
 
 
 # CAR4 N.B. car.length set to 5 as it counts event day (i.e. t=0) inclusively
 
 decade.event.study.CAR4 <- events.decade.list %>% 
-  map_dfr(calculate.every.car, index = index.zoo.UK.ALLSHARE.omitted, car.length = 5)
+  map_dfr(calculate.car, index = index.zoo.UK.ALLSHARE.omitted, car.length = 5)
 
 
 
@@ -660,7 +734,7 @@ decade.event.study.CAR10
 decade.event.study.CAR4
 # Calculating CAAR split by decade
 # 80s
-CAAR.decade.80s <- calculate.every.car(events.80s,
+CAAR.decade.80s <- calculate.car(events.80s,
                                              index.zoo.UK.ALLSHARE.omitted) %>% 
   calculate.rolling.CAAR %>% 
   calculate.CI.rolling.CAAR %>% 
@@ -670,12 +744,12 @@ CAAR.decade.80s <- calculate.every.car(events.80s,
 
 # All of them together
 CAAR.10.by.decade <- events.decade.list %>% 
-  map( calculate.every.car, index = index.zoo.UK.ALLSHARE.omitted) %>% 
+  map( calculate.car, index = index.zoo.UK.ALLSHARE.omitted) %>% 
   map(calculate.rolling.CAAR) %>% 
   map(calculate.CI.rolling.CAAR) %>% 
   map_dfr(. %>% filter(n ==5))
 
-CAAR.10.by.decade$Decade <- CAAR.by.decade$Date %>%
+CAAR.10.by.decade$Decade <- CAAR.10.by.decade$Date %>%
   as.Date %>%
   floor_date(years(10)) %>%
   year
@@ -697,7 +771,7 @@ removal.list.decade <- c('decade.event.study.80s.CAR10',
                          'decade.event.study.10s.CAR4',
                          'removal.list.decade')
 
-rm(list = removal.list.decade)
+try(rm(list = removal.list.decade), silent = TRUE)
 
 #### Decade Logit Results ####
 
@@ -717,9 +791,9 @@ first.event.80s.ci95 <- posterior_interval(first.event.80s.fit1, prob = 0.95,
                                            pars = 'X.L1.conditioned')
 round(first.event.80s.ci95, 3)
 
-launch_shinystan(first.event.80s.fit1)
-
 #### Largest Event CAR Results ####
+
+
 lockerbie.bombing.event.study <-
   perform.event.study(index = index.zoo.UK.ALLSHARE.omitted,
                       events = events.top5,
@@ -747,13 +821,24 @@ manchester.bombing.1996.event.study
 droppin.well.bombing.event.study
 
 
-# Calculating rolling CAAR of the largest n events
-all.CAR.10.day.ALLSHARE <- calculate.every.car(events = events.sorted,
+# Calculating rolling CAAR of all terror events recorded
+all.CAR.10.day.ALLSHARE <- calculate.car(events = events.sorted,
                                                index = index.zoo.UK.ALLSHARE.omitted)
 
 all.CAR.10.day.ALLSHARE <- calculate.rolling.CAAR(all.CAR.10.day.ALLSHARE)
 
 all.CAR.10.day.ALLSHARE <- calculate.CI.rolling.CAAR(all.CAR.10.day.ALLSHARE)
+
+# Calculating CAAR for the 5 largest events
+
+largest.5.events.CAAR <- events.top5 %>% 
+  calculate.car(index.zoo.UK.ALLSHARE.omitted, boot = TRUE) %>% 
+  calculate.rolling.CAAR %>% 
+  calculate.CI.rolling.CAAR 
+
+
+largest.5.events.CAAR
+
 
 #### Local Polynomial (unused) Results ####
 
