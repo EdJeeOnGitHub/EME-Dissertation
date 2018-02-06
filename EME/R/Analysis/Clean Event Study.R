@@ -19,6 +19,7 @@ library(lubridate) # Date manipulation
 library(rstanarm) # Bayesian package
 library(shinystan) # Bayesian model exploration
 library(boot) # Bootstrapping library
+library(dynlm) # Time series regression
 
 
 options(mc.cores = parallel::detectCores())
@@ -116,31 +117,8 @@ index.zoo.UK.ALLSHARE.omitted <-
   prices.to.returns
 
 
-# Creating a zoo index in the eventstudies package format - a zoo with repeated columns of index data
-eventstudies.index.ALLSHARE <- select.index(raw.index.data.UK,
-                                            index.to.select = "FTSE.ALL.SHARE...PRICE.INDEX",
-                                            rep = TRUE,
-                                            n = 5)
-
-eventstudies.zoo.ALLSHARE <- 
-  eventstudies.index.ALLSHARE %>%
-  read.zoo %>%
-  na.omit %>%
-  prices.to.returns
 
 
-
-
-# FTSE100 eventstudies
-eventstudies.index.UK.FTSE100 <- select.index(raw.index.data.UK,
-                                      index.to.select = "FTSE.100...PRICE.INDEX",
-                                      rep = TRUE,
-                                      n = 5)
-eventstudies.zoo.UK.FTSE100.omitted <-
-  eventstudies.index.UK.FTSE100 %>%
-  read.zoo %>%
-  na.omit %>%
-  prices.to.returns
 # Cleaning up unwanted variables
 removal.list.index <- c('root',
                  'raw.index.data',
@@ -285,16 +263,25 @@ rm(list = removal.list.terror)
 #### Finite Moment Test Functions ####
 
 # Testing for finite fourth moment as described by Trapani (2015) <https://doi.org/10.1016/j.jeconom.2015.08.006>
-calculate.mu.hat.4 <- function(data){
-data <- na.omit(data)
-n <- length(data)
-abs.4th.moment.gaussian <- 4*gamma(5/2)*pi^(-1/2)
-numerator <- sum(abs(data)^4)/n
-denominator <- (sum(data^2)/n)^2
-mu.hat.4 <- (1/abs.4th.moment.gaussian)*numerator/denominator
 
-return(mu.hat.4)
+calculate.mu.star <- function(data){
+  data <- na.omit(data)
+  n <- length(data)
+  
+  mu.hat.k <- (1/n)*sum(abs(data)^4)
+  mu.hat.phi <- (1/n)*sum(abs(data)^2)  # Setting phi = 2 i.e. the variance
+  mu.hat.star <- mu.hat.k/(mu.hat.phi^2) # Essentially rescaling by the variance
+  return(mu.hat.star)
 }
+
+calculate.mu.star.star <- function(mu.hat.star){
+  mu.phi.norm <- 2*gamma(1.5)*pi^(-1/2) # The phi'th absolute moment of the normal distribution - here the 2nd abs moment
+  mu.k.norm <- 4*gamma(2.5)*pi^(-1/2)
+  
+  mu.hat.star.star <- mu.hat.star*(mu.phi.norm^2)/mu.k.norm # Now rescaling AS IF our X's were standard normal
+  return(mu.hat.star.star)
+}
+
 
 generate.sample <- function(r, mu.hat){
   normal.var <- rnorm(n=r, mean = 0, sd = 1)
@@ -302,29 +289,31 @@ generate.sample <- function(r, mu.hat){
   return(sample)
 }
 
-test.integrand <- function(generated.sample){
-  fu.sample <- function(u){
+test.integrand <- function(generated.sample){ # This function looks a little complicated because we're integrating over u whilst holding the sample used to
+  fu.sample <- function(u){                   # generate theta_u constant
     zeta <- data.frame(generated.sample)
     zeta <- mutate(zeta, zeta.indicator = as.numeric(zeta < u))
     zeta <- mutate(zeta, zeta.next = zeta.indicator - 0.5)
-    theta_u <- (2/length(generated.sample))*sum(zeta$zeta.next)
-    integrand <- (theta_u^2)*0.5
+    theta_u <- (2/sqrt(length(generated.sample)))*sum(zeta$zeta.next)
+    integrand <- (theta_u^2)*(1-u)
     return(integrand)
   }
 return(fu.sample)
 }
 
 generate.test.statistic<- function(generated.sample){
-  integrate(Vectorize(test.integrand(generated.sample)), lower = -1, upper = 1)$value
+  integrate(Vectorize(test.integrand(generated.sample)), lower = -1, upper = 1, rel.tol=.Machine$double.eps^.05)$value # Integrating the test statistic
 }
 
-## TODO: Need to apply to pre whitened data and figure out t stat. chi^2 1 distribution I think.
-
-UK.ALLSHARE.sample <- calculate.mu.hat.4(index.zoo.UK.ALLSHARE.omitted) %>% 
-  generate.sample(r = 1000)  
-
-generate.test.statistic(UK.ALLSHARE.sample)
-
+perform.finite.fourth.moment.check <- function(pre.whitened.residuals){
+  mu.hat <- calculate.mu.star(pre.whitened.residuals) %>% 
+    calculate.mu.star.star
+  
+  test.sample <- generate.sample(r = 10000, mu.hat = mu.hat)
+  test.statistic <- generate.test.statistic(test.sample)
+  p.value <- pchisq(test.statistic, df = 1, lower.tail = FALSE) #Under the null the test statistic has a chi squared distribution with 1 degree of freedom
+  return(p.value)
+}
 
 #### Event Study Analysis Functions #####
 
@@ -801,6 +790,17 @@ perform.cp.locfit <- function(event.date, n, index, condition.on = 'mean', estim
 }
 
 
+
+
+#### Finite Moment Results ####
+
+# Testing FTSE allshare first
+
+
+
+pre.whitened.Allshare.residuals <- dynlm(read.zoo(na.omit(index.data.UK.ALLSHARE)) ~ L(read.zoo(na.omit(index.data.UK.ALLSHARE)), 1:7))$residuals
+
+all.share.finite.moment.pvalue <- perform.finite.fourth.moment.check(pre.whitened.Allshare.residuals)
 
 
 #### Decade CAR Results ####
