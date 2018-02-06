@@ -282,6 +282,50 @@ rm(list = removal.list.terror)
 
 
 
+#### Finite Moment Test Functions ####
+
+# Testing for finite fourth moment as described by Trapani (2015) <https://doi.org/10.1016/j.jeconom.2015.08.006>
+calculate.mu.hat.4 <- function(data){
+data <- na.omit(data)
+n <- length(data)
+abs.4th.moment.gaussian <- 4*gamma(5/2)*pi^(-1/2)
+numerator <- sum(abs(data)^4)/n
+denominator <- (sum(data^2)/n)^2
+mu.hat.4 <- (1/abs.4th.moment.gaussian)*numerator/denominator
+
+return(mu.hat.4)
+}
+
+generate.sample <- function(r, mu.hat){
+  normal.var <- rnorm(n=r, mean = 0, sd = 1)
+  sample <- normal.var*sqrt(exp(mu.hat))
+  return(sample)
+}
+
+test.integrand <- function(generated.sample){
+  fu.sample <- function(u){
+    zeta <- data.frame(generated.sample)
+    zeta <- mutate(zeta, zeta.indicator = as.numeric(zeta < u))
+    zeta <- mutate(zeta, zeta.next = zeta.indicator - 0.5)
+    theta_u <- (2/length(generated.sample))*sum(zeta$zeta.next)
+    integrand <- (theta_u^2)*0.5
+    return(integrand)
+  }
+return(fu.sample)
+}
+
+generate.test.statistic<- function(generated.sample){
+  integrate(Vectorize(test.integrand(generated.sample)), lower = -1, upper = 1)$value
+}
+
+## TODO: Need to apply to pre whitened data and figure out t stat. chi^2 1 distribution I think.
+
+UK.ALLSHARE.sample <- calculate.mu.hat.4(index.zoo.UK.ALLSHARE.omitted) %>% 
+  generate.sample(r = 1000)  
+
+generate.test.statistic(UK.ALLSHARE.sample)
+
+
 #### Event Study Analysis Functions #####
 
 # To run our analysis we need to remove NA values however this creates a problem when the attacks we want to study occur on the weekend. To overcome this the function
