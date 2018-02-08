@@ -1,6 +1,6 @@
 data {
-  int<lower = 0> E; // Event E
-  int<lower = 0, upper = 1> Y[E]; // Binary dependent variable Y in event E
+  int<lower = 0> N; // Event E
+  int<lower = 0, upper = 1> Y[N]; // Binary dependent variable Y in event E
   vector[N] returns; // Independent variable, returns
   real terror_return;
 }

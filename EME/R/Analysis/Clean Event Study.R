@@ -926,6 +926,29 @@ try(rm(list = removal.list.decade), silent = TRUE)
 
 #### Decade Logit Results ####
 
+#TODO: This is all a mess and needs cleaning up.s
+
+events.80s.data <- 1:5 %>% 
+  map(calculate.event.day.return, event.date = events.80s, index = index.zoo.UK.ALLSHARE.omitted) %>% 
+  map(calculate.variables, index.zoo.UK.ALLSHARE.omitted) %>% 
+  map(prepare.model.data)
+
+ed.data <- events.80s.data %>%
+  map(data.frame) %>% 
+  map(. %>% mutate(., var = 1:get_attr==) %>% 
+  bind_rows
+head(ed.data)
+
+test2 <- data.frame(test[[1]])
+
+test3 <- data.frame(test[[2]])
+head(test2)
+
+test4 <- rbind(test2, test3)
+
+tes
+Hierarchical.fit1 <- stan(file = 'HierarchicalAttempt1',
+                          data = )
 
 # Separately
 ## All 80s
