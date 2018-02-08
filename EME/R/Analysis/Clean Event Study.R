@@ -16,7 +16,7 @@ library(KernSmooth) # Local Polynomial fitting
 library(locfit) # More local polynomial fitting
 library(kedd) # Bandwidth selection for LPR
 library(lubridate) # Date manipulation
-library(rstanarm) # Bayesian package
+library(rstan) # Bayesian package
 library(shinystan) # Bayesian model exploration
 library(boot) # Bootstrapping library
 library(dynlm) # Time series regression
@@ -116,7 +116,11 @@ index.zoo.UK.ALLSHARE.omitted <-
   na.omit %>%
   prices.to.returns
 
-
+index.data.zoo.FTSE <- select.index(raw.index.data.UK,
+                                    index.to.select = "FTSE.100...PRICE.INDEX") %>% 
+  read.zoo %>% 
+  na.omit %>% 
+  prices.to.returns
 
 
 # Cleaning up unwanted variables
@@ -254,6 +258,8 @@ removal.list.terror <- c('raw.terror.data',
                          'path.terror',
                          'removal.list.terror')
 rm(list = removal.list.terror)
+
+
 
 
 
@@ -629,6 +635,20 @@ calculate.event.day.return <- function(event.date, n, index){
 }
 
 
+
+# Rescaling X variable (lagged returns for logit regression) according to Gelman et al (2008)
+# (A Weakly Informative Default Prior Distribution for Logistic and Other Regression Models)
+rescale.X.variable <- function(X.data, target.sd = 0.5){
+  original.sd <- sd(X.data)
+  original.mean <- mean(X.data)
+  sd.rescale.factor <- target.sd/original.sd
+  
+  rescaled.data <- (X.data - original.mean)/sd.rescale.factor
+  return(rescaled.data)
+}
+
+
+
 # Performs the data transformations in order to calculate conditional probability as laid out by Marc Chesney, Ganna Reshetar, Mustafa Karaman
 # at https://doi.org/10.1016/j.jbankfin.2010.07.026
 
@@ -639,7 +659,7 @@ calculate.event.day.return <- function(event.date, n, index){
 
 # A regression of Y on X.L1/.mean is equivalent to finding the conditional probability of observing a return as bad or worse on the 
 # day of the attack.
-calculate.variables <- function(event.day.return.vector, index,  estimation.length = 200){
+calculate.variables <- function(event.day.return.vector, index,  estimation.length = 200, rescale = TRUE, target.sd = 0.5){
   
   event.day.return <- event.day.return.vector[[1]]
   event.day.return.L1 <- event.day.return.vector[[2]]
@@ -662,7 +682,43 @@ calculate.variables <- function(event.day.return.vector, index,  estimation.leng
   
   index.df <- mutate(index.df, X.mean.conditioned = index.df$X.temp - mean(estimation.window.returns) )
   index.df <- na.omit(index.df)
+  #Rescaling variables
+  if (rescale == TRUE){
+    index.df <- mutate(index.df,
+                       rescaled.X.L1 = rescale.X.variable(X.L1.conditioned, target.sd),
+                       rescaled.X.mean = rescale.X.variable(X.mean.conditioned, target.sd),
+                       rescaled.terror.return = (event.day.return - mean(X.mean.conditioned))/sd(X.mean.conditioned))
+  }
+  
   return(index.df)
+}
+
+
+# Prepares data for stan to perform regression. Variables specificed in stan file should be N, returns, Y and terror_return
+prepare.model.data <- function(data, condition.on = 'mean'){
+  if (condition.on == 'lag'){
+    model.data <- list(returns = data$rescaled.X.L1,
+                       N = nrow(data),
+                       Y = data$Y,
+                       terror_return = data$rescaled.terror.return[1])
+  } 
+  else{
+    model.data  <- list(
+      returns = data$rescaled.X.mean,
+      N = nrow(data),
+      Y = data$Y,
+      terror_return = data$rescaled.terror.return[1])
+  }
+  return(model.data)
+}
+
+# Returns paramets from a list of stanfit models
+extract.parameters <- function(fitted.models, parameter){
+  
+  model.params <- lapply(fitted.models, function(x) summary(x, pars = c(parameter))$summary) %>% 
+    map_dfr(data.frame) %>% 
+    mutate(parameter = parameter)
+  return(model.params)
 }
 
 
@@ -792,15 +848,22 @@ perform.cp.locfit <- function(event.date, n, index, condition.on = 'mean', estim
 
 
 
+
 #### Finite Moment Results ####
 
 # Testing FTSE allshare first
 
+all.share.prices <- na.omit(index.data.UK.ALLSHARE) %>% 
+  read.zoo
 
-
-pre.whitened.Allshare.residuals <- dynlm(read.zoo(na.omit(index.data.UK.ALLSHARE)) ~ L(read.zoo(na.omit(index.data.UK.ALLSHARE)), 1:7))$residuals
+pre.whitened.Allshare.residuals <- dynlm(index.zoo.UK.ALLSHARE.omitted ~ L(index.zoo.UK.ALLSHARE.omitted, 1:7))$residuals
 
 all.share.finite.moment.pvalue <- perform.finite.fourth.moment.check(pre.whitened.Allshare.residuals)
+all.share.finite.moment.pvalue
+
+pre.whitened.FTSE100.residuals <- dynlm(index.data.zoo.FTSE ~ L(index.data.zoo.FTSE, 1:7))$residuals
+FTSE100.finite.moment.pvalue <- perform.finite.fourth.moment.check(pre.whitened.FTSE100.residuals)
+FTSE100.finite.moment.pvalue
 
 
 #### Decade CAR Results ####
@@ -863,23 +926,62 @@ try(rm(list = removal.list.decade), silent = TRUE)
 
 #### Decade Logit Results ####
 
-## 80s
-first.event.80s.edrv <- calculate.event.day.return(events.80s, n = 1 ,
-                                              index.zoo.UK.ALLSHARE.omitted)
 
-first.event.80s.data <- calculate.variables(first.event.80s.edrv,
-                                               index.zoo.UK.ALLSHARE.omitted)
+## TODO: change specification back to including an intercept
 
-model1 <- Y ~ X.L1.conditioned + 0
-first.event.80s.fit1 <- stan_glm(model1,
-                                 data = first.event.80s.data,
-                                 family = binomial(link = 'logit'))
-first.event.80s.fit1
+# Separately
+## All 80s
 
-first.event.80s.ci95 <- posterior_interval(first.event.80s.fit1, prob = 0.95,
-                                           pars = 'X.L1.conditioned')
-round(first.event.80s.ci95, 3)
+events.80s.data <- 1:5 %>% 
+  map(calculate.event.day.return, event.date = events.80s, index = index.zoo.UK.ALLSHARE.omitted) %>% 
+  map(calculate.variables, index.zoo.UK.ALLSHARE.omitted) %>% 
+  map(prepare.model.data)
 
+models.80s <- lapply(events.80s.data, function(x) stan(file = 'FirstLogitNoIntercept.stan', data = x))
+
+
+y_hat.80s <- extract.parameters(models.80s, 'y_hat') %>% 
+  mutate(decade = '80s',
+         event = 1:n())
+
+## All 90s
+events.90s.data <- 1:5 %>% 
+  map(calculate.event.day.return, event.date = events.90s, index = index.zoo.UK.ALLSHARE.omitted) %>% 
+  map(calculate.variables, index.zoo.UK.ALLSHARE.omitted) %>% 
+  map(prepare.model.data)
+
+models.90s <- lapply(events.90s.data, function(x) stan(file = 'FirstLogitNoIntercept.stan', data = x))
+y_hat.90s <- extract.parameters(models.90s, 'y_hat') %>% 
+  mutate(decade = '90s',
+         event = 1:n())
+
+## 00s
+events.00s.data <- 1:5 %>% 
+  map(calculate.event.day.return, event.date = events.00s, index = index.zoo.UK.ALLSHARE.omitted) %>% 
+  map(calculate.variables, index.zoo.UK.ALLSHARE.omitted) %>% 
+  map(prepare.model.data)
+
+models.00s <- lapply(events.00s.data, function(x) stan(file = 'FirstLogitNoIntercept.stan', data = x))
+y_hat.00s <- extract.parameters(models.00s, 'y_hat') %>% 
+  mutate(decade = '90s',
+         event = 1:n())
+
+## 10s
+events.10s.data <- 1:5 %>% 
+  map(calculate.event.day.return, event.date = events.10s, index = index.zoo.UK.ALLSHARE.omitted) %>% 
+  map(calculate.variables, index.zoo.UK.ALLSHARE.omitted) %>% 
+  map(prepare.model.data)
+
+models.10s <- lapply(events.10s.data, function(x) stan(file = 'FirstLogitNoIntercept.stan', data = x))
+y_hat.10s <- extract.parameters(models.10s, 'y_hat') %>% 
+  mutate(decade = '10s',
+         event = 1:n())
+
+decade.y_hats <- rbind(y_hat.10s,
+                       y_hat.00s,
+                       y_hat.90s,
+                       y_hat.80s)
+decade.y_hats
 #### Largest Event CAR Results ####
 
 
@@ -1057,6 +1159,8 @@ london.locfit.cp
 omagh.locfit.cp
 manchester.locfit.cp
 droppin.wells.locfit.cp
+
+
 
 
 
