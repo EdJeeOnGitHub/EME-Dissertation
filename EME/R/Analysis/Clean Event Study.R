@@ -927,8 +927,6 @@ try(rm(list = removal.list.decade), silent = TRUE)
 #### Decade Logit Results ####
 
 
-## TODO: change specification back to including an intercept
-
 # Separately
 ## All 80s
 
@@ -937,7 +935,7 @@ events.80s.data <- 1:5 %>%
   map(calculate.variables, index.zoo.UK.ALLSHARE.omitted) %>% 
   map(prepare.model.data)
 
-models.80s <- lapply(events.80s.data, function(x) stan(file = 'FirstLogitNoIntercept.stan', data = x))
+models.80s <- lapply(events.80s.data, function(x) stan(file = 'FirstLogit.stan', data = x))
 
 
 y_hat.80s <- extract.parameters(models.80s, 'y_hat') %>% 
@@ -950,7 +948,7 @@ events.90s.data <- 1:5 %>%
   map(calculate.variables, index.zoo.UK.ALLSHARE.omitted) %>% 
   map(prepare.model.data)
 
-models.90s <- lapply(events.90s.data, function(x) stan(file = 'FirstLogitNoIntercept.stan', data = x))
+models.90s <- lapply(events.90s.data, function(x) stan(file = 'FirstLogit.stan', data = x))
 y_hat.90s <- extract.parameters(models.90s, 'y_hat') %>% 
   mutate(decade = '90s',
          event = 1:n())
@@ -961,7 +959,7 @@ events.00s.data <- 1:5 %>%
   map(calculate.variables, index.zoo.UK.ALLSHARE.omitted) %>% 
   map(prepare.model.data)
 
-models.00s <- lapply(events.00s.data, function(x) stan(file = 'FirstLogitNoIntercept.stan', data = x))
+models.00s <- lapply(events.00s.data, function(x) stan(file = 'FirstLogit.stan', data = x))
 y_hat.00s <- extract.parameters(models.00s, 'y_hat') %>% 
   mutate(decade = '90s',
          event = 1:n())
@@ -972,7 +970,7 @@ events.10s.data <- 1:5 %>%
   map(calculate.variables, index.zoo.UK.ALLSHARE.omitted) %>% 
   map(prepare.model.data)
 
-models.10s <- lapply(events.10s.data, function(x) stan(file = 'FirstLogitNoIntercept.stan', data = x))
+models.10s <- lapply(events.10s.data, function(x) stan(file = 'FirstLogit.stan', data = x))
 y_hat.10s <- extract.parameters(models.10s, 'y_hat') %>% 
   mutate(decade = '10s',
          event = 1:n())
@@ -982,6 +980,15 @@ decade.y_hats <- rbind(y_hat.10s,
                        y_hat.90s,
                        y_hat.80s)
 decade.y_hats
+
+
+
+## Hierarchical
+
+
+
+
+
 #### Largest Event CAR Results ####
 
 

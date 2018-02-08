@@ -1,6 +1,6 @@
 data {
-  int<lower = 0> N; // Number of observations
-  int<lower = 0, upper = 1> Y[N]; // Binary dependent variable Y
+  int<lower = 0> E; // Event E
+  int<lower = 0, upper = 1> Y[E]; // Binary dependent variable Y in event E
   vector[N] returns; // Independent variable, returns
 }
 parameters {
