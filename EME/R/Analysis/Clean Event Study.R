@@ -956,10 +956,41 @@ events.80s.data <- 1:5 %>%
 
 pooled.80s.data <- map(events.80s.data, data.frame) %>% 
   map2_dfr(.x = ., .y = 1:5, ~mutate(.x, event = .y))
-pooled.80s.data$event <- as.factor(pooled.80s.data$event)
+# pooled.80s.data$event <- as.factor(pooled.80s.data$event)
+
+
+
+## Stan approach ####
+stan.data <- list(N = nrow(pooled.80s.data), Event = pooled.80s.data$event, Y = pooled.80s.data$Y,
+                  returns = pooled.80s.data$returns, terror_return = pooled.80s.data$terror_return)
+
+
+hfit2 <- stan(file = 'HierarchicalAttempt2.stan',
+              data = stan.data, chains = 1, iter = 500)
+beepr::beep()
+summary(hfit2)$summary
+
+
+## Vectorised
+stan.data2 <- list(N = nrow(pooled.80s.data), L = 5, ll = pooled.80s.data$event,
+                   Y = pooled.80s.data$Y,
+                  returns = pooled.80s.data$returns,
+                  terror_return = pooled.80s.data$terror_return)
+
+
+hfit3 <- stan(file = 'HierarchicalAttempt3.stan',
+              data = stan.data2,
+              control = list(adapt_delta = 0.99))
+beepr::beep()
+results <- data.frame(summary(hfit3)$summary)
+results.unique <- unique(results)
+results.unique
+launch_shinystan(hfit3)
 
 ## rstanarm approach
 ## Need to specify priors rather than using defaults
+
+
 
 hierarchical.fit1 <- stan_glmer(Y ~ (returns | event),
                                 data = pooled.80s.data,
@@ -976,7 +1007,9 @@ complete.pool.fit <- stan_glm(Y ~ returns,
 complete.pool.coefs <-  summary_stats(as.matrix(complete.pool.fit))
 
 
-
+# new <- data.frame(returns = -0.2)
+# mean(posterior_linpred(complete.pool.fit,newdata = new, transform = TRUE ))
+# mean(posterior_linpred(hierarchical.fit1, newdata = new, transform = TRUE))
 
 # Separately
 ## All 80s
