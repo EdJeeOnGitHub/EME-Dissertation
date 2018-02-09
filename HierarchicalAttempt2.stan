@@ -1,30 +1,46 @@
 data {
   int<lower=1> N; // Number of observations
-  int<lower=1> E; // Number of events
-  int<lower=1> K; // Number of predictors
+  int Event[N]; // Number of events
   
-  
-  int id[N]; // vector of group indices
-  vector[N] x; // predictors
+  vector[N] returns; // predictors
   int Y[N]; // Response variable
+  vector[N] terror_return;
 }
 parameters{
-  real a[E];
-  vector[K] beta;
-  real<lower=0, upper=10> sigma_a;
+  vector[5] a;
+  vector[5] b;
+  real beta;
   real mu_a;
-  
   real mu_b;
+
+  
+  real<lower=0, upper=10> sigma_a;
   real<lower=0, upper=10> sigma_b;
+
+  
 }
 model {
+  vector[N] y;
   // priors
-  a ~ normal(mu_a, sigma_a);
-  beta ~ normal(mu_b, sigma_b);
-
-  for (n in 1:N){
-    Y[n] ~ bernoulli_logit(a[id[n]] + x[n]*beta); 
-  }
   
+  mu_a ~ normal(0,1);
+  a ~ normal(mu_a, sigma_a);
+  
+  mu_b ~ normal(0,1);
+  b ~ student_t(3, mu_b, sigma_b);
+
+  
+  for (i in 1:N){
+    y[i] = a[Event[i]] + returns[i]*b[Event[i]];
+  }
+  Y ~ bernoulli_logit(y);
+  
+}
+generated quantities{
+
+  real y_hat;
+
+  
+  y_hat = inv_logit(a[Event[1]] + returns[1]*b[Event[1]]);
 }
 
