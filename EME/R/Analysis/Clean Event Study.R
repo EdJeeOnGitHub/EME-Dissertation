@@ -16,7 +16,7 @@ library(KernSmooth) # Local Polynomial fitting
 library(locfit) # More local polynomial fitting
 library(kedd) # Bandwidth selection for LPR
 library(lubridate) # Date manipulation
-library(rstan) # Bayesian package
+library(rstanarm) # Bayesian package
 library(shinystan) # Bayesian model exploration
 library(boot) # Bootstrapping library
 library(dynlm) # Time series regression
@@ -722,6 +722,27 @@ extract.parameters <- function(fitted.models, parameter){
 }
 
 
+# Extracts/tweaks parameters from an rstanarm fit
+shift_draws <- function(draws){
+  sweep(draws[, -1], MARGIN = 1, STATS = draws[, 1], FUN = '+')
+}
+invlogit <- plogis  # function(x) 1/(1 + exp(-x))
+summary_stats <- function(posterior) {
+  x <- invlogit(posterior)  # log-odds -> probabilities
+  t(apply(x, 2, quantile, probs = c(0.1, 0.5, 0.9))) 
+}
+
+
+
+
+
+
+
+
+
+## Unused LPR stuff
+
+
 # Wraps everything up into one function to find the conditional probability using Kernsmooth
 perform.local.polynomial.regression.ks <- function(event.date, n, index,  estimation.length = 200){
   
@@ -926,29 +947,36 @@ try(rm(list = removal.list.decade), silent = TRUE)
 
 #### Decade Logit Results ####
 
-#TODO: This is all a mess and needs cleaning up.s
+
 
 events.80s.data <- 1:5 %>% 
   map(calculate.event.day.return, event.date = events.80s, index = index.zoo.UK.ALLSHARE.omitted) %>% 
   map(calculate.variables, index.zoo.UK.ALLSHARE.omitted) %>% 
   map(prepare.model.data)
 
-ed.data <- events.80s.data %>%
-  map(data.frame) %>% 
-  map(. %>% mutate(., var = 1:get_attr==) %>% 
-  bind_rows
-head(ed.data)
+pooled.80s.data <- map(events.80s.data, data.frame) %>% 
+  map2_dfr(.x = ., .y = 1:5, ~mutate(.x, event = .y))
+pooled.80s.data$event <- as.factor(pooled.80s.data$event)
 
-test2 <- data.frame(test[[1]])
+## rstanarm approach
+## Need to specify priors rather than using defaults
 
-test3 <- data.frame(test[[2]])
-head(test2)
+hierarchical.fit1 <- stan_glmer(Y ~ (returns | event),
+                                data = pooled.80s.data,
+                                family = binomial('logit'))
 
-test4 <- rbind(test2, test3)
+alphas <- shift_draws(as.matrix(hierarchical.fit1))
+partialpool <- summary_stats(alphas)
 
-tes
-Hierarchical.fit1 <- stan(file = 'HierarchicalAttempt1',
-                          data = )
+
+# Complete pooling
+complete.pool.fit <- stan_glm(Y ~ returns,
+                              data = pooled.80s.data,
+                              family = binomial('logit'))
+complete.pool.coefs <-  summary_stats(as.matrix(complete.pool.fit))
+
+
+
 
 # Separately
 ## All 80s
@@ -965,6 +993,12 @@ y_hat.80s <- extract.parameters(models.80s, 'y_hat') %>%
   mutate(decade = '80s',
          event = 1:n())
 
+b_hat.80s <- extract.parameters(models.80s, 'b_returns') %>% 
+  mutate(decade = '80s',
+         event = 1:n())
+
+b_hat.80s
+summary(no.pool.fit)
 ## All 90s
 events.90s.data <- 1:5 %>% 
   map(calculate.event.day.return, event.date = events.90s, index = index.zoo.UK.ALLSHARE.omitted) %>% 
@@ -975,6 +1009,9 @@ models.90s <- lapply(events.90s.data, function(x) stan(file = 'FirstLogit.stan',
 y_hat.90s <- extract.parameters(models.90s, 'y_hat') %>% 
   mutate(decade = '90s',
          event = 1:n())
+
+
+
 
 ## 00s
 events.00s.data <- 1:5 %>% 
