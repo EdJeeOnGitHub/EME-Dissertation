@@ -12,15 +12,12 @@ library(tidyverse) # Data manipulation
 library(zoo) # Time series manipulation
 library(readxl) # Reading in excel
 library(ggthemes) # Some extra themes for plotting
-library(KernSmooth) # Local Polynomial fitting
-library(locfit) # More local polynomial fitting
-library(kedd) # Bandwidth selection for LPR
 library(lubridate) # Date manipulation
 library(rstan) # Bayesian package
 library(shinystan) # Bayesian model exploration
 library(boot) # Bootstrapping library
 library(dynlm) # Time series regression
-
+library(StanHeaders)
 
 options(mc.cores = parallel::detectCores())
 ##### Index Data Cleaning #####
@@ -189,6 +186,10 @@ events.80s <- filter.events(event.data = terror.data, start.Date = '1979-12-31',
 events.90s <- filter.events(event.data = terror.data, start.Date = '1989-12-31', end.Date = '2000-01-01', n.events = 5)
 events.00s <- filter.events(event.data = terror.data, start.Date = '1999-12-31', end.Date = '2010-01-01', n.events = 5)
 events.10s <- filter.events(event.data = terror.data, start.Date = '2009-12-31', end.Date = '2020-01-01', n.events = 5) 
+events.all.decades <- bind_rows(events.80s,
+                                events.90s,
+                                events.00s,
+                                events.10s)
 
 
 # Creating a list of the events by decade for ease of use again
@@ -719,153 +720,26 @@ extract.parameters <- function(fitted.models, parameter){
 }
 
 
-# Extracts/tweaks parameters from an rstanarm fit
-shift_draws <- function(draws){
-  sweep(draws[, -1], MARGIN = 1, STATS = draws[, 1], FUN = '+')
-}
-invlogit <- plogis  # function(x) 1/(1 + exp(-x))
-summary_stats <- function(posterior) {
-  x <- invlogit(posterior)  # log-odds -> probabilities
-  t(apply(x, 2, quantile, probs = c(0.1, 0.5, 0.9))) 
-}
-
-
-
-
-
-
-
-
-
-## Unused LPR stuff
-
-
-# Wraps everything up into one function to find the conditional probability using Kernsmooth
-perform.local.polynomial.regression.ks <- function(event.date, n, index,  estimation.length = 200){
+# Formats data in a style that makes it easy to form stan data lists
+prepare.stan.data <- function(n.events, events, index){
+  number.events <- 1:n.events
+  stan.data <- number.events %>% 
+    map(calculate.event.day.return, event.date = events, index = index) %>% 
+    map(calculate.variables, index = index) %>% 
+    map(prepare.model.data)
   
-  event.day.return.vector <- calculate.event.day.return(event.date = event.date,
-                                                        n = n,
-                                                        index = index)
-  
-  event.np.df <- calculate.np.variables(event.day.return.vector = event.day.return.vector,
-                                        index = index,
-                                        estimation.length = estimation.length)
-  
-
-  
-  event.bandwidth <- dpill(x = event.np.df$X.transformed,
-                           y = event.np.df$Y)
-  if (is.nan(event.bandwidth)){
-    event.bandwidth <- 0.25
-    
-  }
-  
-  event.locpoly <- locpoly(x = na.omit(event.np.df$X.transformed),
-                           y = event.np.df$Y,
-                           bandwidth = event.bandwidth)
-  event.locpoly.df <- data.frame(x = event.locpoly$x, y = event.locpoly$y)
-  return(event.locpoly.df)
+  return(stan.data)
 }
 
-# Same as the above but gives out of sample estimate using empirical terror return
-perform.event.conditional.probability.ks <- function(event.date, n, index){
-  event.day.return.vector <- calculate.event.day.return(event.date = event.date,
-                                                 n = n,
-                                                 index = index)
-  event.day.return <- event.day.return.vector[[1]]
-  initial.fit <- perform.local.polynomial.regression.ks(event.date = event.date,
-                                                     n = n,
-                                                     index = index)
-  prediction.fit <- loess(y ~ x,
-                          data = initial.fit,
-                          normalize = FALSE,
-                          control = loess.control(surface = 'direct',
-                                                  statistics = 'exact'))
-  predict.conditional.probability <- predict(prediction.fit,
-                                             newdata = event.day.return[[1]],
-                                             se = TRUE)
-  predict.conditional.probability <- data.frame(predict.conditional.probability,
-                                                event.return = event.day.return.vector[[1]],
-                                                conditioning.return = event.day.return.vector[[2]],
-                                                event.date = event.day.return.vector[[3]])
-  return(predict.conditional.probability)
+# Extracting pooled stan results
+extract.pooled.conditional.probability <- function(fitted.stan, decade){
+  prob.summary <- data.frame(summary(fitted.stan)$summary) %>% 
+    rownames_to_column(var = 'parameter') %>% 
+    mutate(type = 'pooled',
+           decade = decade)
   
+  return(prob.summary)
 }
-
-
-# As above but with locfit package - doesn't rely on interpolated data points
-perform.lpr.locfit <- function(event.date, n, index, interp = FALSE, condition.on = 'mean', estimation.length = 200){
-  
-  event.day.return.vector <- calculate.event.day.return(event.date,
-                                                        n,
-                                                        index)
-  event.df <- calculate.np.variables(event.day.return.vector,
-                                     index,
-                                     estimation.length)
-  
-  
-  if (condition.on == 'lag'){
-    X.reg <- event.df$X.transformed
-  } else {
-    X.reg <- event.df$X.T2
-  }
-  
-  bw <- h.ccv(x = X.reg)
-  if (interp == TRUE){
-    event.fit <- locfit(Y ~ lp(X.reg),
-                        alpha=c(0, bw$h),
-                        data = event.df,
-                        ev = lfgrid())
-  } else {
-
-  event.fit <- locfit(Y ~ lp(X.reg),
-                      alpha=c(0, bw$h),
-                      data = event.df,
-                      ev = dat())
-  }
-  return(event.fit)
-}
-
-
-# Now conditional probability with locfit
-perform.cp.locfit <- function(event.date, n, index, condition.on = 'mean', estimation.length = 200){
-  
-  event.day.return.vector <- calculate.event.day.return(event.date,
-                                                        n,
-                                                        index)
-  event.df <- calculate.np.variables(event.day.return.vector,
-                                     index,
-                                     estimation.length)
-  
-  
-  if (condition.on == 'lag'){
-    X <- event.df$X.Transformed
-  } else {
-    X <- event.df$X.T2
-  }
-  
-  bw <- h.ccv(x = X)
-  
-    event.fit <- locfit(Y ~ lp(X),
-                        data = event.df,
-                        ev = lfgrid())
- 
-  
-  
-  conditional.probability <- predict(event.fit,
-                                     newdata = event.day.return.vector[[1]],
-                                     se.fit = TRUE)
-  
-  conditional.probability.df <- data.frame(conditional.probability,
-                                           event.return = event.day.return.vector[[1]],
-                                           conditioning.return = event.day.return.vector[[2]],
-                                           event.date = event.day.return.vector[[3]])
-  return(conditional.probability.df)
-}
-
-
-
-
 
 #### Finite Moment Results ####
 
@@ -944,126 +818,160 @@ try(rm(list = removal.list.decade), silent = TRUE)
 
 #### Decade Logit Results ####
 
+# Estimating conditional probability using three different models. A separate logit regression for each event, a pooled regression and a hierarchical model.
 
 
-events.80s.data <- 1:5 %>% 
-  map(calculate.event.day.return, event.date = events.80s, index = index.zoo.UK.ALLSHARE.omitted) %>% 
-  map(calculate.variables, index.zoo.UK.ALLSHARE.omitted) %>% 
-  map(prepare.model.data)
 
+#+++++++++++++++++++++++++++++++
+## 80s
+#+++++++++++++++++++++++++++++++
+events.80s.data <- prepare.stan.data(n.events = 5, events = events.80s, index = index.zoo.UK.ALLSHARE.omitted)
 pooled.80s.data <- map(events.80s.data, data.frame) %>% 
   map2_dfr(.x = ., .y = 1:5, ~mutate(.x, event = .y))
 
+# Pooled model datalist
+stan.pooled.datalist.80s <- list(N = nrow(pooled.80s.data),
+                             Y = pooled.80s.data$Y,
+                             returns = pooled.80s.data$returns,
+                             terror_return = unique(pooled.80s.data$terror_return))
+# Fitting pooled model
+poolfit.80s <- stan(file = 'PooledDecade.stan',
+                    data = stan.pooled.datalist.80s)
+
+# Separate model (i.e. no pooling)
+separatefit.80s <- lapply(events.80s.data, function(x) stan(file = 'FirstLogit.stan', data = x))
 
 
 
 
-## 80s
-# Hierarchical Model
-stan.hierarchical.data.80s <- list(N = nrow(pooled.80s.data), L = 5, ll = pooled.80s.data$event,
-                   Y = pooled.80s.data$Y,
-                  returns = pooled.80s.data$returns,
-                  terror_return = pooled.80s.data$terror_return)
+
+results.poolfit.80s <- extract.pooled.conditional.probability(poolfit.80s, '80s')
+results.separatefit.80s <- extract.parameters(separatefit.80s, 'y_hat') %>% 
+  mutate(type = 'separate')
+
+#++++++++++++++++++++++++++++
+##  90s
+#++++++++++++++++++++++++++++
+events.90s.data <- prepare.stan.data(n.events = 5, events = events.90s, index = index.zoo.UK.ALLSHARE.omitted)
+pooled.90s.data <- map(events.90s.data, data.frame) %>% 
+  map2_dfr(.x = ., .y = 1:5, ~mutate(.x, event = .y))
+
+# Pooled model
+pooled.datalist.90s <- list(N = nrow(pooled.90s.data),
+                        Y = pooled.90s.data$Y,
+                        returns = pooled.90s.data$returns,
+                        terror_return = unique(pooled.90s.data$terror_return))
+poolfit.90s <- stan(file = 'PooledDecade.stan',
+                    data = pooled.datalist.90s)
+
+# Separate model
+separatefit.90s <- lapply(events.90s.data, function(x) stan(file = 'FirstLogit.stan', data = x))
 
 
-hfit.80s <- stan(file = 'HierarchicalDecade.stan',
-              data = stan.hierarchical.data.80s,
-              control = list(adapt_delta = 0.99))
 
-results.hfit.80s <- data.frame(summary(hfit.80s)$summary) %>% 
+
+results.poolfit.90s <- extract.pooled.conditional.probability(poolfit.90s, '90s')
+results.separatefit.90s <- extract.parameters(separatefit.90s, 'y_hat') %>% 
+  mutate(decade = '90s',
+         event = 1:5)
+
+#++++++++++++++++++++++++
+## 00s
+#++++++++++++++++++++++++
+events.00s.data <- prepare.stan.data(n.events = 5, events = events.00s, index = index.zoo.UK.ALLSHARE.omitted)
+pooled.00s.data <- map(events.00s.data, data.frame) %>% 
+  map2_dfr(.x = ., .y = 1:5, ~mutate(.x, event = .y))
+
+
+# Pooled
+
+pooled.datalist.00s <- list(N = nrow(pooled.00s.data),
+                            Y = pooled.00s.data$Y,
+                            returns = pooled.00s.data$returns,
+                            terror_return = unique(pooled.00s.data$terror_return))
+poolfit.00s <- stan(file = 'PooledDecade.stan',
+                    data = pooled.datalist.90s)
+
+
+# Separate
+separatefit.00s <- lapply(events.00s.data, function(x) stan(file = 'FirstLogit.stan', data = x))
+
+
+
+
+results.poolfit.00s <- extract.pooled.conditional.probability(poolfit.00s, '00s')
+results.separatefit.00s <- extract.parameters(separatefit.00s, 'y_hat') %>% 
+  mutate(decade = '00s',
+         event = 1:n())
+#++++++++++++++++++++++++
+## 10s
+#++++++++++++++++++++++++
+events.10s.data <- prepare.stan.data(n.events = 5, events = events.10s, index = index.zoo.UK.ALLSHARE.omitted)
+pooled.10s.data <- map(events.10s.data, data.frame) %>% 
+  map2_dfr(.x = ., .y = 1:5, ~mutate(.x, event = .y))
+
+# Pooled
+pooled.datalist.10s <- list(N = nrow(pooled.10s.data),
+                            Y = pooled.10s.data$Y,
+                            returns = pooled.10s.data$returns,
+                            terror_return = unique(pooled.10s.data$terror_return))
+poolfit.10s <- stan(file = 'PooledDecade.stan',
+                    data = pooled.datalist.10s)
+
+
+# Separately
+separatefit.10s <- lapply(events.10s.data, function(x) stan(file = 'FirstLogit.stan', data = x))
+
+
+
+
+results.poolfit.10s <- extract.pooled.conditional.probability(poolfit.10s, '10s')
+results.separatefit.10s <- extract.parameters(separatefit.10s, 'y_hat') %>% 
+  mutate(decade = '10s',
+         event = 1:n())
+
+
+
+## +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+## Hierarchical
+## +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+#TODO: EDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+
+
+
+stan.events.data <- prepare.stan.data(n.events = 20, events = events.all.decades, index = index.zoo.UK.ALLSHARE.omitted)
+stan.pooled.data <- map(stan.events.data, data.frame) %>% 
+  map2_dfr(.x = ., .y = 1:20, ~mutate(.x, event = .y))
+
+stan.hierarchical.data <- list(N = nrow(stan.pooled.data), L = 20, ll = stan.pooled.data$event,
+                                   Y = stan.pooled.data$Y,
+                                   returns = stan.pooled.data$returns,
+                                   terror_return = stan.pooled.data$terror_return)
+
+
+hfit <- stan(file = 'HierarchicalDecade.stan',
+                 data = stan.hierarchical.data,
+                 control = list(adapt_delta = 0.99))
+
+results.hfit <- data.frame(summary(hfit)$summary) %>% 
   unique %>% 
   rownames_to_column(var = 'parameter')
 
 
-# Pooled model
-stan.pooled.data.80s <- list(N = nrow(pooled.80s.data),
-                             Y = pooled.80s.data$Y,
-                             returns = pooled.80s.data$returns,
-                             terror_return = unique(pooled.80s.data$terror_return))
-poolfit.80s <- stan(file = 'PooledDecade.stan',
-                    data = stan.pooled.data.80s)
-
-results.poolfit.80s <- data.frame(summary(poolfit.80s)$summary) %>% 
-  rownames_to_column(var = 'parameter')
+results.hfit.subset <- results.hfit %>% 
+  filter(str_detect(parameter, 'y_hat'))
 
 
-# Separate model (i.e. no pooling)
-stan.separate.data.80s <- 1:5 %>% 
-  map(calculate.event.day.return, event.date = events.80s, index = index.zoo.UK.ALLSHARE.omitted) %>% 
-  map(calculate.variables, index.zoo.UK.ALLSHARE.omitted) %>% 
-  map(prepare.model.data)
-
-separatefit.80s <- lapply(stan.separate.data.80s, function(x) stan(file = 'FirstLogit.stan', data = x))
+ggplot(results.hfit.subset, aes(parameter, mean)) +
+  geom_point() +
+  geom_hline(yintercept = 0.1)
 
 
-results.separatefit.80s <- extract.parameters(separatefit.80s, 'y_hat') %>% 
-  mutate(decade = '80s',
-         event = 1:n())
-
-results.separatefit.80s
-results.poolfit.80s
-results.hfit.80s
 beepr::beep()
-
-combined.results <- bind_rows(results.separatefit.80s,
-                              results.poolfit.80s,
-                              results.hfit.80s) %>% 
-  filter(str_detect(.$parameter, 'y_hat')) %>% 
-  separate(parameter, into = c('parameter_estimated', 'event.no'), sep = 5)
-combined.results
-
-
-## All 90s
-events.90s.data <- 1:5 %>% 
-  map(calculate.event.day.return, event.date = events.90s, index = index.zoo.UK.ALLSHARE.omitted) %>% 
-  map(calculate.variables, index.zoo.UK.ALLSHARE.omitted) %>% 
-  map(prepare.model.data)
-
-models.90s <- lapply(events.90s.data, function(x) stan(file = 'FirstLogit.stan', data = x))
-y_hat.90s <- extract.parameters(models.90s, 'y_hat') %>% 
-  mutate(decade = '90s',
-         event = 1:n())
-
-
-
-
-## 00s
-events.00s.data <- 1:5 %>% 
-  map(calculate.event.day.return, event.date = events.00s, index = index.zoo.UK.ALLSHARE.omitted) %>% 
-  map(calculate.variables, index.zoo.UK.ALLSHARE.omitted) %>% 
-  map(prepare.model.data)
-
-models.00s <- lapply(events.00s.data, function(x) stan(file = 'FirstLogit.stan', data = x))
-y_hat.00s <- extract.parameters(models.00s, 'y_hat') %>% 
-  mutate(decade = '90s',
-         event = 1:n())
-
-## 10s
-events.10s.data <- 1:5 %>% 
-  map(calculate.event.day.return, event.date = events.10s, index = index.zoo.UK.ALLSHARE.omitted) %>% 
-  map(calculate.variables, index.zoo.UK.ALLSHARE.omitted) %>% 
-  map(prepare.model.data)
-
-models.10s <- lapply(events.10s.data, function(x) stan(file = 'FirstLogit.stan', data = x))
-y_hat.10s <- extract.parameters(models.10s, 'y_hat') %>% 
-  mutate(decade = '10s',
-         event = 1:n())
-
-decade.y_hats <- rbind(y_hat.10s,
-                       y_hat.00s,
-                       y_hat.90s,
-                       y_hat.80s)
-decade.y_hats
-
-
-
-## Hierarchical
-
-
-
-
-
-
+results.hfit
+summary(hfit)
+launch_shinystan(hfit)
 #### Largest Event CAR Results ####
 
 
@@ -1156,95 +1064,6 @@ CAR.4.filtered <- calculate.car(screen.overlapiing.events(events.sorted), index.
 
 
 #### Largest Event Logit Results ####
-
-#### Local Polynomial (unused) Results ####
-
-
-lockerbie.locpoly.ks <- perform.local.polynomial.regression.ks(event.date = events.top5,
-                                                         n = 1, 
-                                                         index = index.zoo.UK.ALLSHARE.omitted)
-
-
-
-lockerbie.cp.ks <- perform.event.conditional.probability.ks(event.date = events.top5,
-                                               n = 1, 
-                                               index = index.zoo.UK.ALLSHARE.omitted)
-
-
-
-london.cp.ks <- perform.event.conditional.probability.ks(event.date = events.top5,
-                                                   n = 2,
-                                                   index = index.zoo.UK.ALLSHARE.omitted)
-london.locpoly.ks <- perform.local.polynomial.regression.ks(event.date = events.top5,
-                                                      n = 2,
-                                                      index = index.zoo.UK.ALLSHARE.omitted)
-omagh.cp.ks <- perform.event.conditional.probability.ks(event.date = events.top5,
-                                                  n = 3,
-                                                  index = index.zoo.UK.ALLSHARE.omitted)
-
-omagh.locpoly.ks <- perform.local.polynomial.regression.ks(event.date = events.top5,
-                                                     n = 3, 
-                                                     index = index.zoo.UK.ALLSHARE.omitted)
-
-manchester.cp.ks <- perform.event.conditional.probability.ks(event.date = events.top5,
-                                                       n = 4,
-                                                       index = index.zoo.UK.ALLSHARE.omitted)
-manchest.locpoly.ks <- perform.local.polynomial.regression.ks(event.date = events.top5,
-                                                        n = 4, 
-                                                        index = index.zoo.UK.ALLSHARE.omitted)
-
-droppin.well.cp.ks <- perform.event.conditional.probability.ks(event.date = events.top5,
-                                                         n = 5,
-                                                         index = index.zoo.UK.ALLSHARE.omitted)
-droppin.well.locpoly.ks <- perform.local.polynomial.regression.ks(event.date = events.top5,
-                                                       n = 5,
-                                                       index = index.zoo.UK.ALLSHARE.omitted)
-
-lockerbie.cp.ks
-london.cp.ks
-omagh.cp.ks
-manchester.cp.ks
-droppin.well.cp.ks
-
-plot(lockerbie.locpoly.ks, main = 'lockerbie')
-plot(london.locpoly.ks, main = 'london')
-plot(omagh.locpoly.ks, main = 'omagh')
-plot(manchest.locpoly.ks, main = 'manchester')
-plot(droppin.well.locpoly.ks, main = 'dropping')
-
-
-
-## locfit package
-
-# Fitting LPRs
-lockerbie.locfit <- perform.lpr.locfit(event.date = events.top5, n = 1, index = index.zoo.UK.ALLSHARE.omitted)
-london.locfit <- perform.lpr.locfit(event.date = events.top5, n = 2, index = index.zoo.UK.ALLSHARE.omitted)
-omagh.locfit <- perform.lpr.locfit(event.date = events.top5, n = 3, index = index.zoo.UK.ALLSHARE.omitted)
-manchester.locfit <- perform.lpr.locfit(event.date = events.top5, n = 4, interp = FALSE, condition.on = 'mean', index = index.zoo.UK.ALLSHARE.omitted)
-droppin.well.locfit <- perform.lpr.locfit(event.date = events.top5, n = 5, index = index.zoo.UK.ALLSHARE.omitted)
-
-# Conditional Probabilities
-lockerbie.locfit.cp <- perform.cp.locfit(event.date = events.top5, n = 1, index = index.zoo.UK.ALLSHARE.omitted)
-london.locfit.cp <- perform.cp.locfit(event.date = events.top5, n = 2, index = index.zoo.UK.ALLSHARE.omitted)  
-omagh.locfit.cp <- perform.cp.locfit(event.date = events.top5, n = 3, index = index.zoo.UK.ALLSHARE.omitted)  
-manchester.locfit.cp <- perform.cp.locfit(event.date = events.top5, n = 4, index = index.zoo.UK.ALLSHARE.omitted)  
-droppin.wells.locfit.cp <- perform.cp.locfit(event.date = events.top5, n = 5, index = index.zoo.UK.ALLSHARE.omitted)  
-  
-plot(lockerbie.locfit, main = 'lockerbie', band = 'local')
-plot(london.locfit, main = 'london', band = 'local')  
-plot(omagh.locfit, main = 'omagh', band = 'local')  
-plot(manchester.locfit, main = 'manchester', band = 'local')  
-plot(droppin.well.locfit, main = 'droppin wells', band = 'local')
-
-lockerbie.locfit.cp
-london.locfit.cp
-omagh.locfit.cp
-manchester.locfit.cp
-droppin.wells.locfit.cp
-
-
-
-
 
 #### Summary Statistics Graphics ####
 
@@ -1490,7 +1309,11 @@ bar.chart.decade.event.study.by.time <- ggplot(decade.event.study.CAR10, aes(mar
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = 'none',
         axis.text.x = element_text(angle = 270, hjust = 1))
 
- 
 
-bar.chart.decade.event.study.by.CAR
-bar.chart.decade.event.study.by.time
+
+decade.prob.80s.plot <- ggplot(combined.results, aes(event, mean, colour = type, shape = type)) +
+  geom_point(size = 4) +
+  geom_hline(yintercept = 0.05, linetype = 'longdash', colour = 'red', alpha = 0.2) +
+  geom_hline(yintercept = 0.1, linetype = 'longdash', alpha = 0.4) 
+
+

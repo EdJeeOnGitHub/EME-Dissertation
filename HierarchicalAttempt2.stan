@@ -41,6 +41,6 @@ generated quantities{
   real y_hat;
 
   
-  y_hat = inv_logit(a[Event[1]] + returns[1]*b[Event[1]]);
+  y_hat = inv_logit(a[Event[1]] + terror_return[1]*b[Event[1]]);
 }
 
