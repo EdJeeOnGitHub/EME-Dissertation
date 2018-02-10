@@ -16,7 +16,7 @@ library(KernSmooth) # Local Polynomial fitting
 library(locfit) # More local polynomial fitting
 library(kedd) # Bandwidth selection for LPR
 library(lubridate) # Date manipulation
-library(rstanarm) # Bayesian package
+library(rstan) # Bayesian package
 library(shinystan) # Bayesian model exploration
 library(boot) # Bootstrapping library
 library(dynlm) # Time series regression
@@ -136,10 +136,7 @@ removal.list.index <- c('root',
                  'path.index',
                  'index.data.UK.decade.list',
                  'removal.list.index',
-                 # 'index.data.UK.ALLSHARE',
-                 'index.zoo.UK.decade.list.ALLSHARE',
-                 'eventstudies.index.ALLSHARE',
-                 'eventstudies.index.UK.FTSE100')
+                 'index.zoo.UK.decade.list.ALLSHARE')
 
 rm(list = removal.list.index)
 
@@ -926,9 +923,9 @@ CAAR.10.by.decade$Decade <- CAAR.10.by.decade$Date %>%
   floor_date(years(10)) %>%
   year
 
-CAAR.10.by.decade <- select(CAAR.by.decade, c(rolling.CAAR, rolling.sd, rolling.ci, Decade))
-colnames(CAAR.by.decade) <- c('CAAR', 'SD', 'CI', 'Decade')
-CAAR.by.decade
+CAAR.10.by.decade <- select(CAAR.10.by.decade, c(rolling.CAAR, rolling.sd, rolling.ci, Decade))
+colnames(CAAR.10.by.decade) <- c('CAAR', 'SD', 'CI', 'Decade')
+CAAR.10.by.decade
 
 
 
@@ -956,82 +953,66 @@ events.80s.data <- 1:5 %>%
 
 pooled.80s.data <- map(events.80s.data, data.frame) %>% 
   map2_dfr(.x = ., .y = 1:5, ~mutate(.x, event = .y))
-# pooled.80s.data$event <- as.factor(pooled.80s.data$event)
 
 
 
-## Stan approach ####
-stan.data <- list(N = nrow(pooled.80s.data), Event = pooled.80s.data$event, Y = pooled.80s.data$Y,
-                  returns = pooled.80s.data$returns, terror_return = pooled.80s.data$terror_return)
 
 
-hfit2 <- stan(file = 'HierarchicalAttempt2.stan',
-              data = stan.data, chains = 1, iter = 500)
-beepr::beep()
-summary(hfit2)$summary
-
-
-## Vectorised
-stan.data2 <- list(N = nrow(pooled.80s.data), L = 5, ll = pooled.80s.data$event,
+## 80s
+# Hierarchical Model
+stan.hierarchical.data.80s <- list(N = nrow(pooled.80s.data), L = 5, ll = pooled.80s.data$event,
                    Y = pooled.80s.data$Y,
                   returns = pooled.80s.data$returns,
                   terror_return = pooled.80s.data$terror_return)
 
 
-hfit3 <- stan(file = 'HierarchicalAttempt3.stan',
-              data = stan.data2,
+hfit.80s <- stan(file = 'HierarchicalDecade.stan',
+              data = stan.hierarchical.data.80s,
               control = list(adapt_delta = 0.99))
-beepr::beep()
-results <- data.frame(summary(hfit3)$summary)
-results.unique <- unique(results)
-results.unique
-launch_shinystan(hfit3)
 
-## rstanarm approach
-## Need to specify priors rather than using defaults
+results.hfit.80s <- data.frame(summary(hfit.80s)$summary) %>% 
+  unique %>% 
+  rownames_to_column(var = 'parameter')
 
 
+# Pooled model
+stan.pooled.data.80s <- list(N = nrow(pooled.80s.data),
+                             Y = pooled.80s.data$Y,
+                             returns = pooled.80s.data$returns,
+                             terror_return = unique(pooled.80s.data$terror_return))
+poolfit.80s <- stan(file = 'PooledDecade.stan',
+                    data = stan.pooled.data.80s)
 
-hierarchical.fit1 <- stan_glmer(Y ~ (returns | event),
-                                data = pooled.80s.data,
-                                family = binomial('logit'))
-
-alphas <- shift_draws(as.matrix(hierarchical.fit1))
-partialpool <- summary_stats(alphas)
-
-
-# Complete pooling
-complete.pool.fit <- stan_glm(Y ~ returns,
-                              data = pooled.80s.data,
-                              family = binomial('logit'))
-complete.pool.coefs <-  summary_stats(as.matrix(complete.pool.fit))
+results.poolfit.80s <- data.frame(summary(poolfit.80s)$summary) %>% 
+  rownames_to_column(var = 'parameter')
 
 
-# new <- data.frame(returns = -0.2)
-# mean(posterior_linpred(complete.pool.fit,newdata = new, transform = TRUE ))
-# mean(posterior_linpred(hierarchical.fit1, newdata = new, transform = TRUE))
-
-# Separately
-## All 80s
-
-events.80s.data <- 1:5 %>% 
+# Separate model (i.e. no pooling)
+stan.separate.data.80s <- 1:5 %>% 
   map(calculate.event.day.return, event.date = events.80s, index = index.zoo.UK.ALLSHARE.omitted) %>% 
   map(calculate.variables, index.zoo.UK.ALLSHARE.omitted) %>% 
   map(prepare.model.data)
 
-models.80s <- lapply(events.80s.data, function(x) stan(file = 'FirstLogit.stan', data = x))
+separatefit.80s <- lapply(stan.separate.data.80s, function(x) stan(file = 'FirstLogit.stan', data = x))
 
 
-y_hat.80s <- extract.parameters(models.80s, 'y_hat') %>% 
+results.separatefit.80s <- extract.parameters(separatefit.80s, 'y_hat') %>% 
   mutate(decade = '80s',
          event = 1:n())
 
-b_hat.80s <- extract.parameters(models.80s, 'b_returns') %>% 
-  mutate(decade = '80s',
-         event = 1:n())
+results.separatefit.80s
+results.poolfit.80s
+results.hfit.80s
+beepr::beep()
 
-b_hat.80s
-summary(no.pool.fit)
+combined.results <- bind_rows(results.separatefit.80s,
+                              results.poolfit.80s,
+                              results.hfit.80s) %>% 
+  filter(str_detect(.$parameter, 'y_hat')) %>% 
+  separate(parameter, into = c('parameter_estimated', 'event.no'), sep = 5)
+combined.results
+
+
 ## All 90s
 events.90s.data <- 1:5 %>% 
   map(calculate.event.day.return, event.date = events.90s, index = index.zoo.UK.ALLSHARE.omitted) %>% 
@@ -1077,6 +1058,7 @@ decade.y_hats
 
 
 ## Hierarchical
+
 
 
 
