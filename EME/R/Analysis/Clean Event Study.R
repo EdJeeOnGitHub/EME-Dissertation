@@ -17,7 +17,7 @@ library(rstan) # Bayesian package
 library(shinystan) # Bayesian model exploration
 library(boot) # Bootstrapping library
 library(dynlm) # Time series regression
-library(StanHeaders)
+
 
 options(mc.cores = parallel::detectCores())
 ##### Index Data Cleaning #####
