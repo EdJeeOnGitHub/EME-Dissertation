@@ -936,10 +936,6 @@ results.separatefit.10s <- extract.parameters(separatefit.10s, 'y_hat') %>%
 ## Hierarchical
 ## +++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-#TODO: EDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
-
-
-
 stan.events.data <- prepare.stan.data(n.events = 20, events = events.all.decades, index = index.zoo.UK.ALLSHARE.omitted)
 stan.pooled.data <- map(stan.events.data, data.frame) %>% 
   map2_dfr(.x = ., .y = 1:20, ~mutate(.x, event = .y))
