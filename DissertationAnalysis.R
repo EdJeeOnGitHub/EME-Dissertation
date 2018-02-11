@@ -17,12 +17,12 @@ library(rstan) # Bayesian package
 library(shinystan) # Bayesian model exploration
 library(boot) # Bootstrapping library
 library(dynlm) # Time series regression
-
+library(broom) # Regression output
 # Clearing up masking problems where tseries::filter and dplyr::filter share the same namespace
 filter <- dplyr::filter
 # Stan uses max number of cores when running MCMC simulations
 options(mc.cores = parallel::detectCores())
-# Loading my functions
+# Loading analysis functions
 source('DissertationFunctions.R')
 
 ##### Index Data Cleaning #####
@@ -453,33 +453,16 @@ stan.pooled.data <- map(stan.events.data, data.frame) %>%
   map2_dfr(.x = ., .y = 1:20, ~mutate(.x, event = .y))
 
 stan.hierarchical.data <- list(N = nrow(stan.pooled.data), L = 20, ll = stan.pooled.data$event,
-                                   Y = stan.pooled.data$Y,
-                                   returns = stan.pooled.data$returns,
-                                   terror_return = stan.pooled.data$terror_return)
+                               Y = stan.pooled.data$Y,
+                               returns = stan.pooled.data$returns,
+                               terror_return = unique(stan.pooled.data$terror_return))
 
 
-hfit <- stan(file = 'HierarchicalDecade.stan',
-                 data = stan.hierarchical.data,
-                 control = list(adapt_delta = 0.99))
+hfit <- stan(file = 'HierarchicalLogit.stan',
+             data = stan.hierarchical.data,
+             control = list(adapt_delta = 0.99))
 
-results.hfit <- data.frame(summary(hfit)$summary) %>% 
-  unique %>% 
-  rownames_to_column(var = 'parameter')
-
-
-results.hfit.subset <- results.hfit %>% 
-  dplyr::filter(str_detect(.$parameter, 'y_hat'))
-
-
-ggplot(results.hfit.subset, aes(parameter, mean)) +
-  geom_point() +
-  geom_hline(yintercept = 0.1)
-
-
-# beepr::beep()
-results.hfit.subset
-# launch_shinystan(hfit)
-
+results.hfit <- tidy(hfit, conf.int = TRUE)
 #### Largest Event CAR Results ####
 
 
@@ -567,7 +550,7 @@ CAR.10.filtered <- calculate.car(screen.overlapping.events(events.sorted), index
 
 
 CAR.4.unfiltered <- calculate.car(events.sorted, index.zoo.UK.ALLSHARE.omitted)
-CAR.4.filtered <- calculate.car(screen.overlapiing.events(events.sorted), index.zoo.UK.ALLSHARE.omitted)
+CAR.4.filtered <- calculate.car(screen.overlapping.events(events.sorted), index.zoo.UK.ALLSHARE.omitted)
 
 
 
@@ -583,19 +566,11 @@ stan.largest.pooled.data <- prepare.stan.data(n.events = 20, events = events.top
 stan.largest.hierarchical.data <- list(N = nrow(stan.largest.pooled.data), L = 20, ll = stan.largest.pooled.data$event,
                                        Y = stan.largest.pooled.data$Y,
                                        returns = stan.largest.pooled.data$returns,
-                                       terror_return = stan.largest.pooled.data$terror_return)
+                                       terror_return = unique(stan.largest.pooled.data$terror_return))
 
-hfit.large <- stan(file = 'HierarchicalDecade.stan',
+hfit.large <- stan(file = 'HierarchicalLogit.stan',
                    data = stan.largest.hierarchical.data)
-results.hfit.large <- data.frame(summary(hfit)$summary) %>% 
-  unique %>% 
-  rownames_to_column(var = 'parameter')
-
-results.hfit.large.subset <- results.hfit %>% 
-  filter(str_detect(parameter, 'y_hat'))
-
-
-
+results.hfit.large <- tidy(hfit.large, conf.int = TRUE)
 
 
 #### Summary Statistics Graphics ####
@@ -849,4 +824,8 @@ decade.prob.80s.plot <- ggplot(combined.results, aes(event, mean, colour = type,
   geom_hline(yintercept = 0.05, linetype = 'longdash', colour = 'red', alpha = 0.2) +
   geom_hline(yintercept = 0.1, linetype = 'longdash', alpha = 0.4) 
 
+
+
+
+beepr::beep()
 
