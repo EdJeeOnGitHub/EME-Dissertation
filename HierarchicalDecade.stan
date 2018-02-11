@@ -13,7 +13,7 @@ parameters{
   real beta[L];
   
   real mu_a;
-  real sigma_a;
+  real<lower=0> sigma_a;
   real a[L];
   
 }
@@ -22,7 +22,10 @@ model {
   // priors
   
   mu_b ~ normal(0,1);
+  sigma_b ~ normal(2.5, 5);
+  
   mu_a ~ normal(0.5, 0.5);
+  sigma_a ~ normal(1, 5);
   for (l in 1:L){
     beta[l] ~ student_t(3, mu_b, sigma_b);
     a[l] ~ normal(mu_a, sigma_a);

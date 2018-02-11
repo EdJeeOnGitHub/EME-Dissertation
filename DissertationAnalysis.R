@@ -7,7 +7,7 @@ rm(list = ls())
 try(dev.off(), silent = TRUE)
 
 # Libraries
-library(rprojroot) # Allows use of relative instead of absolute paths when reading in files
+library(rprojroot) # Relative instead of absolute paths when reading in files -- remove this when dissertation complete and put data files in same directory as R scripts
 library(tidyverse) # Data manipulation
 library(zoo) # Time series manipulation
 library(readxl) # Reading in excel
@@ -18,22 +18,20 @@ library(shinystan) # Bayesian model exploration
 library(boot) # Bootstrapping library
 library(dynlm) # Time series regression
 
-
-
-
+# Clearing up masking problems where tseries::filter and dplyr::filter share the same namespace
 filter <- dplyr::filter
+# Stan uses max number of cores when running MCMC simulations
 options(mc.cores = parallel::detectCores())
-root <- has_file(".git/index")
-root.file <- root$make_fix_file()
-
-path.functions <- root.file('EME', 'R')
+# Loading my functions
 source('DissertationFunctions.R')
+
 ##### Index Data Cleaning #####
 
 # Reading in file, using projroot library so only relative path needed
 
 
-
+root <- has_file(".git/index")
+root.file <- root$make_fix_file()
 path.index <- root.file('EME' , 'Data' , 'Clean Data' ,'Indices', 'All_indices_cleaned_test.csv')
 
 raw.index.data <- read.csv(path.index)
@@ -263,6 +261,8 @@ removal.list.terror <- c('raw.terror.data',
                          'path.terror',
                          'removal.list.terror')
 rm(list = removal.list.terror)
+
+
 
 
 
@@ -593,6 +593,8 @@ results.hfit.large <- data.frame(summary(hfit)$summary) %>%
 
 results.hfit.large.subset <- results.hfit %>% 
   filter(str_detect(parameter, 'y_hat'))
+
+
 
 
 
