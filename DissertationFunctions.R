@@ -470,12 +470,13 @@ prepare.stan.data <- function(n.events, events, index){
   return(stan.data)
 }
 
-# Extracting pooled stan results
-extract.pooled.conditional.probability <- function(fitted.stan, decade){
-  prob.summary <- data.frame(summary(fitted.stan)$summary) %>% 
-    rownames_to_column(var = 'parameter') %>% 
-    mutate(type = 'pooled',
-           decade = decade)
-  
-  return(prob.summary)
+# Extracting stan results using the tidy() function from broom
+collect.stan.results <- function(stan.fit, parameter, decade, type){
+  results <- stan.fit %>% 
+    map_dfr(tidy, pars = parameter, conf.int = TRUE) %>% 
+    mutate(event = 1:n(),
+           decade = decade,
+           type = type) %>% 
+    as.tibble
+  return(results)
 }

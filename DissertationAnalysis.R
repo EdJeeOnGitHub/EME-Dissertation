@@ -357,10 +357,6 @@ poolfit.80s <- stan(file = 'PooledDecade.stan',
 # Separate model (i.e. no pooling)
 separatefit.80s <- lapply(events.80s.data, function(x) stan(file = 'SeparateDecade.stan', data = x))
 
-results.poolfit.80s <- extract.pooled.conditional.probability(poolfit.80s, '80s')
-results.separatefit.80s <- extract.parameters(separatefit.80s, 'y_hat') %>% 
-  mutate(type = 'separate')
-
 #++++++++++++++++++++++++++++
 ##  90s
 #++++++++++++++++++++++++++++
@@ -380,12 +376,6 @@ poolfit.90s <- stan(file = 'PooledDecade.stan',
 separatefit.90s <- lapply(events.90s.data, function(x) stan(file = 'SeparateDecade.stan', data = x))
 
 
-
-
-results.poolfit.90s <- extract.pooled.conditional.probability(poolfit.90s, '90s')
-results.separatefit.90s <- extract.parameters(separatefit.90s, 'y_hat') %>% 
-  mutate(decade = '90s',
-         event = 1:5)
 
 #++++++++++++++++++++++++
 ## 00s
@@ -409,12 +399,6 @@ poolfit.00s <- stan(file = 'PooledDecade.stan',
 separatefit.00s <- lapply(events.00s.data, function(x) stan(file = 'SeparateDecade.stan', data = x))
 
 
-
-
-results.poolfit.00s <- extract.pooled.conditional.probability(poolfit.00s, '00s')
-results.separatefit.00s <- extract.parameters(separatefit.00s, 'y_hat') %>% 
-  mutate(decade = '00s',
-         event = 1:n())
 #++++++++++++++++++++++++
 ## 10s
 #++++++++++++++++++++++++
@@ -435,15 +419,6 @@ poolfit.10s <- stan(file = 'PooledDecade.stan',
 separatefit.10s <- lapply(events.10s.data, function(x) stan(file = 'SeparateDecade.stan', data = x))
 
 
-
-
-results.poolfit.10s <- extract.pooled.conditional.probability(poolfit.10s, '10s')
-results.separatefit.10s <- extract.parameters(separatefit.10s, 'y_hat') %>% 
-  mutate(decade = '10s',
-         event = 1:n())
-
-
-
 ## +++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## Hierarchical
 ## +++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -462,7 +437,52 @@ hfit <- stan(file = 'HierarchicalLogit.stan',
              data = stan.hierarchical.data,
              control = list(adapt_delta = 0.99))
 
+## Saving fitted model so don't need to re-fit the model all the time. Should ideally have done this using map()
+
+# save(hfit, file =  'hierarchicaldecadefit.Rdata')
+# save(poolfit.80s, file = 'poolfit80s.Rdata')
+# save(poolfit.90s, file = 'poolfit90s.Rdata')
+# save(poolfit.00s, file = 'poolfit00s.Rdata')
+# save(poolfit.10s, file = 'poolfit10s.Rdata')
+# 
+# 
+# save(separatefit.80s, file = 'separatefit80s.Rdata')
+# save(separatefit.90s, file = 'separatefit90s.Rdata')
+# save(separatefit.00s, file = 'separatefit00s.Rdata')
+# save(separatefit.10s, file = 'separatefit10s.Rdata')
+
+
+# Collating model results
 results.hfit <- tidy(hfit, conf.int = TRUE)
+results.hfit.y_hat <- tidy(hfit, pars = 'y_hat', conf.int = TRUE)
+
+
+
+separate.80s.results <- separatefit.80s %>% 
+  map_dfr(tidy, pars = 'y_hat', conf.int = TRUE) %>% 
+  mutate(event = 1:n())
+
+separate.80s.results
+
+
+
+collect.stan.results(separatefit.80s, 'y_hat', '1980', 'separate')
+
+
+separatefit.vector <- c(separatefit.80s,
+                      separatefit.90s,
+                      separatefit.00s,
+                      separatefit.10s)
+
+decade.vector <- c(rep('1980', 5),
+                   rep('1990', 5),
+                   rep('2000',5),
+                   rep('2010', 5))
+
+bayes.separate.results <-  map2(.x = separatefit.vector, .y = decade.vector, .f = collect.stan.results, stan.fit = x, parameter = 'y_hat', decade = y, type = 'separate' )
+
+
+
 #### Largest Event CAR Results ####
 
 
@@ -571,6 +591,8 @@ stan.largest.hierarchical.data <- list(N = nrow(stan.largest.pooled.data), L = 2
 hfit.large <- stan(file = 'HierarchicalLogit.stan',
                    data = stan.largest.hierarchical.data)
 results.hfit.large <- tidy(hfit.large, conf.int = TRUE)
+
+
 
 
 #### Summary Statistics Graphics ####
@@ -816,16 +838,6 @@ bar.chart.decade.event.study.by.time <- ggplot(decade.event.study.CAR10, aes(mar
   ggtitle('10 Day Cumulative Abnormal Returns in Response to Terror Event', subtitle = 'Top 5 Events per Decade') +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = 'none',
         axis.text.x = element_text(angle = 270, hjust = 1))
-
-
-
-decade.prob.80s.plot <- ggplot(combined.results, aes(event, mean, colour = type, shape = type)) +
-  geom_point(size = 4) +
-  geom_hline(yintercept = 0.05, linetype = 'longdash', colour = 'red', alpha = 0.2) +
-  geom_hline(yintercept = 0.1, linetype = 'longdash', alpha = 0.4) 
-
-
-
 
 beepr::beep()
 
