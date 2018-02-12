@@ -489,14 +489,14 @@ decade.vector <- list(rep('1980', 5),
 
 
 ## Pooled results of a different class to separate results - perhaps need to rewrite separate code to run it in one function
-stan.separate.results <-  map2_dfr(.x = separatefit.vector, .y = decade.vector, .f = collect.stan.results, parameter = 'y_hat', type = 'separate' )
-stan.pooled.results <- map2_dfr(.x = poolfit.vector, .y = decade.vector, .f = collect.stan.results, parameter = 'y_hat', type = 'pooled')
+stan.separate.results <-  map2_dfr(.x = separatefit.vector, .y = decade.vector, .f = collect.stan.results, parameter = 'y_hat', model = 'separate' )
+stan.pooled.results <- map2_dfr(.x = poolfit.vector, .y = decade.vector, .f = collect.stan.results, parameter = 'y_hat', model = 'pooled')
 
 results.hfit.y_hat <- tidy(hfit, pars = 'y_hat', conf.int = TRUE) %>% 
   as.tibble
 results.hfit.y_hat$decade <- unlist(decade.vector)
 results.hfit.y_hat$event <- 1:5
-results.hfit.y_hat$type <- 'hierarchical'
+results.hfit.y_hat$model <- 'hierarchical'
 
 # All decade conditional probability results:
 decade.cp.results <- bind_rows(stan.separate.results,
@@ -600,26 +600,48 @@ CAR.4.filtered <- calculate.car(screen.overlapping.events(events.sorted), index.
 
 
 # Seems kind of pointless as near identical events to decade study but whatever I guess
-stan.largest.pooled.data <- prepare.stan.data(n.events = 20, events = events.top25.no.overlap[1:20,], index.zoo.UK.ALLSHARE.omitted) %>% 
+# Hierarchical
+stan.largest5.pooled.data <- prepare.stan.data(n.events = 5, events = events.top5, index.zoo.UK.ALLSHARE.omitted) %>% 
   map(data.frame) %>% 
-  map2_dfr(.x = ., .y = 1:20, ~mutate(.x, event = .y))
+  map2_dfr(.x = ., .y = 1:5, ~mutate(.x, event = .y))
 
-stan.largest.hierarchical.data <- list(N = nrow(stan.largest.pooled.data), L = 20, ll = stan.largest.pooled.data$event,
-                                       Y = stan.largest.pooled.data$Y,
-                                       returns = stan.largest.pooled.data$returns,
-                                       terror_return = unique(stan.largest.pooled.data$terror_return))
+stan.largest5.hierarchical.data <- list(N = nrow(stan.largest5.pooled.data), L = 5, ll = stan.largest5.pooled.data$event,
+                                       Y = stan.largest5.pooled.data$Y,
+                                       returns = stan.largest5.pooled.data$returns,
+                                       terror_return = unique(stan.largest5.pooled.data$terror_return))
 
 hfit.large <- stan(file = 'HierarchicalLogit.stan',
-                   data = stan.largest.hierarchical.data)
-results.hfit.large <- tidy(hfit.large, conf.int = TRUE)
+                   data = stan.largest5.hierarchical.data,
+                   control = list(adapt_delta = 0.99))
+
+# Pooled
+pooled.large.fit <- sampling(object = pooled.compiled,
+                             data = stan.largest5.hierarchical.data)
+
+# Separate
+events.separate.large.data <- prepare.stan.data(n.events = 5, events = events.top5, index = index.zoo.UK.ALLSHARE.omitted)
+
+separatefit.large <- lapply(events.separate.large.data, function(x) sampling(object = separate.compiled, data = x))
 
 
 
+## Results
+results.hfit.large <- tidy(hfit.large, conf.int = TRUE, pars = 'y_hat')
+results.poolfit.large <- tidy(pooled.large.fit, conf.int = TRUE, pars = 'y_hat')
+results.separatefit.large <- collect.stan.results(separatefit.large, 'y_hat', decade = 'NA', model = 'separate')
 
-#
-#
-#
-#
+
+results.hfit.large$event <- 1:5
+results.poolfit.large$event <- 1:5
+
+results.hfit.large$model <- 'hierarchical'
+results.poolfit.large$model <- 'pooled'
+results.separatefit.large$decade <- NULL
+
+large.cp.results <- bind_rows(results.hfit.large,
+                              results.poolfit.large,
+                              results.separatefit.large)
+
 #### Summary Statistics Graphics ####
 
 ## Histograms ##
@@ -823,12 +845,24 @@ rolling.CAAR.plot <- ggplot(all.CAR.10.day.ALLSHARE, aes(n, rolling.CAAR))+
   ggtitle('Rolling mean of Cumulative Abnormal Returns', subtitle = 'UK Terror Attacks with FTSE ALLSHARE data, 1980-2016') +
   theme_minimal()
 
-lockerbie.plot
-london.7.7.plot
-omagh.plot
-manchester.plot
-droppin.well.plot
-rolling.CAAR.plot
+ # Plotting conditional probability results
+
+large.cp.subset <- subset(select(large.cp.results, -c(model)))
+
+large.cp.results.plot <- ggplot(large.cp.results, aes(event, estimate)) +
+  geom_point(data = large.cp.subset,colour = 'grey', alpha = 0.2, size = 3, shape = 22, fill = 'grey') +
+  geom_pointrange(aes(ymin = conf.low, ymax = conf.high),  size=1, color="blue", fill="white", shape=22, linetype = 'longdash') +
+  geom_hline(yintercept = 0.05, linetype = 'longdash', alpha = 0.2)+
+  facet_wrap(~ model) +
+  guides(colour = FALSE)+
+  ylab('Probability of observing a market movement as bad or worse than return observed') +
+  xlab('Event number') +
+  ggtitle('Conditional Probability of observing more extreme market return on day of attack',
+          subtitle = '5 largest attacks') +
+  theme_bw()
+large.cp.results.plot
+
+
 
 #### Decade Graphics ####
 
@@ -865,20 +899,36 @@ bar.chart.decade.event.study.by.time <- ggplot(decade.event.study.CAR10, aes(mar
         axis.text.x = element_text(angle = 270, hjust = 1))
 
 
-d <- subset(select(decade.cp.results, -c(decade)))
+decade.cp.subset <- subset(select(decade.cp.results, -c(decade)))
 
-conditional.probability.results <- ggplot(decade.cp.results, aes(event, estimate, colour = decade, shape = type)) +
-  geom_point(data = d, colour = 'grey', alpha = 0.2, size = 3) +
+decade.cp.results.plot <- ggplot(decade.cp.results, aes(event, estimate, colour = decade, shape = model)) +
+  geom_point(data = decade.cp.subset, colour = 'grey', alpha = 0.2, size = 3) +
   geom_point(size = 3) +
   geom_hline(yintercept = 0.05, linetype = 'longdash', alpha = 0.2)+
   facet_wrap(~ decade) +
   guides(colour = FALSE)+
   ylab('Probability of observing a market movement as bad or worse than return observed') +
   xlab('Event number') +
-  ggtitle('Conditional Probability of observing more extreme market return on day of attack') +
+  ggtitle('Conditional Probability of observing more extreme market return on day of attack',
+          subtitle = '5 largest attacks per decade') +
   theme_bw()
-conditional.probability.results
+decade.cp.results.plot
 
+results.hfit.y_hat.subset <-  subset(select(results.hfit.y_hat, -c(decade)))
+
+
+decade.cp.results.plot <- ggplot(results.hfit.y_hat, aes(event, estimate, colour = decade)) +
+  geom_point(data = results.hfit.y_hat.subset, colour = 'grey', alpha = 0.2, size = 3) +
+  geom_pointrange(aes(ymin = conf.low, ymax = conf.high),  size=1, color="blue", fill="white", shape=22, linetype = 'longdash') +
+  geom_hline(yintercept = 0.05, linetype = 'longdash', alpha = 0.2)+
+  facet_wrap(~ decade) +
+  guides(colour = FALSE)+
+  ylab('Probability of observing a market movement as bad or worse than return observed') +
+  xlab('Event number') +
+  ggtitle('Conditional Probability of observing more extreme market return on day of attack',
+          subtitle = '5 largest attacks per decade - hierarchical model only') +
+  theme_bw()
+decade.cp.results.plot
 
 beepr::beep()
 

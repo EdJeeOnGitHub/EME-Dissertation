@@ -471,12 +471,12 @@ prepare.stan.data <- function(n.events, events, index){
 }
 
 # Extracting stan results using the tidy() function from broom
-collect.stan.results <- function(stan.fit, parameter, decade, type){
+collect.stan.results <- function(stan.fit, parameter, decade, model){
   results <- stan.fit %>% 
     map_dfr(tidy, pars = parameter, conf.int = TRUE) %>% 
     mutate(event = 1:n(),
            decade = decade,
-           type = type) %>% 
+           model = model) %>% 
     as.tibble
   return(results)
 }
