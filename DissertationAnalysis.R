@@ -864,5 +864,21 @@ bar.chart.decade.event.study.by.time <- ggplot(decade.event.study.CAR10, aes(mar
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = 'none',
         axis.text.x = element_text(angle = 270, hjust = 1))
 
+
+d <- subset(select(decade.cp.results, -c(decade)))
+
+conditional.probability.results <- ggplot(decade.cp.results, aes(event, estimate, colour = decade, shape = type)) +
+  geom_point(data = d, colour = 'grey', alpha = 0.2, size = 3) +
+  geom_point(size = 3) +
+  geom_hline(yintercept = 0.05, linetype = 'longdash', alpha = 0.2)+
+  facet_wrap(~ decade) +
+  guides(colour = FALSE)+
+  ylab('Probability of observing a market movement as bad or worse than return observed') +
+  xlab('Event number') +
+  ggtitle('Conditional Probability of observing more extreme market return on day of attack') +
+  theme_bw()
+conditional.probability.results
+
+
 beepr::beep()
 
