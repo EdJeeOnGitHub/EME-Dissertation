@@ -51,7 +51,12 @@ add.similar.dummies <- function(dummies.df, dummy.colnames){
   return(summed.dummies.df)
 }
 
-
+create.unique.colnames <- function(df){
+  #Creates unique column names for our completed dummy variables so we know which dummy corresponds to which factor
+  colnames(df) <- rep(deparse(substitute(df)), length(df)) %>% 
+    paste(., colnames(df))
+  return(df)
+}
 
 
 
@@ -79,7 +84,9 @@ create.dummies <- function(...){
       }}}
   # Now we have a dataframe of dummies but the repeated observations share the same name so we can add them up
   complete.dummies <- add.similar.dummies(dummies.df = dummies.data.frame, dummy.colnames = dummy.col.names) 
-  complete.dummies <- select(complete.dummies, subset = -c(original))
+  complete.dummies <- select(complete.dummies, subset = -c(original)) %>% 
+    as.tibble
+  
   
   return(complete.dummies)
   

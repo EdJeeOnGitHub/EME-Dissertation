@@ -4,9 +4,9 @@ library(tidyverse)
 library(readxl)
 library(car)
 library(dummies)
-
-#### Cleaning up terror data
 source('DissertationFunctions.R')
+#### Cleaning up terror data ####
+
 dropbox.path <- "C:/Users/ed/Dropbox/Ed/Ed Uni work/EME/Data/Original Data/globalterrorismcsv.csv"
 
 terror.tb <- read_csv(dropbox.path)
@@ -125,33 +125,52 @@ factor.df.cleaned <- apply(factor.df, 2, clean.column) %>%
 attack.dummies <- create.dummies(factor.df.cleaned$attacktype1_txt,
                                  factor.df.cleaned$attacktype2_txt,
                                  factor.df.cleaned$attacktype3_txt)
+attack.dummies <- create.unique.colnames(attack.dummies)
 
 target.dummies <- create.dummies(factor.df.cleaned$targtype1_txt,
                                  factor.df.cleaned$targtype2_txt,
                                  factor.df.cleaned$targtype3_txt)
+target.dummies <- create.unique.colnames(target.dummies)
 
 target.nationality.dummies <- create.dummies(factor.df.cleaned$natlty1_txt,
                                              factor.df.cleaned$natlty2_txt,
                                              factor.df.cleaned$natlty3_txt)
+target.nationality.dummies <- create.unique.colnames(target.nationality.dummies)
 
 perpetrator.dummies <- create.dummies(factor.df.cleaned$gname, factor.df.cleaned$gname) # Only one factor here but easier to repeat it as repeated obs dropped anyway and ensures consistent formatting
+perpetrator.dummies <- create.unique.colnames(perpetrator.dummies)
 
 weaptype.dummies <- create.dummies(factor.df.cleaned$weaptype1_txt,
                                    factor.df.cleaned$weaptype2_txt,
                                    factor.df.cleaned$weaptype3_txt,
                                    factor.df.cleaned$weaptype4_txt)
+weaptype.dummies <- create.unique.colnames(weaptype.dummies)
 
 weapdetail.dummies <- create.dummies(factor.df.cleaned$weapdetail, factor.df.cleaned$weapdetail)
-
+weapdetail.dummies <- create.unique.colnames(weapdetail.dummies)
 province.dummies <- create.dummies(factor.df.cleaned$provstate, factor.df.cleaned$provstate)
-
+province.dummies <- create.unique.colnames(province.dummies)
 city.dummies <- create.dummies(factor.df.cleaned$city, factor.df.cleaned$city)
-
+city.dummies <- create.unique.colnames(city.dummies)
 weapsubtype.dummies <- create.dummies(factor.df.cleaned$weaptype1_txt,
                                       factor.df.cleaned$weaptype2_txt,
                                       factor.df.cleaned$weaptype3_txt,
-                                      factor.df.cleaned$weaptype4_txt)
+                                      factor.df.cleaned$weaptype4_txt)  
+weapsubtype.dummies <-  create.unique.colnames(weapsubtype.dummies)
 
 targetsubtype.dummies <- create.dummies(factor.df.cleaned$targsubtype1_txt,
                                         factor.df.cleaned$targsubtype2_txt,
-                                        factor.df.cleaned$targsubtype3_txt)
+                                        factor.df.cleaned$targsubtype3_txt) 
+targetsubtype.dummies <-  create.unique.colnames(targetsubtype.dummies)
+
+
+most.covariates.terror <- cbind(terror.UK,
+                                attack.dummies,
+                                target.dummies,
+                                perpetrator.dummies,
+                                weaptype.dummies,
+                                province.dummies) %>% as.tibble
+most.covariates.terror
+
+
+
