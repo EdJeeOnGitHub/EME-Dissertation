@@ -6,10 +6,9 @@ library(car)
 library(dummies)
 source('DissertationFunctions.R')
 #### Cleaning up terror data ####
+dropbox.path <- "C:/Users/ed/Dropbox/Ed/Ed Uni work/EME/Data/Original Data/globalterrorismdb_0617dist.xlsx"
 
-dropbox.path <- "C:/Users/ed/Dropbox/Ed/Ed Uni work/EME/Data/Original Data/globalterrorismcsv.csv"
-
-terror.tb <- read_csv(dropbox.path)
+terror.tb <- read_xlsx(dropbox.path)
 
 terror.UK <- dplyr::filter(terror.tb, country_txt == 'United Kingdom') %>%
   dplyr::filter(iday != 0) %>% 
