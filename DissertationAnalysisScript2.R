@@ -6,6 +6,7 @@ library(car)
 library(dummies)
 
 #### Cleaning up terror data
+source('DissertationFunctions.R')
 dropbox.path <- "C:/Users/ed/Dropbox/Ed/Ed Uni work/EME/Data/Original Data/globalterrorismcsv.csv"
 
 terror.tb <- read_csv(dropbox.path)
@@ -55,7 +56,6 @@ terror.UK <- dplyr::filter(terror.tb, country_txt == 'United Kingdom') %>%
                      corp3,
                      target1,
                      natlty1,
-                     natlty1_txt,
                      country,
                      country_txt,
                      resolution,
@@ -82,6 +82,8 @@ terror.UK <- dplyr::filter(terror.tb, country_txt == 'United Kingdom') %>%
                      INT_ANY)) %>% 
   unite(Date, iyear, imonth, iday, sep = '/', remove = FALSE)
 
+
+# Recoding some missing values/NA
 terror.UK$nperps <- Recode(terror.UK$nperps, "c(-99, NA) = 1") # recoding missing and NA to 1. It seems axiomatic for an attack to occur that there must be at least one perpetrator - this variable now admits an 'at least x' inference
 terror.UK$nperpcap <- Recode(terror.UK$nperpcap, "c(-99, NA) = 0") # I find it hard to believe the number of perpetrators captured would be mis-reported if someone was actually captured. Should test with and without this
 terror.UK$nkillter <- Recode(terror.UK$nkillter, "NA = 0") # Setting NA to 0
@@ -90,97 +92,66 @@ terror.UK$ransomamt <- Recode(terror.UK$ransomamt, "NA = 0") # Where there was n
 terror.UK$ransompaid <- Recode(terror.UK$ransompaid, "NA = 0") # Again, where no ransom was requested nothing was paid
 
 
-## Creating dummy variables
-
-attack1.dummies <- dummy(terror.UK$attacktype1_txt, verbose = TRUE)
-attack2.dummies <- dummy(terror.UK$attacktype2_txt, verbose = TRUE)
-
-attack1.tibble <- as.tibble(attack1.dummies)
-
-attack.dummies.test <- str_detect( colnames(attack1.dummies), 'Armed' )
-
-ed <-attack2.dummies[, grepl('Armed', colnames(attack2.dummies))]
-new <- attack1.tibble$`attacktype1_txtArmed Assault` + ed
-new
-
-
-
-# We have a problem where there are multiple factor columns when I only want one. i.e. we have weapon1/2/3 but these are separate and list the weapon used. If I want a 'used a gun' dummy I 
-# need to convert all these factor columns into a dummy column and then aggregate across them.
-
-create.dummy.colnames <- function(...){
-  # Creates a list of unique names for use in our dummy columns
-  dots.list <- list(...)
-  col.names <- dots.list %>% 
-    map(unique) %>% 
-    unlist %>% 
-    as.tibble %>% 
-    unique %>% 
-    na.omit
-
-  return(col.names)
-}
-
-find.a.similar.dummy.column <- function(dummy.col, other.dummy.matrix, regex){
-  # Uses regex to find a similar column and return the similar column
-  similar.col <- other.dummy.matrix[, grepl(regex, colnames(other.dummy.matrix))]
-  return(similar.col)
-  
-}
-
-add.similar.dummies <- function(dummies.df, dummy.colnames){
-  # This function takes a dummies.df object where all the dummies with the same name are. It then adds them all up and uses an indicator function
-  # to check if they're greater than 1 in which case they're set to 1
-  empty.list <- rep(0, nrow(dummies.df))
-  summed.dummies.df <- data.frame(original = empty.list)
-  L = nrow(dummy.colnames)
-  for (l in 1:L){
-    
-    sim.dummies <- dummies.df[, grepl(dummy.colnames[l, ], colnames(dummies.df))]
-    summed.dummy <- data.frame(rowSums(sim.dummies))
-    name.to.set <- dummy.colnames[l,]
-    colnames(summed.dummy) <- name.to.set
-    summed.dummy <- apply(summed.dummy, 2, function(x)ifelse((x>1),1,0))
-    summed.dummies.df<- cbind(summed.dummies.df, summed.dummy)
-  }
-  
-  return(summed.dummies.df)
-}
+# Recoding factors columns in preparation for creating dummies
+factor.df <- subset(terror.UK, select = c(attacktype1_txt,
+                                          attacktype2_txt,
+                                          attacktype3_txt,
+                                          targtype1_txt,
+                                          targtype2_txt,
+                                          targtype3_txt,
+                                          natlty1_txt,
+                                          natlty2_txt,
+                                          natlty3_txt,
+                                          gname,
+                                          weapdetail,
+                                          weaptype1_txt,
+                                          weaptype2_txt,
+                                          weaptype3_txt,
+                                          weaptype4_txt,
+                                          provstate,
+                                          city,
+                                          weapsubtype1_txt,
+                                          weapsubtype2_txt,
+                                          weapsubtype3_txt,
+                                          weapsubtype4_txt,
+                                          targsubtype1_txt,
+                                          targsubtype2_txt,
+                                          targsubtype3_txt))
+factor.df.cleaned <- apply(factor.df, 2, clean.column) %>% 
+  as.tibble
 
 
 
+attack.dummies <- create.dummies(factor.df.cleaned$attacktype1_txt,
+                                 factor.df.cleaned$attacktype2_txt,
+                                 factor.df.cleaned$attacktype3_txt)
 
+target.dummies <- create.dummies(factor.df.cleaned$targtype1_txt,
+                                 factor.df.cleaned$targtype2_txt,
+                                 factor.df.cleaned$targtype3_txt)
 
-create.similar.dummies <- function(...){
-  # Creates a list of dummy variable columns that crucially share the same name. Due to the way the for-loop works I have each dummy column 'pair' ('original' and 'similar') repeated 4 times
-  # This is because the first match is the original column with itself and the second match is the dummy with itself. Then the two match each other separately twice.
-  dot.list <- list(...)
-  dummy.col.names <- create.dummy.colnames(...)
-  
-  dummy.matrices <- dot.list %>% 
-    map(dummy)
-  K <- length(dummy.matrices)
-  L <- nrow(dummy.col.names)
-  dummies.data.frame <- data.frame(matrix('empty', nrow = nrow(dummy.matrices[[1]]), ncol = 1))
-  for (j in 1:K){
-    for (i in 1:K){
-      for (l in 1:L){
-        col <- find.a.similar.dummy.column(dummy.matrices[[j]], dummy.matrices[[i]], dummy.col.names[l, ])
-        if (length(col) != 0){
-          new.col.name <- dummy.col.names[l,]
-          col.df <- data.frame(col)
-          colnames(col.df) <- new.col.name
-          dummies.data.frame <- cbind(dummies.data.frame, col.df)
-        }
-  }}}
-  # Now we have a dataframe of dummies but the repeated observations share the same name so we can add them up
-  complete.dummies <- add.similar.dummies(dummies.df = dummies.data.frame, dummy.colnames = dummy.col.names) 
-    
-  
-  return(complete.dummies)
- 
-}
+target.nationality.dummies <- create.dummies(factor.df.cleaned$natlty1_txt,
+                                             factor.df.cleaned$natlty2_txt,
+                                             factor.df.cleaned$natlty3_txt)
 
+perpetrator.dummies <- create.dummies(factor.df.cleaned$gname, factor.df.cleaned$gname) # Only one factor here but easier to repeat it as repeated obs dropped anyway and ensures consistent formatting
 
-yest <- create.similar.dummies(terror.UK$attacktype1_txt, terror.UK$attacktype2_txt)
+weaptype.dummies <- create.dummies(factor.df.cleaned$weaptype1_txt,
+                                   factor.df.cleaned$weaptype2_txt,
+                                   factor.df.cleaned$weaptype3_txt,
+                                   factor.df.cleaned$weaptype4_txt)
 
+weapdetail.dummies <- create.dummies(factor.df.cleaned$weapdetail, factor.df.cleaned$weapdetail)
+
+province.dummies <- create.dummies(factor.df.cleaned$provstate, factor.df.cleaned$provstate)
+
+city.dummies <- create.dummies(factor.df.cleaned$city, factor.df.cleaned$city)
+
+weapsubtype.dummies <- create.dummies(factor.df.cleaned$weaptype1_txt,
+                                      factor.df.cleaned$weaptype2_txt,
+                                      factor.df.cleaned$weaptype3_txt,
+                                      factor.df.cleaned$weaptype4_txt)
+
+targetsubtype.dummies <- create.dummies(factor.df.cleaned$targsubtype1_txt,
+                                        factor.df.cleaned$targsubtype2_txt,
+                                        factor.df.cleaned$targsubtype3_txt)
