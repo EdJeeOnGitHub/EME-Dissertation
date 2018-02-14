@@ -44,7 +44,7 @@ add.similar.dummies <- function(dummies.df, dummy.colnames){
     summed.dummy <- data.frame(rowSums(sim.dummies))
     name.to.set <- dummy.colnames[l,]
     colnames(summed.dummy) <- name.to.set
-    summed.dummy <- apply(summed.dummy, 2, function(x)ifelse((x>1),1,0))
+    summed.dummy <- apply(summed.dummy, 2, function(x)ifelse((x>=1),1,0))
     summed.dummies.df<- cbind(summed.dummies.df, summed.dummy)
   }
   

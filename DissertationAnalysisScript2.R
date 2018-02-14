@@ -5,13 +5,14 @@ library(readxl)
 library(car)
 library(dummies)
 source('DissertationFunctions.R')
-#### Cleaning up terror data ####
+#### Preparing in depth terror data ####
 dropbox.path <- "C:/Users/ed/Dropbox/Ed/Ed Uni work/EME/Data/Original Data/globalterrorismdb_0617dist.xlsx"
 
 terror.tb <- read_xlsx(dropbox.path)
 
 terror.UK <- dplyr::filter(terror.tb, country_txt == 'United Kingdom') %>%
   dplyr::filter(iday != 0) %>% 
+  unite(Date, iyear, imonth, iday, sep = '/', remove = FALSE) %>% 
   subset(select = -c(approxdate,
                      region,
                      region_txt,
@@ -78,8 +79,26 @@ terror.UK <- dplyr::filter(terror.tb, country_txt == 'United Kingdom') %>%
                      nreleased,
                      propvalue,
                      INT_LOG,
-                     INT_ANY)) %>% 
-  unite(Date, iyear, imonth, iday, sep = '/', remove = FALSE)
+                     INT_ANY,
+                     eventid,
+                     iyear,
+                     imonth,
+                     iday,
+                     attacktype1,
+                     attacktype2,
+                     attacktype3,
+                     targtype1,
+                     targtype2,
+                     targtype3,
+                     targsubtype1,
+                     targsubtype2,
+                     targsubtype3,
+                     weaptype1,
+                     weaptype2,
+                     weaptype3,
+                     weaptype4))
+  
+
 
 
 # Recoding some missing values/NA
@@ -89,7 +108,7 @@ terror.UK$nkillter <- Recode(terror.UK$nkillter, "NA = 0") # Setting NA to 0
 terror.UK$nhostkid <- Recode(terror.UK$nhostkid, "c(NA, -99) = 0") # Where no one was kidnapped or there isn't info, setting to 0
 terror.UK$ransomamt <- Recode(terror.UK$ransomamt, "NA = 0") # Where there was no ransom requested, no ransom amount was requsted
 terror.UK$ransompaid <- Recode(terror.UK$ransompaid, "NA = 0") # Again, where no ransom was requested nothing was paid
-
+terror.UK$Date <- as.Date(terror.UK$Date)
 
 # Recoding factors columns in preparation for creating dummies
 factor.df <- subset(terror.UK, select = c(attacktype1_txt,
@@ -163,13 +182,26 @@ targetsubtype.dummies <- create.dummies(factor.df.cleaned$targsubtype1_txt,
 targetsubtype.dummies <-  create.unique.colnames(targetsubtype.dummies)
 
 
-most.covariates.terror <- cbind(terror.UK,
+most.covariates.terror.and.date <- cbind(terror.UK$Date,
                                 attack.dummies,
                                 target.dummies,
-                                perpetrator.dummies,
                                 weaptype.dummies,
-                                province.dummies) %>% as.tibble
-most.covariates.terror
+                                province.dummies) %>%
+  as.tibble %>% 
+  group_by(`terror.UK$Date`) %>% 
+  summarise_all(sum)
+
+most.covariates.terror.and.date <- apply(most.covariates.terror.and.date,2,function(x)ifelse((x>=1),1,0)) %>% 
+  as.tibble %>% 
+  subset(select = -c(`terror.UK$Date`))
 
 
 
+
+
+terror.UK.grouped <- terror.UK %>% 
+  group_by(Date) %>% 
+  summarise_all(funs(if(is.numeric(.)) sum(., na.rm = TRUE) else first(.)))
+
+terror.covariates <- cbind(terror.UK.grouped, most.covariates.terror.and.date) %>% as.tibble
+# Need to fix sucess and multiple and suicide, claimed, property, ishostkid, ransom, INT_IDEO, INT_MISC
