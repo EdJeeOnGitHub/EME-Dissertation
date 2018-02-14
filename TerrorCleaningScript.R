@@ -101,14 +101,21 @@ terror.UK <- dplyr::filter(terror.tb, country_txt == 'United Kingdom') %>%
 
 
 
-# Recoding some missing values/NA
+# Recoding some missing values/NA - A lot of these should be dropped from final specification but including atm for interest.
 terror.UK$nperps <- Recode(terror.UK$nperps, "c(-99, NA) = 1") # recoding missing and NA to 1. It seems axiomatic for an attack to occur that there must be at least one perpetrator - this variable now admits an 'at least x' inference
 terror.UK$nperpcap <- Recode(terror.UK$nperpcap, "c(-99, NA) = 0") # I find it hard to believe the number of perpetrators captured would be mis-reported if someone was actually captured. Should test with and without this
 terror.UK$nkillter <- Recode(terror.UK$nkillter, "NA = 0") # Setting NA to 0
 terror.UK$nhostkid <- Recode(terror.UK$nhostkid, "c(NA, -99) = 0") # Where no one was kidnapped or there isn't info, setting to 0
 terror.UK$ransomamt <- Recode(terror.UK$ransomamt, "NA = 0") # Where there was no ransom requested, no ransom amount was requsted
 terror.UK$ransompaid <- Recode(terror.UK$ransompaid, "NA = 0") # Again, where no ransom was requested nothing was paid
+terror.UK$property <- Recode(terror.UK$property, "-9 = 0") # Where no one has recorded any property damage it's set to 0 - this occurs in roughly 70 of 5000 obs
+terror.UK$ishostkid <- Recode(terror.UK$ishostkid, "-9 = 0") # There's only one missing observation for hostages so setting to 0
+terror.UK$ransom <- Recode(terror.UK$ransom, 'c(-9, NA) = 0') # Only 2 observations where it's unknown and 1000 where the term ransom 'isn't applicanble' according to START so also setting to 0 for this specification
+terror.UK$INT_IDEO <- Recode(terror.UK$INT_IDEO, '-9 = 0') # This one's a little less clear cut, only including out of interest. Probably shouldn't include in final specification
 terror.UK$Date <- as.Date(terror.UK$Date)
+
+
+save(terror.UK, file = 'UKTerrorData.Rdata' )
 
 # Recoding factors columns in preparation for creating dummies
 factor.df <- subset(terror.UK, select = c(attacktype1_txt,
@@ -205,3 +212,19 @@ terror.UK.grouped <- terror.UK %>%
 
 terror.covariates <- cbind(terror.UK.grouped, most.covariates.terror.and.date) %>% as.tibble
 # Need to fix sucess and multiple and suicide, claimed, property, ishostkid, ransom, INT_IDEO, INT_MISC
+# Some of the original dummies in the dataset are now greater than 1 as we've aggregated events at the day level. Recoding dummies > 1 to 1.
+terror.covariates <- terror.covariates %>% 
+  mutate(success = replace(success, success >= 1, 1),
+         multiple = replace(multiple, multiple >=1, 1),
+         suicide = replace(suicide, suicide >=1, 1),
+         claimed = replace(claimed, claimed >=1, 1),
+         property = replace(property, property >=1, 1),
+         ishostkid = replace(ishostkid, ishostkid >=1, 1),
+         ransom = replace(ransom, ransom >= 1, 1),
+         INT_IDEO = replace(INT_IDEO, INT_IDEO >= 1, 1),
+         INT_MISC = replace(INT_MISC, INT_MISC >= 1, 1))
+
+
+
+save(terror.covariates, file= 'TerrorCovariates.Rdata')
+
