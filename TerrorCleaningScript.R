@@ -219,7 +219,7 @@ most.covariates.terror.and.date.cleaned <- most.covariates.terror.and.date[, -1]
 
 
 
-# # Quickly testing that our summations and recoding have worked
+# # Quickly testing that our summations and recoding have worked - Need to uncomment total.check in the function script for this to work
 # attack <- most.covariates.terror.and.date.cleaned[, grep(pattern = 'attack', colnames(most.covariates.terror.and.date.cleaned))]
 # attack$total <- rowSums(attack)
 # summary(attack$total) ## The min value should always be 1 here. A values greater than 1 in the total column means that a gun and knife attack occured on the same day for instance.
@@ -232,7 +232,7 @@ terror.UK.grouped <- terror.UK %>%
   summarise_all(funs(if(is.numeric(.)) sum(., na.rm = TRUE) else first(.)))
 save(terror.UK.grouped, file = 'UKTerrorData.Rdata')
 
-terror.covariates <- cbind(terror.UK.grouped, most.covariates.terror.and.date) %>% as.tibble
+terror.covariates <- bind_cols(terror.UK.grouped, most.covariates.terror.and.date.cleaned) %>% as.tibble
 # Some of the original dummies in the dataset are now greater than 1 as we've aggregated events at the day level. Recoding dummies > 1 to 1.
 terror.covariates <- terror.covariates %>% 
   mutate(success = replace(success, success >= 1, 1),
@@ -243,14 +243,47 @@ terror.covariates <- terror.covariates %>%
          ishostkid = replace(ishostkid, ishostkid >=1, 1),
          ransom = replace(ransom, ransom >= 1, 1),
          INT_IDEO = replace(INT_IDEO, INT_IDEO >= 1, 1),
-         INT_MISC = replace(INT_MISC, INT_MISC >= 1, 1))
+         INT_MISC = replace(INT_MISC, INT_MISC >= 1, 1),
+         guncertain1 = replace(guncertain1, guncertain1 >=1, 1))
 
 tidy.name.vector <- make.names(colnames(terror.covariates), unique=TRUE)
 colnames(terror.covariates) <- tidy.name.vector
+terror.covariates.subset <- subset(terror.covariates, select= -c(provstate,
+                                                          city,
+                                                          attacktype1_txt,
+                                                          attacktype2_txt,
+                                                          attacktype3_txt,
+                                                          targtype1_txt,
+                                                          targsubtype1_txt,
+                                                          natlty1_txt,
+                                                          targtype2_txt,
+                                                          targsubtype2_txt,
+                                                          target2,
+                                                          target3,
+                                                          natlty2_txt,
+                                                          targtype3_txt,
+                                                          targsubtype3_txt,
+                                                          target3,
+                                                          natlty3_txt,
+                                                          gname,
+                                                          weapsubtype1_txt,
+                                                          weapsubtype2_txt,
+                                                          weapsubtype3_txt,
+                                                          weapsubtype4_txt,
+                                                          weaptype1_txt,
+                                                          weaptype2_txt,
+                                                          weaptype3_txt,
+                                                          weaptype4_txt,
+                                                          weapdetail,
+                                                          weapsubtype1,
+                                                          weapsubtype2,
+                                                          weapsubtype3,
+                                                          weapsubtype4,
+                                                          hostkidoutcome_txt))
+                                                          
 
 
 
-
-save(terror.covariates, file= 'TerrorCovariates.Rdata')
+save(terror.covariates.subset, file= 'TerrorCovariates.Rdata')
 
 
