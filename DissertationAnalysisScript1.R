@@ -146,14 +146,12 @@ rm(list = removal.list.index)
 
 path.terror <- root.file('EME', 'Data', 'Clean Data', 'Terror', 'United Kingdom.xls')
 
-raw.terror.data <- read_excel(path.terror)
+load('UKTerrorData.Rdata')
 
-# Cleaning date function and selecting relevant columns
-raw.terror.data$Date <- as.Date(raw.terror.data$Date)
-raw.terror.data <- subset(raw.terror.data, select = c(Date,
+# electing relevant columns
+terror.data <- subset(terror.UK.grouped, select = c(Date,
                                                       nkill,
                                                       nwound,
-                                                      propvalue,
                                                       incident))
 
 # Creating the weights with which to calculate terror intensity. These are identical to those used by the GTI
@@ -161,21 +159,11 @@ fatality.weight <- 3
 incident.weight <- 1
 injury.weight <- 0.5
 
-# The property weight takes a variable value depending on the level of property damage
-terror.data <- mutate(raw.terror.data, prop.weight = ifelse(propvalue == 0,
-                                                                     0,
-                                                                     ifelse(propvalue < 1*10^6,
-                                                                            1,
-                                                                            ifelse(propvalue < 1*10^9,
-                                                                                   2,
-                                                                                   ifelse(propvalue > 1*10^9,
-                                                                                          3, 0)))))
 # The weights used by the GTI
 terror.data <- mutate(terror.data,
                       terror.intensity = incident*incident.weight +
                         nwound*injury.weight +
-                        nkill*fatality.weight +
-                        prop.weight)
+                        nkill*fatality.weight)
 
 # Filtering events via decade and top n events measured by terror intensity
 filter.events <- function(event.data, start.Date, end.Date, n.events){
@@ -254,11 +242,9 @@ screen.overlapping.events <- function(events, window.end = 10, drop = TRUE,  win
 
 
 
-removal.list.terror <- c('raw.terror.data',
-                         'fatality.weight',
+removal.list.terror <- c('fatality.weight',
                          'incident.weight',
                          'injury.weight',
-                         'path.terror',
                          'removal.list.terror')
 rm(list = removal.list.terror)
 
@@ -593,6 +579,7 @@ CAR.10.filtered <- calculate.car(screen.overlapping.events(events.sorted), index
 CAR.4.unfiltered <- calculate.car(events.sorted, index.zoo.UK.ALLSHARE.omitted)
 CAR.4.filtered <- calculate.car(screen.overlapping.events(events.sorted), index.zoo.UK.ALLSHARE.omitted)
 
+save(CAR.10.filtered, CAR.10.unfiltered, CAR.4.filtered, CAR.4.unfiltered, file = 'AnalysisOutput/CAR_Data.RData')
 
 
 #### Largest Event Logit Results ####
@@ -936,3 +923,4 @@ beepr::beep()
 
 
 save.image()
+

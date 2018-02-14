@@ -10,6 +10,8 @@ dropbox.path <- "C:/Users/ed/Dropbox/Ed/Ed Uni work/EME/Data/Original Data/globa
 
 terror.tb <- read_xlsx(dropbox.path)
 
+# Removing events where day of event is unknown as it seems reasonable that these are particularly insignificant events and are okay to drop. I think there's ~3 events dropped.
+# Removing a long list of variables that I don't really need
 terror.UK <- dplyr::filter(terror.tb, country_txt == 'United Kingdom') %>%
   dplyr::filter(iday != 0) %>% 
   unite(Date, iyear, imonth, iday, sep = '/', remove = FALSE) %>% 
@@ -113,9 +115,10 @@ terror.UK$ishostkid <- Recode(terror.UK$ishostkid, "-9 = 0") # There's only one 
 terror.UK$ransom <- Recode(terror.UK$ransom, 'c(-9, NA) = 0') # Only 2 observations where it's unknown and 1000 where the term ransom 'isn't applicanble' according to START so also setting to 0 for this specification
 terror.UK$INT_IDEO <- Recode(terror.UK$INT_IDEO, '-9 = 0') # This one's a little less clear cut, only including out of interest. Probably shouldn't include in final specification
 terror.UK$Date <- as.Date(terror.UK$Date)
+terror.UK$incident <- 1 # When we aggreagate by day will show how many incidents occurred on that day
 
 
-save(terror.UK, file = 'UKTerrorData.Rdata' )
+
 
 # Recoding factors columns in preparation for creating dummies
 factor.df <- subset(terror.UK, select = c(attacktype1_txt,
@@ -146,6 +149,8 @@ factor.df.cleaned <- apply(factor.df, 2, clean.column) %>%
   as.tibble
 
 
+
+# Creating all the dummies and assigning them unique column names. There's a lot of repetition here, should clean up.
 
 attack.dummies <- create.dummies(factor.df.cleaned$attacktype1_txt,
                                  factor.df.cleaned$attacktype2_txt,
@@ -189,6 +194,10 @@ targetsubtype.dummies <- create.dummies(factor.df.cleaned$targsubtype1_txt,
 targetsubtype.dummies <-  create.unique.colnames(targetsubtype.dummies)
 
 
+
+
+
+# Combining the terror event dummies with the date they occurred so can group by date. This is easier to do now rather than with the whole dataframe
 most.covariates.terror.and.date <- cbind(terror.UK$Date,
                                 attack.dummies,
                                 target.dummies,
@@ -198,20 +207,32 @@ most.covariates.terror.and.date <- cbind(terror.UK$Date,
   group_by(`terror.UK$Date`) %>% 
   summarise_all(sum)
 
-most.covariates.terror.and.date <- apply(most.covariates.terror.and.date,2,function(x)ifelse((x>=1),1,0)) %>% 
+
+
+# Recoding any dummies > 1 to 1. Since multiple gun attacks can happen on the same day, without this our dummy variable will have a a value greater than 1 for some days
+most.covariates.terror.and.date.cleaned <- most.covariates.terror.and.date[, -1] %>% 
+  map(function(.){Recode(., "0 = 0; else = 1")}) %>%
   as.tibble %>% 
-  subset(select = -c(`terror.UK$Date`))
+  cbind(most.covariates.terror.and.date$`terror.UK$Date`, .) %>% 
+  as.tibble # Not sure why I have to use as.tibble() twice. Something odd going on here.
 
 
 
 
+# # Quickly testing that our summations and recoding have worked
+# attack <- most.covariates.terror.and.date.cleaned[, grep(pattern = 'attack', colnames(most.covariates.terror.and.date.cleaned))]
+# attack$total <- rowSums(attack)
+# summary(attack$total) ## The min value should always be 1 here. A values greater than 1 in the total column means that a gun and knife attack occured on the same day for instance.
 
+
+
+# Now I group up the rest of the data without the dummies. This is used extensively as a list of events in AnalysisScript1
 terror.UK.grouped <- terror.UK %>% 
   group_by(Date) %>% 
   summarise_all(funs(if(is.numeric(.)) sum(., na.rm = TRUE) else first(.)))
+save(terror.UK.grouped, file = 'UKTerrorData.Rdata')
 
 terror.covariates <- cbind(terror.UK.grouped, most.covariates.terror.and.date) %>% as.tibble
-# Need to fix sucess and multiple and suicide, claimed, property, ishostkid, ransom, INT_IDEO, INT_MISC
 # Some of the original dummies in the dataset are now greater than 1 as we've aggregated events at the day level. Recoding dummies > 1 to 1.
 terror.covariates <- terror.covariates %>% 
   mutate(success = replace(success, success >= 1, 1),
@@ -224,7 +245,12 @@ terror.covariates <- terror.covariates %>%
          INT_IDEO = replace(INT_IDEO, INT_IDEO >= 1, 1),
          INT_MISC = replace(INT_MISC, INT_MISC >= 1, 1))
 
+tidy.name.vector <- make.names(colnames(terror.covariates), unique=TRUE)
+colnames(terror.covariates) <- tidy.name.vector
+
+
 
 
 save(terror.covariates, file= 'TerrorCovariates.Rdata')
+
 

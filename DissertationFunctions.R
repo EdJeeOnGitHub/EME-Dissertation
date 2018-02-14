@@ -86,7 +86,7 @@ create.dummies <- function(...){
   complete.dummies <- add.similar.dummies(dummies.df = dummies.data.frame, dummy.colnames = dummy.col.names) 
   complete.dummies <- select(complete.dummies, subset = -c(original)) %>% 
     as.tibble
-  
+  complete.dummies$total.check <- rowSums(complete.dummies)
   
   return(complete.dummies)
   
