@@ -585,7 +585,7 @@ merge.and.drop.covariates <- function(left.df, right.df){
   
 }
 
-calculate.hs.priors <- function(data, n.vars.guess){
+calculate.hs.priors <- function(data, n.vars.guess = 10){
   # Calculates appropriate horseshoe priors
   D <- ncol(data) - 1
   n <- nrow(data)
@@ -593,5 +593,15 @@ calculate.hs.priors <- function(data, n.vars.guess){
   
   tau0 <- v/(D-v)*1/sqrt(n)
   prior_coeff <- hs(df = 1, global_df = 1, global_scale = tau0)
+  return(prior_coeff)
+}
+
+calculate.hsplus.priors <- function(data, n.vars.guess = 10){
+  D <- ncol(data)
+  n <- nrow(data)
+  v <- n.vars.guess
+  
+  tau0 <- v(D-v)*1/sqrt(n)
+  prior_coeff <- hs_plus(df = 3, df = 3, global_df = 1, global_scale = tau0)
   return(prior_coeff)
 }
