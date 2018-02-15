@@ -4,6 +4,7 @@ sink(file = '~/Dropbox/Ed/AWS Output/AWS_log.txt')
 library(tidyverse)
 library(projpred)
 library(rstanarm)
+library(RPushbullet)
 options(mc.cores = parallel::detectCores())
 source('DissertationFunctions.R')
 
@@ -80,9 +81,12 @@ laplace.fit.R.f <- stan_glm(R.model, family = gaussian(), data = X.R.f,
                             prior = lasso())
 save(laplace.fit.R.f, file = '~/Dropbox/Ed/AWS Output/LASSO_fit_R_f.Rdata')
 
+
+
 laplace.fit.R.u <- stan_glm(R.model, family = gaussian(), data = X.R.u,
                             prior = lasso())
 save(laplace.fit.R.u, file = '~/Dropbox/Ed/AWS Output/LASSO_fit_R_u.Rdata')
+
 
 # CAR4s
 laplace.fit.CAR4.f <- stan_glm(CAR.model, family = gaussian(), data = X.CAR4.f,
@@ -110,6 +114,9 @@ laplace.fit.AR.u <- stan_glm(AR.model, family = gaussian(), data = X.AR.u,
                             prior = lasso())
 save(laplace.fit.AR.u, file = '~/Dropbox/Ed/AWS Output/LASSO_fit_AR_u.Rdata')
 
+
+
+pbPost('note', 'Model Completed', body = 'LASSOs completed')
 #### Horseshoe models ####
 # CARs
 
@@ -157,6 +164,7 @@ R.f.fit <- stan_glm(R.model, family = gaussian(), data= X.R.f,
                     adapt_delta = 0.9999, QR = FALSE)
 save(R.f.fit, file = '~/Dropbox/Ed/AWS Output/HS_R_f_fit.RData')
  
+pbPost('note', 'Model Completed', body = 'Horseshoe Models Finished')
 
 #### Horseshoe+ models ####
 
@@ -205,3 +213,5 @@ R.f.fit.hsplus <- stan_glm(R.model, family = gaussian(), data= X.R.f,
                     prior = calculate.hsplus.priors(X.R.f),
                     adapt_delta = 0.9999, QR = FALSE)
 save(R.f.fit.hsplus, file = '~/Dropbox/Ed/AWS Output/HS_PLUS_R_f_fit.RData')
+
+pbPost('note', 'Model Completed', body = 'Horseshoe+ completed')
