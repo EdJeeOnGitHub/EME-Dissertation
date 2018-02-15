@@ -6,7 +6,7 @@ library(car)
 library(dummies)
 source('DissertationFunctions.R')
 #### Preparing in depth terror data ####
-dropbox.path <- "C:/Users/ed/Dropbox/Ed/Ed Uni work/EME/Data/Original Data/globalterrorismdb_0617dist.xlsx"
+dropbox.path <- "C:/Users/nfa/Dropbox/Ed/Ed Uni work/EME/Data/Original Data/globalterrorismdb_0617dist.xlsx"
 
 terror.tb <- read_xlsx(dropbox.path)
 
@@ -182,10 +182,10 @@ province.dummies <- create.dummies(factor.df.cleaned$provstate, factor.df.cleane
 province.dummies <- create.unique.colnames(province.dummies)
 city.dummies <- create.dummies(factor.df.cleaned$city, factor.df.cleaned$city)
 city.dummies <- create.unique.colnames(city.dummies)
-weapsubtype.dummies <- create.dummies(factor.df.cleaned$weaptype1_txt,
-                                      factor.df.cleaned$weaptype2_txt,
-                                      factor.df.cleaned$weaptype3_txt,
-                                      factor.df.cleaned$weaptype4_txt)  
+weapsubtype.dummies <- create.dummies(factor.df.cleaned$weapsubtype1_txt,
+                                      factor.df.cleaned$weapsubtype2_txt,
+                                      factor.df.cleaned$weapsubtype3_txt,
+                                      factor.df.cleaned$weapsubtype4_txt)  
 weapsubtype.dummies <-  create.unique.colnames(weapsubtype.dummies)
 
 targetsubtype.dummies <- create.dummies(factor.df.cleaned$targsubtype1_txt,
@@ -201,7 +201,7 @@ targetsubtype.dummies <-  create.unique.colnames(targetsubtype.dummies)
 most.covariates.terror.and.date <- cbind(terror.UK$Date,
                                 attack.dummies,
                                 target.dummies,
-                                weaptype.dummies,
+                                weapsubtype.dummies,
                                 province.dummies) %>%
   as.tibble %>% 
   group_by(`terror.UK$Date`) %>% 
@@ -239,6 +239,7 @@ terror.covariates <- terror.covariates %>%
          multiple = replace(multiple, multiple >=1, 1),
          suicide = replace(suicide, suicide >=1, 1),
          claimed = replace(claimed, claimed >=1, 1),
+         claimed = replace(claimed, claimed < 0, 0),
          property = replace(property, property >=1, 1),
          ishostkid = replace(ishostkid, ishostkid >=1, 1),
          ransom = replace(ransom, ransom >= 1, 1),
@@ -284,6 +285,6 @@ terror.covariates.subset <- subset(terror.covariates, select= -c(provstate,
 
 
 
-save(terror.covariates.subset, file= 'TerrorCovariates.Rdata')
+save(terror.covariates.subset, file= 'TerrorCovariates_subtype.Rdata')
 
 

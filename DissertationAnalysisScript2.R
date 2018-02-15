@@ -1,13 +1,14 @@
 ## Second stage of analysis exploring heterogeneous effects of terror
 rm(list = ls())
-
+sink(file = '~/Dropbox/Ed/AWS Output/AWS_log.txt')
 library(tidyverse)
 library(projpred)
 library(rstanarm)
 options(mc.cores = parallel::detectCores())
 source('DissertationFunctions.R')
+
 #### Merging terror covariates and return data ####
-load('TerrorCovariates.Rdata')
+load('TerrorCovariates_subtype.Rdata')
 load('AnalysisOutput/CAR_Data.RData')
 
 # CAR10s
@@ -19,21 +20,8 @@ merged.data.f.10 <- merge.and.drop.covariates(CAR.10.filtered, terror.covariates
 merged.data.u.4 <- merge.and.drop.covariates(CAR.4.unfiltered, terror.covariates.subset)
 merged.data.f.4 <- merge.and.drop.covariates(CAR.4.filtered, terror.covariates.subset)
 
-# Setting some parameters used in hierarchical shrinkage (HS) prior
-n.filtered <- nrow(CAR.10.filtered)
-D <- (ncol(merged.data.f.10) - 3)
-p0 <- 5
-tau0.filtered <- p0/(D-p0)*1/sqrt(n.filtered)
-prior_coeff.filtered <- hs(df = 1, global_df = 1, global_scale = tau0.filtered)
-
-n.unfiltered <- nrow(CAR.10.unfiltered)
-D <- (ncol(merged.data.f.10) - 3)
-p0 <- 5
-tau0.unfiltered <- p0/(D-p0)*1/sqrt(n.unfiltered)
-prior_coeff.unfiltered <- hs(df = 1, global_df = 1, global_scale = tau0.unfiltered)
 
 
-## TODO: Still need to clean claimed
 ## Creating dataframes that only contain regressors of interest. This makes it easier to use . notation when specifying models
 
 
@@ -81,84 +69,139 @@ CAR.model <- event.car ~ .
 AR.model <- event.ar ~ .
 R.model <- returns ~ .
 
+
+
+
+#### Laplace (LASSO) models ####
+
+# Returns
+
+laplace.fit.R.f <- stan_glm(R.model, family = gaussian(), data = X.R.f,
+                            prior = lasso())
+save(laplace.fit.R.f, file = '~/Dropbox/Ed/AWS Output/LASSO_fit_R_f.Rdata')
+
+laplace.fit.R.u <- stan_glm(R.model, family = gaussian(), data = X.R.u,
+                            prior = lasso())
+save(laplace.fit.R.u, file = '~/Dropbox/Ed/AWS Output/LASSO_fit_R_u.Rdata')
+
+# CAR4s
+laplace.fit.CAR4.f <- stan_glm(CAR.model, family = gaussian(), data = X.CAR4.f,
+                               prior = lasso())
+save(laplace.fit.CAR4.f, file = '~/Dropbox/Ed/AWS Output/LASSO_fit_CAR4_f.Rdata')
+
+laplace.fit.CAR4.u <- stan_glm(CAR.model, family = gaussian(), data = X.CAR4.u, prior = lasso())
+save(laplace.fit.CAR4.u, file =  '~/Dropbox/Ed/AWS Output/LASSO_fit_CAR4_u.Rdata')
+
+# CAR10s
+laplace.fit.CAR10.f <- stan_glm(CAR.model, family = gaussian(), data = X.CAR10.f,
+                               prior = lasso())
+save(laplace.fit.CAR10.f, file = '~/Dropbox/Ed/AWS Output/LASSO_fit_CAR10_f.Rdata')
+
+laplace.fit.CAR10.u <- stan_glm(CAR.model, family = gaussian(), data = X.CAR10.u, prior = lasso())
+save(laplace.fit.CAR10.u, file =  '~/Dropbox/Ed/AWS Output/LASSO_fit_CAR10_u.Rdata')
+
+# ARs
+
+laplace.fit.AR.f <- stan_glm(AR.model, family = gaussian(), data = X.AR.f,
+                            prior = lasso())
+save(laplace.fit.AR.f, file = '~/Dropbox/Ed/AWS Output/LASSO_fit_AR_f.Rdata')
+
+laplace.fit.AR.u <- stan_glm(AR.model, family = gaussian(), data = X.AR.u,
+                            prior = lasso())
+save(laplace.fit.AR.u, file = '~/Dropbox/Ed/AWS Output/LASSO_fit_AR_u.Rdata')
+
 #### Horseshoe models ####
 # CARs
 
 CAR.10.f.fit <- stan_glm(CAR.model, family = gaussian(), data = X.CAR10.f,
-                 prior = prior_coeff.filtered,
-                 adapt_delta = 0.999, control = list(max_treedepth = 20))
+                 prior = calculate.hs.priors(X.CAR10.f),
+                 adapt_delta = 0.9999, control = list(max_treedepth = 20))
 
-save(CAR.10.f.fit, file = '~/Dropbox/Ed/HS_CAR10_f_fit.RData')
+save(CAR.10.f.fit, file = '~/Dropbox/Ed/AWS Output/HS_CAR10_f_fit.RData')
 
 
 CAR.10.u.fit <- stan_glm(CAR.model, family = gaussian(), data = X.CAR10.u,
-                         prior = prior_coeff.unfiltered,
-                         adapt_delta = 0.999, QR = FALSE, control = list(max_treedepth = 20))
-save(CAR.10.u.fit, file = '~/Dropbox/Ed/HS_CAR10_u_fit.Rdata')
+                         prior = calculate.hs.priors(X.CAR10.u),
+                         adapt_delta = 0.9999, QR = FALSE, control = list(max_treedepth = 20))
+save(CAR.10.u.fit, file = '~/Dropbox/Ed/AWS Output/HS_CAR10_u_fit.Rdata')
 
 CAR.4.f.fit <- stan_glm(CAR.model, family = gaussian(), data = X.CAR4.f,
-                        prior = prior_coeff.filtered,
-                        adapt_delta = 0.999, QR = FALSE)
-save(CAR.4.f.fit, file =  '~/Dropbox/Ed/HS_CAR4_f_fit.RData')
+                        prior =calculate.hs.priors(X.CAR4.f),
+                        adapt_delta = 0.9999, QR = FALSE)
+save(CAR.4.f.fit, file =  '~/Dropbox/Ed/AWS Output/HS_CAR4_f_fit.RData')
 
 CAR.4.u.fit <- stan_glm(CAR.model, family = gaussian(), data = X.CAR4.u,
-                        prior = prior_coeff.unfiltered,
-                        adapt_delta = 0.999, QR = FALSE)
-save(CAR.4.u.fit, file = '~/Dropbox/Ed/HS_CAR4_u_fit.RData')
+                        prior = calculate.hs.priors(X.CAR4.u),
+                        adapt_delta = 0.9999, QR = FALSE)
+save(CAR.4.u.fit, file = '~/Dropbox/Ed/AWS Output/HS_CAR4_u_fit.RData')
 ## Now ARs
 AR.u.fit <- stan_glm(AR.model, family = gaussian(), data = X.AR.u,
-                     prior = prior_coeff.unfiltered,
-                     adapt_delta = 0.999, QR = FALSE)
-save(AR.u.fit, file = '~/Dropbox/Ed/HS_AR_u_fit.RData')
+                     prior = calculate.hs.priors(X.AR.u),
+                     adapt_delta = 0.9999, QR = FALSE)
+save(AR.u.fit, file = '~/Dropbox/Ed/AWS Output/HS_AR_u_fit.RData')
 
 AR.f.fit <- stan_glm(AR.model, family = gaussian(), data = X.AR.f,
-                     prior = prior_coeff.filtered,
-                     adapt_delta = 0.999, QR = FALSE)
-save(AR.f.fit, file =  '~/Dropbox/Ed/HS_AR_f_fit.RData')
+                     prior = calculate.hs.priors(X.AR.f),
+                     adapt_delta = 0.9999, QR = FALSE)
+save(AR.f.fit, file =  '~/Dropbox/Ed/AWS Output/HS_AR_f_fit.RData')
 
 ## Now returns fit
 R.u.fit <- stan_glm(R.model, family = gaussian(), data = X.R.u,
-                    prior = prior_coeff.unfiltered,
-                    adapt_delta = 0.999,
+                    prior = calculate.hs.priors(X.R.u),
+                    adapt_delta = 0.9999,
                     QR = FALSE)
-save(R.u.fit, file = '~/Dropbox/Ed/HS_R_u_fit.RData')
+save(R.u.fit, file = '~/Dropbox/Ed/AWS Output/HS_R_u_fit.RData')
 
 R.f.fit <- stan_glm(R.model, family = gaussian(), data= X.R.f,
-                    prior = prior_coeff.filtered,
-                    adapt_delta = 0.999, QR = FALSE)
-save(R.f.fit, file = '~/Dropbox/Ed/HS_R_f_fit.RData')
+                    prior = calculate.hs.priors(X.R.f),
+                    adapt_delta = 0.9999, QR = FALSE)
+save(R.f.fit, file = '~/Dropbox/Ed/AWS Output/HS_R_f_fit.RData')
  
 
+#### Horseshoe+ models ####
 
-# fit <- fit2
-# fit <- varsel(fit, method='forward')
-# varsel_stats(fit)
-# 
-# varsel_plot(fit, stats=c('mlpd', 'mse'))
-# fit_cv <- cv_varsel(fit, method='forward', cv_method='LOO')
-# fit_cv$varsel$ssize
-# mcmc_areas(as.matrix(fit), 
-#            pars = c('(Intercept)', names(fit$varsel$vind[1:3]), 'sigma')) + coord_cartesian(xlim = c(-2, 2))
-# 
-# proj <- project(fit, nv = 3, ns = 800)
-# mcmc_areas(as.matrix(proj)) + coord_cartesian(xlim = c(-2, 2))
-# 
-# 
-# ########
-# covariates.ar <- inner_join(x = CAR.10.unfiltered, y = terror.covariates.subset, by = c('market.date' = 'Date')) %>% 
-#   subset(select = -c(Date, event.car, event.t.stat, event.p.value, event.confidence.interval, stars, market.date)) %>% 
-#   as.tibble
-# 
-# 
-# full.model2 <- event.ar ~ .
-# 
-# 
-# 
-# n <- nrow(terror.covariates.subset)
-# D <- ncol(terror.covariates.subset)
-# 
-# fit3 <- stan_glm(full.model2, family = gaussian(), data = covariates.ar,
-#                  prior = prior_coeff,
-#                  adapt_delta = 0.999, QR = TRUE, control = list(max_treedepth = 20))
-# 
-# save(fit3, file = 'Stan_covariate_fit_ar.RData')
+# CARs
+
+CAR.10.f.fit.hsplus <- stan_glm(CAR.model, family = gaussian(), data = X.CAR10.f,
+                         prior = calculate.hsplus.priors(X.CAR10.f),
+                         adapt_delta = 0.9999, control = list(max_treedepth = 20))
+
+save(CAR.10.f.fit.hsplus, file = '~/Dropbox/Ed/AWS Output/HS_PLUS_CAR10_f_fit.RData')
+
+
+CAR.10.u.fit.hsplus <- stan_glm(CAR.model, family = gaussian(), data = X.CAR10.u,
+                         prior = calculate.hsplus.priors(X.CAR10.u),
+                         adapt_delta = 0.9999, QR = FALSE, control = list(max_treedepth = 20))
+save(CAR.10.u.fit.hsplus, file = '~/Dropbox/Ed/AWS Output/HS_PLUS_CAR10_u_fit.Rdata')
+
+CAR.4.f.fit.hsplus <- stan_glm(CAR.model, family = gaussian(), data = X.CAR4.f,
+                        prior =calculate.hsplus.priors(X.CAR4.f),
+                        adapt_delta = 0.9999, QR = FALSE)
+save(CAR.4.f.fit.hsplus, file =  '~/Dropbox/Ed/AWS Output/HS_PLUS_CAR4_f_fit.RData')
+
+CAR.4.u.fit.hsplus <- stan_glm(CAR.model, family = gaussian(), data = X.CAR4.u,
+                        prior = calculate.hsplus.priors(X.CAR4.u),
+                        adapt_delta = 0.9999, QR = FALSE)
+save(CAR.4.u.fit.hsplus, file = '~/Dropbox/Ed/AWS Output/HS_PLUS_CAR4_u_fit.RData')
+## Now ARs
+AR.u.fit.hsplus <- stan_glm(AR.model, family = gaussian(), data = X.AR.u,
+                     prior = calculate.hsplus.priors(X.AR.u),
+                     adapt_delta = 0.9999, QR = FALSE)
+save(AR.u.fit.hsplus, file = '~/Dropbox/Ed/AWS Output/HS_PLUS_AR_u_fit.RData')
+
+AR.f.fit.hsplus <- stan_glm(AR.model, family = gaussian(), data = X.AR.f,
+                     prior = calculate.hsplus.priors(X.AR.f),
+                     adapt_delta = 0.9999, QR = FALSE)
+save(AR.f.fit.hsplus, file =  '~/Dropbox/Ed/AWS Output/HS_PLUS_AR_f_fit.RData')
+
+## Now returns fit
+R.u.fit.hsplus <- stan_glm(R.model, family = gaussian(), data = X.R.u,
+                    prior = calculate.hsplus.priors(X.R.u),
+                    adapt_delta = 0.9999,
+                    QR = FALSE)
+save(R.u.fit.hsplus, file = '~/Dropbox/Ed/AWS Output/HS_PLUS_R_u_fit.RData')
+
+R.f.fit.hsplus <- stan_glm(R.model, family = gaussian(), data= X.R.f,
+                    prior = calculate.hsplus.priors(X.R.f),
+                    adapt_delta = 0.9999, QR = FALSE)
+save(R.f.fit.hsplus, file = '~/Dropbox/Ed/AWS Output/HS_PLUS_R_f_fit.RData')
