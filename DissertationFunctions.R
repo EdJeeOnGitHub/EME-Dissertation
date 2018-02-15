@@ -2,95 +2,6 @@
 
 
 
-#### Terror Cleaning Functions (Mainly used on Script2) ####
-# We have a problem where there are multiple factor columns when I only want one. i.e. we have weapon1/2/3 but these are separate and list the weapon used. If I want a 'used a gun' dummy I 
-# need to convert all these factor columns into a dummy column and then aggregate across them.
-
-
-clean.column <- function(column){
-  # Cleans the factors in a single column to remove and brackets that interfere with our regex later
-  cleaned.column <- gsub("\\(|\\)", "", column)
-  return(cleaned.column)
-}
-create.dummy.colnames <- function(...){
-  # Creates a list of unique names for use in our dummy columns
-  dots.list <- list(...)
-  col.names <- dots.list %>% 
-    map(unique) %>% 
-    unlist %>% 
-    as.tibble %>% 
-    unique %>% 
-    na.omit
-  
-  return(col.names)
-}
-
-find.a.similar.dummy.column <- function(dummy.col, other.dummy.matrix, regex){
-  # Uses regex to find a similar column and return the similar column
-  similar.col <- other.dummy.matrix[, grepl(regex, colnames(other.dummy.matrix))]
-  return(similar.col)
-  
-}
-
-add.similar.dummies <- function(dummies.df, dummy.colnames){
-  # This function takes a dummies.df object where all the dummies with the same name are. It then adds them all up and uses an indicator function
-  # to check if they're greater than 1 in which case they're set to 1
-  empty.list <- rep(0, nrow(dummies.df))
-  summed.dummies.df <- data.frame(original = empty.list)
-  L = nrow(dummy.colnames)
-  for (l in 1:L){
-    
-    sim.dummies <- dummies.df[, grepl(dummy.colnames[l, ], colnames(dummies.df))]
-    summed.dummy <- data.frame(rowSums(sim.dummies))
-    name.to.set <- dummy.colnames[l,]
-    colnames(summed.dummy) <- name.to.set
-    summed.dummy <- apply(summed.dummy, 2, function(x)ifelse((x>=1),1,0))
-    summed.dummies.df<- cbind(summed.dummies.df, summed.dummy)
-  }
-  
-  return(summed.dummies.df)
-}
-
-create.unique.colnames <- function(df){
-  #Creates unique column names for our completed dummy variables so we know which dummy corresponds to which factor
-  colnames(df) <- rep(deparse(substitute(df)), length(df)) %>% 
-    paste(., colnames(df))
-  return(df)
-}
-
-
-
-create.dummies <- function(...){
-  # Creates a list of dummy variable columns that crucially share the same name. Due to the way the for-loop works I have each dummy column 'pair' ('original' and 'similar') repeated 4 times
-  # This is because the first match is the original column with itself and the second match is the dummy with itself. Then the two match each other separately twice.
-  dot.list <- list(...)
-  dummy.col.names <- create.dummy.colnames(...)
-  
-  dummy.matrices <- dot.list %>% 
-    map(dummy)
-  K <- length(dummy.matrices)
-  L <- nrow(dummy.col.names)
-  dummies.data.frame <- data.frame(matrix('empty', nrow = nrow(dummy.matrices[[1]]), ncol = 1))
-  for (j in 1:K){
-    for (i in 1:K){
-      for (l in 1:L){
-        col <- find.a.similar.dummy.column(dummy.matrices[[j]], dummy.matrices[[i]], dummy.col.names[l, ])
-        if (length(col) != 0){
-          new.col.name <- dummy.col.names[l,]
-          col.df <- data.frame(col)
-          colnames(col.df) <- new.col.name
-          dummies.data.frame <- cbind(dummies.data.frame, col.df)
-        }
-      }}}
-  # Now we have a dataframe of dummies but the repeated observations share the same name so we can add them up
-  complete.dummies <- add.similar.dummies(dummies.df = dummies.data.frame, dummy.colnames = dummy.col.names) 
-  complete.dummies <- select(complete.dummies, subset = -c(original)) %>% 
-    as.tibble
-  # complete.dummies$total.check <- rowSums(complete.dummies)
-  
-  return(complete.dummies)
-  
-}
 
 #### Finite Moment Test Functions ####
 
@@ -299,8 +210,10 @@ perform.one.day.event.study <- function(index, events, n, car.length = 11, estim
   
   event.confidence.interval <- calculate.CI(esti.window = estimation.car)
   
+  returns <- event.window
   
-  return.zoo <- merge.zoo(event.ar,
+  return.zoo <- merge.zoo(returns,
+                          event.ar,
                           event.car,
                           event.t.stat,
                           event.p.value,
@@ -568,4 +481,106 @@ collect.stan.results <- function(stan.fit, parameter, decade, model){
            model = model) %>% 
     as.tibble
   return(results)
+}
+
+#### Terror Cleaning Functions (Mainly used on Script2) ####
+# We have a problem where there are multiple factor columns when I only want one. i.e. we have weapon1/2/3 but these are separate and list the weapon used. If I want a 'used a gun' dummy I 
+# need to convert all these factor columns into a dummy column and then aggregate across them.
+
+
+clean.column <- function(column){
+  # Cleans the factors in a single column to remove and brackets that interfere with our regex later
+  cleaned.column <- gsub("\\(|\\)", "", column)
+  return(cleaned.column)
+}
+create.dummy.colnames <- function(...){
+  # Creates a list of unique names for use in our dummy columns
+  dots.list <- list(...)
+  col.names <- dots.list %>% 
+    map(unique) %>% 
+    unlist %>% 
+    as.tibble %>% 
+    unique %>% 
+    na.omit
+  
+  return(col.names)
+}
+
+find.a.similar.dummy.column <- function(dummy.col, other.dummy.matrix, regex){
+  # Uses regex to find a similar column and return the similar column
+  similar.col <- other.dummy.matrix[, grepl(regex, colnames(other.dummy.matrix))]
+  return(similar.col)
+  
+}
+
+add.similar.dummies <- function(dummies.df, dummy.colnames){
+  # This function takes a dummies.df object where all the dummies with the same name are. It then adds them all up and uses an indicator function
+  # to check if they're greater than 1 in which case they're set to 1
+  empty.list <- rep(0, nrow(dummies.df))
+  summed.dummies.df <- data.frame(original = empty.list)
+  L = nrow(dummy.colnames)
+  for (l in 1:L){
+    
+    sim.dummies <- dummies.df[, grepl(dummy.colnames[l, ], colnames(dummies.df))]
+    summed.dummy <- data.frame(rowSums(sim.dummies))
+    name.to.set <- dummy.colnames[l,]
+    colnames(summed.dummy) <- name.to.set
+    summed.dummy <- apply(summed.dummy, 2, function(x)ifelse((x>=1),1,0))
+    summed.dummies.df<- cbind(summed.dummies.df, summed.dummy)
+  }
+  
+  return(summed.dummies.df)
+}
+
+create.unique.colnames <- function(df){
+  #Creates unique column names for our completed dummy variables so we know which dummy corresponds to which factor
+  colnames(df) <- rep(deparse(substitute(df)), length(df)) %>% 
+    paste(., colnames(df))
+  return(df)
+}
+
+
+
+create.dummies <- function(...){
+  # Creates a list of dummy variable columns that crucially share the same name. Due to the way the for-loop works I have each dummy column 'pair' ('original' and 'similar') repeated 4 times
+  # This is because the first match is the original column with itself and the second match is the dummy with itself. Then the two match each other separately twice.
+  dot.list <- list(...)
+  dummy.col.names <- create.dummy.colnames(...)
+  
+  dummy.matrices <- dot.list %>% 
+    map(dummy)
+  K <- length(dummy.matrices)
+  L <- nrow(dummy.col.names)
+  dummies.data.frame <- data.frame(matrix('empty', nrow = nrow(dummy.matrices[[1]]), ncol = 1))
+  for (j in 1:K){
+    for (i in 1:K){
+      for (l in 1:L){
+        col <- find.a.similar.dummy.column(dummy.matrices[[j]], dummy.matrices[[i]], dummy.col.names[l, ])
+        if (length(col) != 0){
+          new.col.name <- dummy.col.names[l,]
+          col.df <- data.frame(col)
+          colnames(col.df) <- new.col.name
+          dummies.data.frame <- cbind(dummies.data.frame, col.df)
+        }
+      }}}
+  # Now we have a dataframe of dummies but the repeated observations share the same name so we can add them up
+  complete.dummies <- add.similar.dummies(dummies.df = dummies.data.frame, dummy.colnames = dummy.col.names) 
+  complete.dummies <- select(complete.dummies, subset = -c(original)) %>% 
+    as.tibble
+  # complete.dummies$total.check <- rowSums(complete.dummies)
+  
+  return(complete.dummies)
+  
+}
+
+#### Script2 Specific Functions (Mainly manipulating covariates)####
+
+merge.and.drop.covariates <- function(left.df, right.df){
+  # Merges and filters unwanted covariates used in script2. All the covariates and the join key-value pair is hard coded so can't use elsewhere.
+  merged.data <- inner_join(x = left.df, y = right.df, by = c('market.date' = 'Date')) %>% 
+    as.tibble %>% 
+    subset(select = -c(Date, claimed, event.t.stat, event.p.value, event.confidence.interval, stars, market.date,
+                       most.covariates.terror.and.date..terror.UK.Date., INT_MISC))
+  return(merged.data)
+  
 }
