@@ -88,47 +88,48 @@ CAR.10.f.fit <- stan_glm(CAR.model, family = gaussian(), data = X.CAR10.f,
                  prior = prior_coeff.filtered,
                  adapt_delta = 0.999, control = list(max_treedepth = 20))
 
-save(CAR.10.f.fit, file = 'Ed/HS_CAR10_f_fit.RData')
+save(CAR.10.f.fit, file = '~/Dropbox/Ed/HS_CAR10_f_fit.RData')
 
 
 CAR.10.u.fit <- stan_glm(CAR.model, family = gaussian(), data = X.CAR10.u,
                          prior = prior_coeff.unfiltered,
                          adapt_delta = 0.999, QR = FALSE, control = list(max_treedepth = 20))
-save(CAR.10.u.fit, file = 'Ed/HS_CAR10_u_fit.Rdata')
+save(CAR.10.u.fit, file = '~/Dropbox/Ed/HS_CAR10_u_fit.Rdata')
 
 CAR.4.f.fit <- stan_glm(CAR.model, family = gaussian(), data = X.CAR4.f,
                         prior = prior_coeff.filtered,
                         adapt_delta = 0.999, QR = FALSE)
-save(CAR.4.f.fit, file =  'Ed/HS_CAR4_f_fit.RData')
+save(CAR.4.f.fit, file =  '~/Dropbox/Ed/HS_CAR4_f_fit.RData')
 
 CAR.4.u.fit <- stan_glm(CAR.model, family = gaussian(), data = X.CAR4.u,
                         prior = prior_coeff.unfiltered,
                         adapt_delta = 0.999, QR = FALSE)
-save(CAR.4.u.fit, file = 'Ed/HS_CAR4_u_fit.RData')
+save(CAR.4.u.fit, file = '~/Dropbox/Ed/HS_CAR4_u_fit.RData')
 ## Now ARs
 AR.u.fit <- stan_glm(AR.model, family = gaussian(), data = X.AR.u,
                      prior = prior_coeff.unfiltered,
                      adapt_delta = 0.999, QR = FALSE)
-save(AR.u.fit, file = 'Ed/HS_AR_u_fit.RData')
+save(AR.u.fit, file = '~/Dropbox/Ed/HS_AR_u_fit.RData')
 
 AR.f.fit <- stan_glm(AR.model, family = gaussian(), data = X.AR.f,
                      prior = prior_coeff.filtered,
                      adapt_delta = 0.999, QR = FALSE)
-save(AR.f.fit, file =  'Ed/HS_AR_f_fit.RData')
+save(AR.f.fit, file =  '~/Dropbox/Ed/HS_AR_f_fit.RData')
 
 ## Now returns fit
 R.u.fit <- stan_glm(R.model, family = gaussian(), data = X.R.u,
                     prior = prior_coeff.unfiltered,
                     adapt_delta = 0.999,
                     QR = FALSE)
-save(R.u.fit, file = 'Ed/HS_R_u_fit.RData')
+save(R.u.fit, file = '~/Dropbox/Ed/HS_R_u_fit.RData')
 
 R.f.fit <- stan_glm(R.model, family = gaussian(), data= X.R.f,
                     prior = prior_coeff.filtered,
                     adapt_delta = 0.999, QR = FALSE)
-save(R.f.fit, file = 'Ed/HS_R_f_fit.RData')
+save(R.f.fit, file = '~/Dropbox/Ed/HS_R_f_fit.RData')
+ 
 
-# 
+
 # fit <- fit2
 # fit <- varsel(fit, method='forward')
 # varsel_stats(fit)
