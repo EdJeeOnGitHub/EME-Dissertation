@@ -1,7 +1,7 @@
 ## Second stage of analysis exploring heterogeneous effects of terror
 rm(list = ls())
 
-sink.file <- file('~/Dropbox/Ed/AWS Output/AWS_log2.txt', open="wt")
+sink.file <- file('~/Dropbox/Ed/AWS Output/AWS_log3.txt', open="wt")
 sink(sink.file, type="message")
 
 
