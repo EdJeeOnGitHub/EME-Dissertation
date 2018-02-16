@@ -1,6 +1,10 @@
 ## Second stage of analysis exploring heterogeneous effects of terror
 rm(list = ls())
-sink(file = '~/Dropbox/Ed/AWS Output/AWS_log2.txt')
+
+sink.file <- file('~/Dropbox/Ed/AWS Output/AWS_log2.txt', open="wt")
+sink(sink.file, type="message")
+
+
 library(tidyverse)
 library(projpred)
 library(rstanarm)
@@ -72,7 +76,7 @@ R.model <- returns ~ .
 
 
 
-
+pbPost('note', 'Starting Simulations', as.character(Sys.time()))
 #### Laplace (LASSO) models ####
 
 # Returns
@@ -218,5 +222,6 @@ R.f.fit.hsplus <- stan_glm(R.model, family = gaussian(), data= X.R.f,
 save(R.f.fit.hsplus, file = '~/Dropbox/Ed/AWS Output/HS_PLUS_R_f_fit.RData')
 
 pbPost('note', 'Model Completed', body = 'Horseshoe+ completed')
-
-sink()
+pbPost('note', 'Simulations Finished:' , body = as.character(Sys.time()))
+sink(type="message")
+close(sink.file)
