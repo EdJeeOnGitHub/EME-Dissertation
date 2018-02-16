@@ -76,7 +76,42 @@ R.model <- returns ~ .
 
 
 
+
 pbPost('note', 'Starting Simulations', as.character(Sys.time()))
+
+
+#### Standard OLS models ####
+
+# Returns
+ols.fit.R.f <- stan_glm(R.model, family = gaussian(), data = X.R.f)
+save(ols.fit.R.f, file = '~/Dropbox/Ed/AWS Output/ols_fit_R_f.Rdata')
+
+ols.fit.R.u <- stan_glm(R.model, data = X.R.u)
+save(ols.fit.R.u, file = '~/Dropbox/Ed/AWS Output/ols_fit_R_u.Rdata')
+
+# CAR4s
+OLS.fit.CAR4.f <- stan_glm(CAR.model, family = gaussian(), data = X.CAR4.f)
+save(OLS.fit.CAR4.f, file = '~/Dropbox/Ed/AWS Output/OLS_fit_CAR4_f.Rdata')
+
+OLS.fit.CAR4.u <- stan_glm(CAR.model, family = gaussian(), data = X.CAR4.u)
+save(OLS.fit.CAR4.u, file =  '~/Dropbox/Ed/AWS Output/OLS_fit_CAR4_u.Rdata')
+
+# CAR10s
+OLS.fit.CAR10.f <- stan_glm(CAR.model, family = gaussian(), data = X.CAR10.f)
+save(OLS.fit.CAR10.f, file = '~/Dropbox/Ed/AWS Output/OLS_fit_CAR10_f.Rdata')
+
+OLS.fit.CAR10.u <- stan_glm(CAR.model, family = gaussian(), data = X.CAR10.u)
+save(OLS.fit.CAR10.u, file =  '~/Dropbox/Ed/AWS Output/OLS_fit_CAR10_u.Rdata')
+
+# ARs
+OLS.fit.AR.f <- stan_glm(AR.model, family = gaussian(), data = X.AR.f)
+save(OLS.fit.AR.f, file = '~/Dropbox/Ed/AWS Output/OLS_fit_AR_f.Rdata')
+
+OLS.fit.AR.u <- stan_glm(AR.model, family = gaussian(), data = X.AR.u)
+save(OLS.fit.AR.u, file = '~/Dropbox/Ed/AWS Output/OLS_fit_AR_u.Rdata')
+
+pbPost('note', 'Model Completed', body = 'OLS completed')
+
 #### Laplace (LASSO) models ####
 
 # Returns
