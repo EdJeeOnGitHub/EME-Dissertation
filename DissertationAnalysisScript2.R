@@ -1,6 +1,6 @@
 ## Second stage of analysis exploring heterogeneous effects of terror
 rm(list = ls())
-sink(file = '~/Dropbox/Ed/AWS Output/AWS_log.txt')
+sink(file = '~/Dropbox/Ed/AWS Output/AWS_log2.txt')
 library(tidyverse)
 library(projpred)
 library(rstanarm)
@@ -122,14 +122,14 @@ pbPost('note', 'Model Completed', body = 'LASSOs completed')
 
 CAR.10.f.fit <- stan_glm(CAR.model, family = gaussian(), data = X.CAR10.f,
                  prior = calculate.hs.priors(X.CAR10.f),
-                 adapt_delta = 0.9999, control = list(max_treedepth = 20))
+                 adapt_delta = 0.9999,  control = list(max_treedepth = 20))
 
 save(CAR.10.f.fit, file = '~/Dropbox/Ed/AWS Output/HS_CAR10_f_fit.RData')
 
 
 CAR.10.u.fit <- stan_glm(CAR.model, family = gaussian(), data = X.CAR10.u,
                          prior = calculate.hs.priors(X.CAR10.u),
-                         adapt_delta = 0.9999, QR = FALSE, control = list(max_treedepth = 20))
+                         adapt_delta = 0.9999, QR = TRUE, control = list(max_treedepth = 20))
 save(CAR.10.u.fit, file = '~/Dropbox/Ed/AWS Output/HS_CAR10_u_fit.Rdata')
 
 CAR.4.f.fit <- stan_glm(CAR.model, family = gaussian(), data = X.CAR4.f,
@@ -139,7 +139,7 @@ save(CAR.4.f.fit, file =  '~/Dropbox/Ed/AWS Output/HS_CAR4_f_fit.RData')
 
 CAR.4.u.fit <- stan_glm(CAR.model, family = gaussian(), data = X.CAR4.u,
                         prior = calculate.hs.priors(X.CAR4.u),
-                        adapt_delta = 0.9999, QR = FALSE)
+                        adapt_delta = 0.9999, QR = TRUE)
 save(CAR.4.u.fit, file = '~/Dropbox/Ed/AWS Output/HS_CAR4_u_fit.RData')
 ## Now ARs
 AR.u.fit <- stan_glm(AR.model, family = gaussian(), data = X.AR.u,
@@ -149,9 +149,10 @@ save(AR.u.fit, file = '~/Dropbox/Ed/AWS Output/HS_AR_u_fit.RData')
 
 AR.f.fit <- stan_glm(AR.model, family = gaussian(), data = X.AR.f,
                      prior = calculate.hs.priors(X.AR.f),
-                     adapt_delta = 0.9999, QR = FALSE)
+                     adapt_delta = 0.9999, QR = TRUE)
 save(AR.f.fit, file =  '~/Dropbox/Ed/AWS Output/HS_AR_f_fit.RData')
 
+pbPost('note', title = 'Model Completed', 'HS CARs and ARs fit')
 ## Now returns fit
 R.u.fit <- stan_glm(R.model, family = gaussian(), data = X.R.u,
                     prior = calculate.hs.priors(X.R.u),
@@ -161,7 +162,7 @@ save(R.u.fit, file = '~/Dropbox/Ed/AWS Output/HS_R_u_fit.RData')
 
 R.f.fit <- stan_glm(R.model, family = gaussian(), data= X.R.f,
                     prior = calculate.hs.priors(X.R.f),
-                    adapt_delta = 0.9999, QR = FALSE)
+                    adapt_delta = 0.9999, QR = TRUE)
 save(R.f.fit, file = '~/Dropbox/Ed/AWS Output/HS_R_f_fit.RData')
  
 pbPost('note', 'Model Completed', body = 'Horseshoe Models Finished')
@@ -179,7 +180,7 @@ save(CAR.10.f.fit.hsplus, file = '~/Dropbox/Ed/AWS Output/HS_PLUS_CAR10_f_fit.RD
 
 CAR.10.u.fit.hsplus <- stan_glm(CAR.model, family = gaussian(), data = X.CAR10.u,
                          prior = calculate.hsplus.priors(X.CAR10.u),
-                         adapt_delta = 0.9999, QR = FALSE, control = list(max_treedepth = 20))
+                         adapt_delta = 0.9999, QR = TRUE, control = list(max_treedepth = 20))
 save(CAR.10.u.fit.hsplus, file = '~/Dropbox/Ed/AWS Output/HS_PLUS_CAR10_u_fit.Rdata')
 
 CAR.4.f.fit.hsplus <- stan_glm(CAR.model, family = gaussian(), data = X.CAR4.f,
@@ -189,12 +190,12 @@ save(CAR.4.f.fit.hsplus, file =  '~/Dropbox/Ed/AWS Output/HS_PLUS_CAR4_f_fit.RDa
 
 CAR.4.u.fit.hsplus <- stan_glm(CAR.model, family = gaussian(), data = X.CAR4.u,
                         prior = calculate.hsplus.priors(X.CAR4.u),
-                        adapt_delta = 0.9999, QR = FALSE)
+                        adapt_delta = 0.9999, QR = TRUE)
 save(CAR.4.u.fit.hsplus, file = '~/Dropbox/Ed/AWS Output/HS_PLUS_CAR4_u_fit.RData')
 ## Now ARs
 AR.u.fit.hsplus <- stan_glm(AR.model, family = gaussian(), data = X.AR.u,
                      prior = calculate.hsplus.priors(X.AR.u),
-                     adapt_delta = 0.9999, QR = FALSE)
+                     adapt_delta = 0.9999, QR = TRUE)
 save(AR.u.fit.hsplus, file = '~/Dropbox/Ed/AWS Output/HS_PLUS_AR_u_fit.RData')
 
 AR.f.fit.hsplus <- stan_glm(AR.model, family = gaussian(), data = X.AR.f,
@@ -202,11 +203,13 @@ AR.f.fit.hsplus <- stan_glm(AR.model, family = gaussian(), data = X.AR.f,
                      adapt_delta = 0.9999, QR = FALSE)
 save(AR.f.fit.hsplus, file =  '~/Dropbox/Ed/AWS Output/HS_PLUS_AR_f_fit.RData')
 
+
+pbPost('note', 'Models Complete', 'HS+ ARs and CARs finished')
 ## Now returns fit
 R.u.fit.hsplus <- stan_glm(R.model, family = gaussian(), data = X.R.u,
                     prior = calculate.hsplus.priors(X.R.u),
                     adapt_delta = 0.9999,
-                    QR = FALSE)
+                    QR = TRUE)
 save(R.u.fit.hsplus, file = '~/Dropbox/Ed/AWS Output/HS_PLUS_R_u_fit.RData')
 
 R.f.fit.hsplus <- stan_glm(R.model, family = gaussian(), data= X.R.f,
@@ -215,3 +218,5 @@ R.f.fit.hsplus <- stan_glm(R.model, family = gaussian(), data= X.R.f,
 save(R.f.fit.hsplus, file = '~/Dropbox/Ed/AWS Output/HS_PLUS_R_f_fit.RData')
 
 pbPost('note', 'Model Completed', body = 'Horseshoe+ completed')
+
+sink()

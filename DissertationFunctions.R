@@ -597,11 +597,11 @@ calculate.hs.priors <- function(data, n.vars.guess = 10){
 }
 
 calculate.hsplus.priors <- function(data, n.vars.guess = 10){
-  D <- ncol(data)
+  D <- ncol(data) - 1
   n <- nrow(data)
   v <- n.vars.guess
   
-  tau0 <- v(D-v)*1/sqrt(n)
-  prior_coeff <- hs_plus(df = 3, df = 3, global_df = 1, global_scale = tau0)
+  tau0 <- v/(D-v)*1/sqrt(n)
+  prior_coeff <- hs_plus(df1 = 3, df2 = 3, global_df = 1, global_scale = tau0)
   return(prior_coeff)
 }
