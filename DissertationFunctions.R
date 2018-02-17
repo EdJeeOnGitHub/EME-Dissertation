@@ -38,7 +38,7 @@ test.integrand <- function(generated.sample){ # This function looks a little com
     zeta <- mutate(zeta, zeta.indicator = as.numeric(zeta < u))
     zeta <- mutate(zeta, zeta.next = zeta.indicator - 0.5)
     theta_u <- (2/sqrt(length(generated.sample)))*sum(zeta$zeta.next)
-    integrand <- (theta_u^2)*(1-u)
+    integrand <- (theta_u^2)
     return(integrand)
   }
   return(fu.sample)
