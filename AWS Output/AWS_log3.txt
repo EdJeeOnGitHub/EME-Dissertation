@@ -1,0 +1,18 @@
+[30m── [1mAttaching packages[22m ──────────────────────────────────────────────────────────────────────────────── tidyverse 1.2.1 ──[39m
+[30m[32m✔[30m [34mggplot2[30m 2.2.1     [32m✔[30m [34mpurrr  [30m 0.2.4
+[32m✔[30m [34mtibble [30m 1.4.2     [32m✔[30m [34mdplyr  [30m 0.7.4
+[32m✔[30m [34mtidyr  [30m 0.8.0     [32m✔[30m [34mstringr[30m 1.2.0
+[32m✔[30m [34mreadr  [30m 1.1.1     [32m✔[30m [34mforcats[30m 0.2.0[39m
+[30m── [1mConflicts[22m ─────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+[31m✖[30m [34mdplyr[30m::[32mfilter()[30m masks [34mstats[30m::filter()
+[31m✖[30m [34mdplyr[30m::[32mlag()[30m    masks [34mstats[30m::lag()[39m
+This is projpred version 0.6.4
+Loading required package: Rcpp
+rstanarm (Version 2.17.2, packaged: 2017-12-20 23:59:28 UTC)
+- Do not expect the default priors to remain the same in future rstanarm versions.
+Thus, R scripts should specify priors explicitly, even if they are just the defaults.
+- For execution on a local, multicore CPU with excess RAM we recommend calling
+options(mc.cores = parallel::detectCores())
+- Plotting theme set to bayesplot::theme_default().
+Attaching RPushbullet version 0.3.1.
+Reading ~/.rpushbullet.json
