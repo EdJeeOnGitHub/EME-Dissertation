@@ -13,7 +13,7 @@ ggsave(filename = 'attack.dummies.ols.R.png', path = save.path, width = 12, heig
 weapon.dummies.ols.plot.R <- plot(ols.fit.R.u, regex_pars = 'weap')
 ggsave('weapon.dummies.ols.plot.R.png', width = 12, height = 8, path = save.path)
 target.dummies.ols.plot.R <- plot(ols.fit.R.u, regex_pars = 'target')
-ggsave('target.dummies.plot.R.png', width = 12, height = 8, path = save.path)
+ggsave('target.dummies.ols.plot.R.png', width = 12, height = 8, path = save.path)
 
 
 ols.R.ppcheck <- pp_check(ols.fit.R.u) +
@@ -40,7 +40,7 @@ ggsave(filename = 'attack.dummies.laplace.R.png', path = save.path, width = 12, 
 weapon.dummies.laplace.plot.R <- plot(laplace.fit.R.u, regex_pars = 'weap')
 ggsave('weapon.dummies.laplace.plot.R.png', width = 12, height = 8, path = save.path)
 target.dummies.laplace.plot.R <- plot(laplace.fit.R.u, regex_pars = 'target')
-ggsave('target.dummies.plot.R.png', width = 12, height = 8, path = save.path)
+ggsave('target.dummies.laplace.plot.R.png', width = 12, height = 8, path = save.path)
 
 
 

@@ -351,8 +351,63 @@ $$
 
 # Results II
 
-### Quick Overview of Predictors
+### OLS 
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/OLS/OLS Params}
+\end{center}
 
+### OLS - Attack Type
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/OLS/attack.dummies.ols.R}
+\end{center}
+
+### OLS - Weapon Type
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/OLS/weapon.dummies.ols.plot.R}
+\end{center}
+
+### OLS - Target Type
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/OLS/target.dummies.ols.plot.R}
+\end{center}
+
+### OLS - Posterior Predictive Check
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/OLS/ols.R.ppcheck}
+\end{center}
+
+### LASSO
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/LASSO/laplace params}
+\end{center}
+
+### LASSO - Attack Type
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/LASSO/attack.dummies.laplace.R}
+\end{center}
+
+### LASSO - Weapon Type
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/LASSO/weapon.dummies.laplace.plot.R}
+\end{center}
+
+### LASSO - Target Type
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/LASSO/target.dummies.laplace.plot.R}
+\end{center}
+
+### LASSO - Posterior Predictive Check
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/LASSO/laplace.ppcheck}
+\end{center}
+
+### OLS - PPC
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/OLS/ols.R.ppcheck}
+\end{center}
+
+### HS goes here
+### HS+ goes here
 # Conclusion
 ###
 
