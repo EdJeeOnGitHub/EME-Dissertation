@@ -6,7 +6,7 @@ library(car)
 library(dummies)
 source('DissertationFunctions.R')
 #### Preparing in depth terror data ####
-dropbox.path <- "C:/Users/nfa/Dropbox/Ed/Ed Uni work/EME/Data/Original Data/globalterrorismdb_0617dist.xlsx"
+dropbox.path <- "C:/Users/ed/Dropbox/Ed/Ed Uni work/EME/Data/Original Data/globalterrorismdb_0617dist.xlsx"
 
 terror.tb <- read_xlsx(dropbox.path)
 
@@ -209,18 +209,19 @@ most.covariates.terror.and.date <- cbind(terror.UK$Date,
 
 
 
-# Recoding any dummies > 1 to 1. Since multiple gun attacks can happen on the same day, without this our dummy variable will have a a value greater than 1 for some days
-most.covariates.terror.and.date.cleaned <- most.covariates.terror.and.date[, -1] %>% 
-  map(function(.){Recode(., "0 = 0; else = 1")}) %>%
-  as.tibble %>% 
-  cbind(most.covariates.terror.and.date$`terror.UK$Date`, .) %>% 
-  as.tibble # Not sure why I have to use as.tibble() twice. Something odd going on here.
+# # Recoding any dummies > 1 to 1. Since multiple gun attacks can happen on the same day, without this our dummy variable will have a a value greater than 1 for some days
+# most.covariates.terror.and.date.dummies <- most.covariates.terror.and.date[, -1] %>% 
+#   map(function(.){Recode(., "0 = 0; else = 1")}) %>%
+#   as.tibble %>% 
+#   cbind(most.covariates.terror.and.date$`terror.UK$Date`, .) %>% 
+#   as.tibble # Not sure why I have to use as.tibble() twice. Something odd going on here.
+# 
 
 
 
 
 # # Quickly testing that our summations and recoding have worked - Need to uncomment total.check in the function script for this to work
-# attack <- most.covariates.terror.and.date.cleaned[, grep(pattern = 'attack', colnames(most.covariates.terror.and.date.cleaned))]
+# attack <- most.covariates.terror.and.date.dummies[, grep(pattern = 'attack', colnames(most.covariates.terror.and.date.dummies))]
 # attack$total <- rowSums(attack)
 # summary(attack$total) ## The min value should always be 1 here. A values greater than 1 in the total column means that a gun and knife attack occured on the same day for instance.
 
@@ -232,20 +233,20 @@ terror.UK.grouped <- terror.UK %>%
   summarise_all(funs(if(is.numeric(.)) sum(., na.rm = TRUE) else first(.)))
 save(terror.UK.grouped, file = 'UKTerrorData.Rdata')
 
-terror.covariates <- bind_cols(terror.UK.grouped, most.covariates.terror.and.date.cleaned) %>% as.tibble
+terror.covariates <- bind_cols(terror.UK.grouped, most.covariates.terror.and.date) %>% as.tibble
 # Some of the original dummies in the dataset are now greater than 1 as we've aggregated events at the day level. Recoding dummies > 1 to 1.
-terror.covariates <- terror.covariates %>% 
-  mutate(success = replace(success, success >= 1, 1),
-         multiple = replace(multiple, multiple >=1, 1),
-         suicide = replace(suicide, suicide >=1, 1),
-         claimed = replace(claimed, claimed >=1, 1),
-         claimed = replace(claimed, claimed < 0, 0),
-         property = replace(property, property >=1, 1),
-         ishostkid = replace(ishostkid, ishostkid >=1, 1),
-         ransom = replace(ransom, ransom >= 1, 1),
-         INT_IDEO = replace(INT_IDEO, INT_IDEO >= 1, 1),
-         INT_MISC = replace(INT_MISC, INT_MISC >= 1, 1),
-         guncertain1 = replace(guncertain1, guncertain1 >=1, 1))
+# terror.covariates.dummies <- terror.covariates %>% 
+#   mutate(success = replace(success, success >= 1, 1),
+#          multiple = replace(multiple, multiple >=1, 1),
+#          suicide = replace(suicide, suicide >=1, 1),
+#          claimed = replace(claimed, claimed >=1, 1),
+#          claimed = replace(claimed, claimed < 0, 0),
+#          property = replace(property, property >=1, 1),
+#          ishostkid = replace(ishostkid, ishostkid >=1, 1),
+#          ransom = replace(ransom, ransom >= 1, 1),
+#          INT_IDEO = replace(INT_IDEO, INT_IDEO >= 1, 1),
+#          INT_MISC = replace(INT_MISC, INT_MISC >= 1, 1),
+#          guncertain1 = replace(guncertain1, guncertain1 >=1, 1))
 
 tidy.name.vector <- make.names(colnames(terror.covariates), unique=TRUE)
 colnames(terror.covariates) <- tidy.name.vector
@@ -280,7 +281,8 @@ terror.covariates.subset <- subset(terror.covariates, select= -c(provstate,
                                                           weapsubtype2,
                                                           weapsubtype3,
                                                           weapsubtype4,
-                                                          hostkidoutcome_txt))
+                                                          hostkidoutcome_txt,
+                                                          claimed))
                                                           
 
 
