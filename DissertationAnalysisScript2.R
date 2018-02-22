@@ -13,9 +13,10 @@ options(mc.cores = parallel::detectCores())
 source('DissertationFunctions.R')
 
 #### Merging terror covariates and return data ####
-load('TerrorCovariates_subtype.Rdata')
+load('TerrorCovariates_subtype_media.Rdata.Rdata')
 load('AnalysisOutput/CAR_Data.RData')
 
+terror.covariates.subset <- terror.covariates.subset.media
 # CAR10s
 merged.data.u.10 <- merge.and.drop.covariates(CAR.10.unfiltered, terror.covariates.subset)
 
