@@ -4,6 +4,7 @@ library(quanteda)
 library(readtext)
 library(tidyverse)
 library(lubridate)
+library(zoo)
 
 my.text <- readtext('News Data/Headline Specification/*')
 myCorpus <- corpus(x = my.text)
@@ -105,6 +106,13 @@ news.grouped <- news.dates %>%
   group_by(Date.format) %>% 
   summarise(`number of articles` = sum(n))
 
+dates <- seq.Date(from = min(news.grouped$Date.format), to = max(news.grouped$Date.format), by = 'day')
+dates <- data.frame(dates)
+news.grouped <- left_join(dates, news.grouped, by = c('dates' = 'Date.format'))
+news.grouped$`number of articles`[is.na(news.grouped$`number of articles`)] <- 0
+news.grouped$MA4 <- rollmean(news.grouped$`number of articles`, k = 4, align = 'right', fill = NA)
+news.grouped$MA10 <- rollmean(news.grouped$`number of articles`, k = 10, align = 'right', fill = NA)
+news.grouped <- na.omit(news.grouped)
 summary(news.grouped)
   
 
