@@ -580,7 +580,7 @@ merge.and.drop.covariates <- function(left.df, right.df){
   merged.data <- inner_join(x = left.df, y = right.df, by = c('market.date' = 'Date')) %>% 
     as.tibble %>% 
     subset(select = -c(Date, event.t.stat, event.p.value, event.confidence.interval, stars, market.date,
-                       most.covariates.terror.and.date..terror.UK.Date., INT_MISC))
+                      terror.UK.Date, INT_MISC))
   return(merged.data)
   
 }
