@@ -34,35 +34,51 @@ merged.data.f.4 <- merge.and.drop.covariates(CAR.4.filtered, terror.covariates.s
 # These are all CARs
 X.CAR10.u <- merged.data.u.10 %>% 
   subset(select = -c(event.ar,
-                     returns))
+                     returns,
+                     `number of articles`,
+                     MA4))
 
 X.CAR10.f <- merged.data.f.10 %>% 
   subset(select = -c(event.ar,
-                     returns))
+                     returns,
+                     `number of articles`,
+                     MA4))
 
 X.CAR4.u <- merged.data.u.4 %>% 
   subset(select = -c(event.ar,
-                     returns))
+                     returns,
+                     `number of articles`,
+                     MA10))
 
 X.CAR4.f <- merged.data.f.4 %>% 
   subset(select = -c(event.ar,
-                     returns))
+                     returns,
+                     `number of articles`,
+                     MA10))
 
 
 # Now event day ARs and event day returns
 X.AR.u <- merged.data.u.10 %>% 
   subset(select = -c(returns,
-                     event.car))
+                     event.car,
+                     `number of articles`,
+                     MA10))
 X.R.u <- merged.data.u.10 %>% 
   subset(select = -c(event.ar,
-                     event.car))
+                     event.car,
+                     `number of articles`,
+                     MA10))
 
 X.AR.f <- merged.data.f.10 %>% 
   subset(select = -c(returns,
-                     event.car))
+                     event.car,
+                     `number of articles`,
+                     MA10))
 X.R.f <- merged.data.f.10 %>% 
   subset(select = -c(event.ar,
-                     event.car))
+                     event.car,
+                     `number of articles`,
+                     MA10))
 
 ## Many of the filtered columns contain variables that are always switched off, so I drop these to make variable selection easier
 X.R.f <-  X.R.f[, colSums(X.R.f != 0) > 0]
