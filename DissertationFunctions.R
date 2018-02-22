@@ -579,7 +579,7 @@ merge.and.drop.covariates <- function(left.df, right.df){
   # Merges and filters unwanted covariates used in script2. All the covariates and the join key-value pair is hard coded so can't use elsewhere.
   merged.data <- inner_join(x = left.df, y = right.df, by = c('market.date' = 'Date')) %>% 
     as.tibble %>% 
-    subset(select = -c(Date, claimed, event.t.stat, event.p.value, event.confidence.interval, stars, market.date,
+    subset(select = -c(Date, event.t.stat, event.p.value, event.confidence.interval, stars, market.date,
                        most.covariates.terror.and.date..terror.UK.Date., INT_MISC))
   return(merged.data)
   
