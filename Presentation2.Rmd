@@ -125,7 +125,7 @@ p(\theta | y) = \dfrac{p(y|\theta)\pi(\theta)}{p(y)}
 $$
 - Where $p(y) = \int{p(y|\theta)\pi(\theta)d\theta}$.
 - Specifying a prior lets us overcome the problem of separation.
-    + CRT use divine intervention/ignore the problem/an unpublished manuscript set to rock the econometrics world.
+    + CRK use divine intervention/ignore the problem/an unpublished manuscript set to rock the econometrics world.
 
 ### No Pooling
 
@@ -310,7 +310,7 @@ $$
 
 - Two ways to do this:
     + Estimate traditional OLS with a regularisation parameter and use generic, weak priors (something like N(0,5)).
-    + Use a hierarchical shrinkage model with laplace priors on the regression parameters, Park & Casella (2008).
+    + Use a hierarchical shrinkage model with Laplace priors on the regression parameters, Park & Casella (2008).
   
 ![Fahrmeir, L., Kneib, T. & Konrath, S. Stat Comput (2010) 20: 203](C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/LASSO and Ridge Priors.png)
 
@@ -358,22 +358,22 @@ $$
 
 ### OLS - Attack Type
 \begin{center}
-\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/OLS/attack.dummies.ols.R}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/OLS/attack.dummies.OLS.CAR4}
 \end{center}
 
 ### OLS - Weapon Type
 \begin{center}
-\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/OLS/weapon.dummies.ols.plot.R}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/OLS/weapon.dummies.OLS.plot.CAR4}
 \end{center}
 
 ### OLS - Target Type
 \begin{center}
-\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/OLS/target.dummies.ols.plot.R}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/OLS/target.dummies.OLS.plot.CAR4}
 \end{center}
 
 ### OLS - Posterior Predictive Check
 \begin{center}
-\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/OLS/ols.R.ppcheck}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/OLS/OLS.CAR4.ppcheck}
 \end{center}
 
 ### LASSO
@@ -383,17 +383,17 @@ $$
 
 ### LASSO - Attack Type
 \begin{center}
-\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/LASSO/attack.dummies.laplace.R}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/LASSO/attack.dummies.laplace.CAR4}
 \end{center}
 
 ### LASSO - Weapon Type
 \begin{center}
-\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/LASSO/weapon.dummies.laplace.plot.R}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/LASSO/weapon.dummies.laplace.plot.CAR4}
 \end{center}
 
 ### LASSO - Target Type
 \begin{center}
-\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/LASSO/target.dummies.laplace.plot.R}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/LASSO/target.dummies.laplace.plot.CAR4}
 \end{center}
 
 ### LASSO - Posterior Predictive Check
@@ -403,17 +403,52 @@ $$
 
 ### OLS - PPC
 \begin{center}
-\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/OLS/ols.R.ppcheck}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/OLS/OLS.CAR4.ppcheck}
 \end{center}
 
-### HS goes here
-### HS+ goes here
+### HS
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/HS/HS params}
+\end{center}
+
+### HS - Attack Type
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/HS/attack.dummies.HS.CAR4}
+\end{center}
+
+### HS - Weapon Type
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/HS/weapon.dummies.HS.plot.CAR4}
+\end{center}
+
+### HS - Target Type
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/HS/target.dummies.plot.CAR4}
+\end{center}
+
+### HS - Posterior Predictive Check
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/HS/HS.CAR4.ppcheck}
+\end{center}
+
+
+
 # Conclusion
 ###
 
 
-- 'Large' events pn the whole negatively impact markets but effects disappear quickly as I move from larger to smaller events.
-- Pinning down these 'large' events statistically instead of heuristically isn't going too hot right now. 
+- Very large events on the whole negatively impact markets but effects disappear quickly as I move from larger to smaller events.
+- Pinning down these 'large' events statistically instead of heuristically isn't going too hot right now.
+
+### To Do:
+
+- Look at interaction terms?
+- Add a time trend?
+- Aggregate up and reduce variables manually?
+- Conclude that asset markets are very resilient to terror attacks in the short-term.
+    + Are attacks already priced in?
+    + Has there been a change over time?
+    + What about LT effects?
 
 
 
