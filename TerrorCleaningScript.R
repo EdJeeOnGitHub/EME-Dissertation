@@ -7,7 +7,7 @@ library(dummies)
 source('DissertationFunctions.R')
 load('news.grouped.Rdata')
 #### Preparing in depth terror data ####
-dropbox.path <- "C:/Users/ed/Dropbox/Ed/Ed Uni work/EME/Data/Original Data/globalterrorismdb_0617dist.xlsx"
+dropbox.path <- "C:/Users/nfa/Dropbox/Ed/Ed Uni work/EME/Data/Original Data/globalterrorismdb_0617dist.xlsx"
 
 terror.tb <- read_xlsx(dropbox.path)
 
@@ -290,7 +290,9 @@ terror.covariates.subset <- subset(terror.covariates, select= -c(provstate,
 
 save(terror.covariates.subset, file= 'TerrorCovariates_subtype.Rdata')
 
-terror.covariates.subset.media <- left_join(terror.covariates.subset, news.grouped, by = c('Date' = 'Date.format'))
+terror.covariates.subset.media <- left_join(terror.covariates.subset, news.grouped, by = c('Date' = 'dates'))
 terror.covariates.subset.media$`number of articles`[is.na(terror.covariates.subset.media$`number of articles`)] <- 0
+terror.covariates.subset.media <- terror.covariates.subset.media[terror.covariates.subset.media$Date > as.Date('1984-12-06'),] %>% 
+  na.omit
 
 save(terror.covariates.subset.media, file = 'TerrorCovariates_subtype_media.Rdata')
