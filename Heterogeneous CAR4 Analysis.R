@@ -5,7 +5,6 @@ rm(list = ls())
 
 
 library(tidyverse)
-library(projpred)
 library(rstanarm)
 library(RPushbullet)
 options(mc.cores = parallel::detectCores())
@@ -89,7 +88,7 @@ save(CAR.4.f.fit, file =  '~/Dropbox/Ed/AWS Output/CAR4/HS_CAR4_f_fit.RData')
 
 CAR.4.u.fit <- stan_glm(CAR.model, family = gaussian(), data = X.CAR4.u,
                         prior = calculate.hs.priors(X.CAR4.u),
-                        adapt_delta = 0.99999999, QR = FALSE)
+                        adapt_delta = 0.999999999, QR = FALSE)
 save(CAR.4.u.fit, file = '~/Dropbox/Ed/AWS Output/CAR4/HS_CAR4_u_fit.RData')
 
 pbPost('note', 'Model Completed', body = 'CAR4 Horseshoe Models Finished')
