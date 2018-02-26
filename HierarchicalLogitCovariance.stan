@@ -6,7 +6,7 @@ data {
   int<lower=1, upper=L> id[N]; // vector describing which group an observation is in
   
   matrix[N,K] X; // model matrix
-  vector[N] Y; // dependent variable
+  int Y[N]; // dependent variable
   vector[L] terror_return; // out-of-sample return observed on day of terror attack
 }
 parameters {
@@ -32,13 +32,19 @@ model {
   }
   
   // likelihood
-  Y ~ bernoulli_logit(mu);
+  for(n in 1:N){
+  Y[n] ~  bernoulli_logit(mu[n]);
+  }
 }
 generated quantities {
   vector[L] y_hat;
-  vector[L] x_beta_ll_terror;
+  vector[L] mu_hat;
+  
   for(l in 1:L){
-    x_beta_ll_terror[l] = terror_return[l]*beta[l];
-    y_hat = inv_logit(x_beta_ll_terror);
+    mu_hat[l] = X[l] * beta[l];
+    y_hat = inv_logit(mu_hat);
+    
   }
+  
+  
 }
