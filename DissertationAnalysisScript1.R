@@ -334,13 +334,20 @@ stan.events.data <- prepare.stan.data(n.events = 20, events = events.all.decades
 stan.pooled.data <- map(stan.events.data, data.frame) %>% 
   map2_dfr(.x = ., .y = 1:20, ~mutate(.x, event = .y))
 
-stan.hierarchical.data <- list(N = nrow(stan.pooled.data), L = 20, ll = stan.pooled.data$event,
+stan.pooled.data$constant <- 1
+
+hierarchical.decade.X <- subset(stan.pooled.data, select = c(constant, returns)) %>% 
+  as.matrix
+stan.hierarchical.data <- list(N = nrow(stan.pooled.data),
+                               L = 20,
+                               K = 2,
+                               id = stan.pooled.data$event,
+                               X = hierarchical.decade.X,
                                Y = stan.pooled.data$Y,
-                               returns = stan.pooled.data$returns,
                                terror_return = unique(stan.pooled.data$terror_return))
 
 
-hfit <- stan(file = 'HierarchicalLogit.stan',
+hfit <- stan(file = 'HierarchicalLogitCovariance.stan',
              data = stan.hierarchical.data,
              control = list(adapt_delta = 0.99))
 
