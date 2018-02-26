@@ -7,7 +7,6 @@ rm(list = ls())
 try(dev.off(), silent = TRUE)
 
 # Libraries
-library(rprojroot) # Relative instead of absolute paths when reading in files -- remove this when dissertation complete and put data files in same directory as R scripts
 library(tidyverse) # Data manipulation
 library(zoo) # Time series manipulation
 library(readxl) # Reading in excel
@@ -30,11 +29,8 @@ source('DissertationFunctions.R')
 # Reading in file, using projroot library so only relative path needed
 
 
-root <- has_file(".git/index")
-root.file <- root$make_fix_file()
-path.index <- root.file('EME' , 'Data' , 'Clean Data' ,'Indices', 'All_indices_cleaned_test.csv')
 
-raw.index.data <- read.csv(path.index)
+raw.index.data <- read.csv('Index and Terror Data/All_indices_cleaned_test.csv')
 
 # Formatting Date column
 raw.index.data[, 'Date'] <- as.Date(raw.index.data[, 'Date'])
