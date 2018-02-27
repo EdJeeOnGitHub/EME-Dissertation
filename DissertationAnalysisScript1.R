@@ -140,8 +140,6 @@ rm(list = removal.list.index)
 
 #### Terror Event Cleaning ####
 
-path.terror <- root.file('EME', 'Data', 'Clean Data', 'Terror', 'United Kingdom.xls')
-
 load('UKTerrorData.Rdata')
 
 # electing relevant columns
