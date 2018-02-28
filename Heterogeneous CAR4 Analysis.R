@@ -79,19 +79,6 @@ laplace.fit.CAR4.u <- stan_glm(CAR.model, family = gaussian(), data = X.CAR4.u, 
 save(laplace.fit.CAR4.u, file =  '~/Dropbox/Ed/AWS Output/CAR4/LASSO_fit_CAR4_u.Rdata')
 
 pbPost('note', 'Model Completed', body = 'CAR4 LASSOs completed')
-#### Horseshoe models ####
-# CARs
-CAR.4.f.fit <- stan_glm(CAR.model, family = gaussian(), data = X.CAR4.f,
-                        prior =calculate.hs.priors(X.CAR4.f),
-                        adapt_delta = 0.999999999, QR = FALSE)
-save(CAR.4.f.fit, file =  '~/Dropbox/Ed/AWS Output/CAR4/HS_CAR4_f_fit.RData')
-
-CAR.4.u.fit <- stan_glm(CAR.model, family = gaussian(), data = X.CAR4.u,
-                        prior = calculate.hs.priors(X.CAR4.u),
-                        adapt_delta = 0.999999999, QR = FALSE)
-save(CAR.4.u.fit, file = '~/Dropbox/Ed/AWS Output/CAR4/HS_CAR4_u_fit.RData')
-
-pbPost('note', 'Model Completed', body = 'CAR4 Horseshoe Models Finished')
 
 
 pbPost('note', 'Simulations Finished:' , body = as.character(Sys.time()))
