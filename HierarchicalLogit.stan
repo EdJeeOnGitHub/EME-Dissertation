@@ -5,7 +5,7 @@ data {
   int<lower=1, upper=L> id[N]; // id for each?
   vector[N] returns; // predictors
   int Y[N]; // Response variable
-  // vector[L] terror_return;
+  vector[L] terror_return;
 }
 parameters{
   real mu_b;
