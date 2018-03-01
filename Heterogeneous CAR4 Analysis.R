@@ -37,6 +37,11 @@ X.CAR4.f <- merged.data.f.4 %>%
                      returns,
                      `number of articles`,
                      MA10))
+X.R.u <- merged.data.u.4 %>% 
+  subset(select = -c(event.ar,
+                     event.car,
+                     MA4,
+                     MA10))
 
 ## Many of the filtered columns contain variables that are always switched off, so I drop these to make variable selection easier
 remove.constant.cols <- function(dataframe){
@@ -47,9 +52,11 @@ remove.constant.cols <- function(dataframe){
 
 X.CAR4.f <- remove.constant.cols(X.CAR4.f)
 X.CAR4.u <- remove.constant.cols(X.CAR4.u)
+X.R.u <- remove.constant.cols(X.R.u)
 
 #### Creating Model Formulae #####
 CAR.model <- event.car ~ .
+R.model <- returns ~ .
 
 pbPost('note', 'Starting CAR4 Simulations', as.character(Sys.time()))
 
@@ -83,3 +90,11 @@ pbPost('note', 'Model Completed', body = 'CAR4 LASSOs completed')
 
 pbPost('note', 'Simulations Finished:' , body = as.character(Sys.time()))
 
+
+#### Returns ####
+ols.fit.R.u <- stan_glm(R.model, data = X.R.u)
+save(ols.fit.R.u, file = '~/Dropbox/Ed/AWS Output/CAR4/ols_fit_R_u.Rdata')
+
+laplace.fit.R.u <- stan_glm(R.model, family = gaussian(), data = X.R.u,
+                            prior = lasso())
+save(laplace.fit.R.u, file = '~/Dropbox/Ed/AWS Output/CAR4/LASSO_fit_R_u.Rdata')
