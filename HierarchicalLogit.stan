@@ -38,12 +38,12 @@ model {
 }
   
 }
-// generated quantities{
-//     vector[L] y_hat;
-//     
-//     vector[L] x_beta_ll_terror;
-//     for (l in 1:L)
-//       x_beta_ll_terror[l] = a[l] + terror_return[l] * beta[l];
-//       y_hat = inv_logit(x_beta_ll_terror);
-// }
+generated quantities{
+    vector[L] y_hat;
+
+    vector[L] x_beta_ll_terror;
+    for (l in 1:L)
+      x_beta_ll_terror[l] = a[l] + terror_return[l] * beta[l];
+      y_hat = inv_logit(x_beta_ll_terror);
+}
 
