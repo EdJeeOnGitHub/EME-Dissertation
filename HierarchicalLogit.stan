@@ -4,7 +4,7 @@ data {
   
   int<lower=1, upper=L> id[N]; // id for each?
   vector[N] returns; // predictors
-  int Y[N]; // Response variable
+  real Y[N]; // Response variable
   vector[L] terror_return;
 }
 parameters{
@@ -16,6 +16,8 @@ parameters{
   real<lower=0> sigma_a;
   real a[L];
   
+  real<lower=0> Sigma_L[L];
+  real<lower=0> sigma_L;
 }
 model {
 
@@ -26,15 +28,18 @@ model {
   
   mu_a ~ normal(0.5, 0.5);
   sigma_a ~ normal(1, 5);
+  
+  sigma_L ~ normal(0, 5);
   for (l in 1:L){
+    Sigma_L[l] ~ normal(0, sigma_L);
     beta[l] ~ student_t(3, mu_b, sigma_b);
     a[l] ~ normal(mu_a, sigma_a);
   }
   {
     vector[N] x_beta_ll;
     for (n in 1:N)
-      x_beta_ll[n] = a[id[n]] + returns[n] * beta[id[n]];
-      Y ~ bernoulli_logit(x_beta_ll);
+      x_beta_ll[n] = exp(a[id[n]] + returns[n] * beta[id[n]]) / (exp(a[id[n]] + returns[n] * beta[id[n]]) + 1);
+      Y ~ normal(x_beta_ll, sigma_L);
 }
   
 }

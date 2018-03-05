@@ -42,7 +42,7 @@ model {
   
   L_Sigma = diag_pre_multiply(L_sigma, L_Omega);
   L_Omega ~ lkj_corr_cholesky(4);
-  L_sigma ~ cauchy(0, 2.5);
+  L_sigma ~ normal(0, 5);
   
   Y ~ multi_normal_cholesky(y_hat, L_Sigma);
 }
