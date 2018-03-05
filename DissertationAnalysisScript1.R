@@ -344,50 +344,6 @@ hfit <- stan(file = 'HierarchicalLogit.stan',
              control = list(adapt_delta = 0.99))
 
 
-
-#### HS fit with SUR ####
-# SUR.X.data <- map(stan.events.data, data.frame) %>% 
-#   map2(.x = ., .y = 1:20, ~mutate(.x, event = .y,
-#                                   constant = 1)) %>% 
-#   map_dfr(subset, select = c(returns))
-# 
-# SUR.Y.data <- map(stan.events.data, data.frame) %>% 
-#   map2(.x = ., .y = 1:20, ~mutate(.x, event = .y,
-#                                   constant = 1)) %>% 
-#   map_dfr(subset, select = c(Y)) %>% 
-#   cbind(rep(.,19))
-# 
-# SUR.ID.data  <-  map(stan.events.data, data.frame) %>% 
-#   map2(.x = ., .y = 1:20, ~mutate(.x, event = .y,
-#                                   constant = 1)) %>% 
-#   map_dfr(subset, select = c(event))
-# 
-# SUR.data.list <- list(N = nrow(SUR.X.data),
-#                       L = 20,
-#                       Y = SUR.Y.data,
-#                       X = SUR.X.data$returns,
-#                       id = SUR.ID.data$event)
-# sur.hfit <- stan(file = 'SUR_Hierarchical.stan',
-#                  data = SUR.data.list)
-
-# stan.pooled.data$constant <- 1
-# 
-# hierarchical.decade.X <- subset(stan.pooled.data, select = c(constant, returns)) %>% 
-#   as.matrix
-# stan.hierarchical.data <- list(N = nrow(stan.pooled.data),
-#                                L = 20,
-#                                K = 2,
-#                                id = stan.pooled.data$event,
-#                                X = hierarchical.decade.X,
-#                                Y = stan.pooled.data$Y)
-# 
-# 
-# hfit <- stan(file = 'HierarchicalLogitCovariance.stan',
-#              data = stan.hierarchical.data,
-#              control = list(adapt_delta = 0.99))
-
-#####
-
 #+++++++++++++++++++++++++++++++
 ## 80s - i.e. pooled and separate
 #+++++++++++++++++++++++++++++++
