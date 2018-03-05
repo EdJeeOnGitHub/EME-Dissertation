@@ -1,0 +1,252 @@
+% AER-Article.tex for AEA last revised 22 June 2011
+\documentclass[]{AEA}
+
+% The mathtime package uses a Times font instead of Computer Modern.
+% Uncomment the line below if you wish to use the mathtime package:
+%\usepackage[cmbold]{mathtime}
+% Note that miktex, by default, configures the mathtime package to use commercial fonts
+% which you may not have. If you would like to use mathtime but you are seeing error
+% messages about missing fonts (mtex.pfb, mtsy.pfb, or rmtmi.pfb) then please see
+% the technical support document at http://www.aeaweb.org/templates/technical_support.pdf
+% for instructions on fixing this problem.
+
+% Note: you may use either harvard or natbib (but not both) to provide a wider
+% variety of citation commands than latex supports natively. See below.
+
+% Uncomment the next line to use the natbib package with bibtex
+\usepackage{natbib}
+
+% Uncomment the next line to use the harvard package with bibtex
+%\usepackage[abbr]{harvard}
+
+% This command determines the leading (vertical space between lines) in draft mode
+% with 1.5 corresponding to "double" spacing.
+\draftSpacing{1.5}
+
+\usepackage{hyperref}
+
+\begin{document}
+
+\title{Economic Costs of Terror}
+\shortTitle{An Asset Market Approach}
+% \author{Author1 and Author2\thanks{Surname1: affiliation1, address1, email1.
+% Surname2: affiliation2, address2, email2. Acknowledgements}}
+
+
+\author{
+  Edward Jee\thanks{
+  Jee: London School of Economics, \href{mailto:E.M.Jee@lse.ac.uk}{E.M.Jee@lse.ac.uk}.
+}
+}
+
+\date{\today}
+\pubMonth{3}
+\pubYear{2018}
+\pubVolume{1}
+\pubIssue{1}
+\JEL{A10, A11}
+\Keywords{first keyword, second keyword}
+
+\begin{abstract}
+I show that large terror attacks do not have a significant negative
+effect on UK asset markets. Furthermore, when I expand my analysis to
+include all terror attacks from 1970 to present day I find no evidence
+of a negative asset market response. Finally, I find no evidence of
+event heterogeneity. That is, target type and location; success of an
+attack; number of wounded or killed; weapons used; attack type and media
+coverage cannot be used as predictors for asset market responses.
+Results are consistent across a range of UK indices and specifications.
+\end{abstract}
+
+
+\maketitle
+
+\pagestyle{plain}
+
+Terror attacks in developed countries have long been studied by
+economists as sources of exogenous shocks and events of interest in
+their own right. However, comparatively little effort has been expended
+exploring responses to the terror distribution outside of extreme tail
+events such as 9/11 or London 7/7\footnote{To name a few studies
+  concerned with large attacks, see Abadie and Dermisi (2008); Sandler
+  and Enders (2008) or Draca, Machin, and Witt (2011). The full terror
+  spectrum is studied in Abadie and Gardeazabal (2003); Brodeur
+  (Forthcoming) and Enders and Sandler (1991).}. This paper aims to
+quantify the individual responses to all attempted terror attacks
+occurring in the UK from 1970-2016 and estimate the determinants of
+these responses.
+
+The Global Terrorism Database (GTD) (2016) defines terror attacks as the
+threatened or actual use of illegal force and violence by a non-state
+actor to attain a political, economic, religious, or social goal through
+fear, coercion, or intimidation. This definition admits two clear
+economic channels through which the consequences of an attack propagate:
+the direct effect is comprised of destruction of physical or human
+capital, whilst the indirect effect deters investment and consumption
+through increased uncertainty or heightened perception of terror risk,
+rational or otherwise, as well as second-order effects such as greater
+costs incurred due to increased border security or as a catalyst for
+overseas intervention to disrupt terrorist organisations.
+
+The UK is a natural candidate for terror analysis as a victim of both
+extreme events such as the London 7/7 Bombings as well as a long history
+of attacks due to the Troubles. Furthermore, the diverse nature of
+terrorism in the UK, with attacks inspired by both Islamic extremism and
+secessionist movements, suggests my results are likely to be externally
+valid and can be applied across a number of western economies where
+social and political discourse concerning terrorism is increasingly
+prevalent. Finally, the GTD reports over 3000 terror attacks on UK soil
+since 1970 as well as more than 100 attack variables providing ample
+data with which to estimate terror responses. The high number of attacks
+observed, however, is both a blessing and a curse, particularly when it
+comes to estimating event heterogeneity, as many attacks have to be
+discarded for fear of overlap and contamination of results. I employ a
+range of methods to address this overlap problem however none are
+entirely satisfactory.
+
+Throughout the paper as a proxy for terror responses I use daily returns
+of equity indices. This approach has a number of advantages over
+measuring a more direct economic variable of interest such as GDP or
+unemployment. Firstly, major UK indices are characterised by high
+liquidity and volumes and hence offer a clear, almost instantaeneous
+identification of agent reactions to terror attacks. Secondly, index
+prices, and therefore returns, are a function of agents' beliefs about
+current and future cash flows and therefore capture any changes in both
+direct and indirect effects unlike a stock variable. Finally, index
+returns encompass a broad range of firms within an economy and can be
+interpreted as a good proxy for the stochastic discount factor used in
+many traditional macro models.
+
+I use two methods to estimate index responses to attacks. First, I apply
+an event study methodology calculating cumulative abnormal returns
+(CARs) under the constant mean return model to quantify the effects of
+the five largest terror attacks, measured by a weighted sum of injuries
+and fatalities, and find mixed evidence of a significant fall in index
+returns in four of the five cases but no significant fall on aggregate.
+Then, I adapt Chesney, Reshetar, and Karaman (2011)'s conditional
+probability approach within a bayesian setting and fail to conclude that
+any of the five attacks cause an extreme or abnormal movement in
+returns. Next, I apply the same methodologies to twenty of the UK's
+largest attacks, stratified by decade, and again fail to reject the null
+of significantly negative responses. Finally, I aggregate the cumulative
+abnormal returns to find a terror attack cumulative average abnormal
+return (CAAR) which, again, is not significantly different from zero.
+
+Estimating event heterogeneity produces broadly similar results. I
+regress event CAR's and event day returns on covariates such as weapons
+used; event location; event target; number of killed or wounded; attack
+success and a range of other variables using a Laplace prior to perform
+Bayesian LASSO in order to overcome concerns of overfitting. Projection
+predictive feature selection (Piironen and Vehtari 2017) suggests a
+number of variables of interest such as media intensity and number of
+injured provide the most predictive power when estimating event returns
+but my tests lack the power to conclude that these variables are
+different from 0 using 90\% credibility intervals.
+
+Overall, it seems that index returns are resilient to terror attacks and
+the effects of terror are negligible, whilst more work is needed to
+definitively conclude that there is no event heterogeneity present.
+
+\section{Literature Review}
+
+Sample figure:
+
+\begin{figure}
+Figure here.
+
+\caption{Caption for figure below.}
+\begin{figurenotes}
+Figure notes without optional leadin.
+\end{figurenotes}
+\begin{figurenotes}[Source]
+Figure notes with optional leadin (Source, in this case).
+\end{figurenotes}
+\end{figure}
+
+Sample table:
+
+\begin{table}
+\caption{Caption for table above.}
+
+\begin{tabular}{lll}
+& Heading 1 & Heading 2 \\
+Row 1 & 1 & 2 \\
+Row 2 & 3 & 4%
+\end{tabular}
+\begin{tablenotes}
+Table notes environment without optional leadin.
+\end{tablenotes}
+\begin{tablenotes}[Source]
+Table notes environment with optional leadin (Source, in this case).
+\end{tablenotes}
+\end{table}
+
+References here (manual or bibTeX). If you are using bibTeX, add your
+bib file name in place of BibFile in the bibliography command. \% Remove
+or comment out the next two lines if you are not using bibtex.
+\bibliographystyle{aea} \bibliography{references}
+
+\% The appendix command is issued once, prior to all appendices, if any.
+\appendix
+
+\section{Mathematical Appendix}
+
+\hypertarget{refs}{}
+\hypertarget{ref-ABADIE2008451}{}
+Abadie, Alberto, and Sofia Dermisi. 2008. ``Is Terrorism Eroding
+Agglomeration Economies in Central Business Districts? Lessons from the
+Office Real Estate Market in Downtown Chicago.'' \emph{Journal of Urban
+Economics} 64 (2): 451--63.
+doi:\href{https://doi.org/https://doi.org/10.1016/j.jue.2008.04.002}{https://doi.org/10.1016/j.jue.2008.04.002}.
+
+\hypertarget{ref-10.2307ux2f3132164}{}
+Abadie, Alberto, and Javier Gardeazabal. 2003. ``The Economic Costs of
+Conflict: A Case Study of the Basque Country.'' \emph{The American
+Economic Review} 93 (1). American Economic Association: 113--32.
+\url{http://www.jstor.org/stable/3132164}.
+
+\hypertarget{ref-B_forthcoming}{}
+Brodeur, Abel. Forthcoming. ``The Effect of Terrorism on Employment and
+Consumer Sentiment: Evidence from Successful and Failed Terror
+Attacks.'' \emph{American Economic Journal} Forthcoming.
+\url{https://www.aeaweb.org/articles?id=10.1257/app.20160556}.
+
+\hypertarget{ref-CHESNEY2011253}{}
+Chesney, Marc, Ganna Reshetar, and Mustafa Karaman. 2011. ``The Impact
+of Terrorism on Financial Markets: An Empirical Study.'' \emph{Journal
+of Banking \& Finance} 35 (2): 253--67.
+doi:\href{https://doi.org/https://doi.org/10.1016/j.jbankfin.2010.07.026}{https://doi.org/10.1016/j.jbankfin.2010.07.026}.
+
+\hypertarget{ref-10.1257ux2faer.101.5.2157}{}
+Draca, Mirko, Stephen Machin, and Robert Witt. 2011. ``Panic on the
+Streets of London: Police, Crime, and the July 2005 Terror Attacks.''
+\emph{American Economic Review} 101 (5): 2157--81.
+doi:\href{https://doi.org/10.1257/aer.101.5.2157}{10.1257/aer.101.5.2157}.
+
+\hypertarget{ref-doi:10.1080ux2f10576109108435856}{}
+Enders, Walter, and Todd Sandler. 1991. ``Causality Between
+Transnational Terrorism and Tourism: The Case of Spain.''
+\emph{Terrorism} 14 (1). Routledge: 49--58.
+doi:\href{https://doi.org/10.1080/10576109108435856}{10.1080/10576109108435856}.
+
+\hypertarget{ref-Piironen2017}{}
+Piironen, Juho, and Aki Vehtari. 2017. ``Comparison of Bayesian
+Predictive Methods for Model Selection.'' \emph{Statistics and
+Computing} 27 (3): 711--35.
+doi:\href{https://doi.org/10.1007/s11222-016-9649-y}{10.1007/s11222-016-9649-y}.
+
+\hypertarget{ref-sandler_enders_2008}{}
+Sandler, Todd, and Walter Enders. 2008. ``Economic Consequences of
+Terrorism in Developed and Developing Countries: An Overview.'' In
+\emph{Terrorism, Economic Development, and Political Openness}, edited
+by Philip Keefer and NormanEditors Loayza, 17--47. Cambridge University
+Press.
+doi:\href{https://doi.org/10.1017/CBO9780511754388.002}{10.1017/CBO9780511754388.002}.
+
+\hypertarget{ref-GTD}{}
+Study of Terrorism, National Consortium for the, and Responses to
+Terrorism (START). 2016. ``Global Terrorism Database.''
+\url{https://www.start.umd.edu/gtd}.
+
+\end{document}
+

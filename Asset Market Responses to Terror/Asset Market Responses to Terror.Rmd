@@ -1,0 +1,121 @@
+---
+title: "Economic Costs of Terror"
+short: "An Asset Market Approach"
+month: "`r lubridate::month(Sys.time())`"
+year: "`r lubridate::year(Sys.time())`"
+vol: 1
+issue: 1
+jel:
+  - A10
+  - A11
+keywords:
+  - first keyword
+  - second keyword
+author:
+  - name: Edward Jee
+    firstname: Edward
+    surname: Jee
+    email: E.M.Jee@lse.ac.uk
+    affiliation: London School of Economics
+acknowledgements: |
+  Acknowledgements
+abstract: |
+  I show that large terror attacks do not have a significant negative effect on UK asset markets. Furthermore, when I expand my analysis to include all terror attacks from 1970 to present day I find no evidence of a negative asset market response. Finally, I find no evidence of event heterogeneity. That is, target type and location; success of an attack; number of wounded or killed; weapons used; attack type and media coverage cannot be used as predictors for asset market responses. Results are consistent across a range of UK indices and specifications.
+output: rticles::aea_article
+keep_tex: TRUE
+bibliography: BibFile.bib
+---
+
+\pagestyle{plain}
+<!-- American Economic Review Pointers: -->
+
+<!-- \begin{itemize} -->
+<!-- \item Do not use an "Introduction" heading. Begin your introductory material -->
+<!-- before the first section heading. -->
+
+<!-- \item Avoid style markup (except sparingly for emphasis). -->
+
+<!-- \item Avoid using explicit vertical or horizontal space. -->
+
+<!-- \item Captions are short and go below figures but above tables. -->
+
+<!-- \item The tablenotes or figurenotes environments may be used below tables -->
+<!-- or figures, respectively, as demonstrated below. -->
+
+<!-- \item If you have difficulties with the mathtime package, adjust the package -->
+<!-- options appropriately for your platform. If you can't get it to work, just -->
+<!-- remove the package or see our technical support document online (please -->
+<!-- refer to the author instructions). -->
+
+<!-- \item If you are using an appendix, it goes last, after the bibliography. -->
+<!-- Use regular section headings to make the appendix headings. -->
+
+<!-- \item If you are not using an appendix, you may delete the appendix command -->
+<!-- and sample appendix section heading. -->
+
+<!-- \item Either the natbib package or the harvard package may be used with bibtex. -->
+<!-- To include one of these packages, uncomment the appropriate usepackage command -->
+<!-- above. Note: you can't use both packages at once or compile-time errors will result. -->
+
+<!-- \end{itemize} -->
+
+Terror attacks in developed countries have long been studied by economists as sources of exogenous shocks and events of interest in their own right. However, comparatively little effort has been expended exploring responses to the terror distribution outside of extreme tail events such as 9/11 or London 7/7^[To name a few studies concerned with large attacks, see @ABADIE2008451; @sandler_enders_2008 or @10.1257/aer.101.5.2157. The full terror spectrum is studied in @10.2307/3132164; @B_forthcoming and @doi:10.1080/10576109108435856.]. This paper aims to quantify the individual responses to all attempted terror attacks occurring in the UK from 1970-2016 and estimate the determinants of these responses.
+
+  The Global Terrorism Database (GTD) [-@GTD] defines terror attacks as the threatened or actual use of illegal force and violence by a non-state actor to attain a political, economic, religious, or social goal through fear, coercion, or intimidation. This definition admits two clear economic channels through which the consequences of an attack propagate: the direct effect is comprised of destruction of physical or human capital, whilst the indirect effect deters investment and consumption through increased uncertainty or heightened perception of terror risk, rational or otherwise, as well as second-order effects such as greater costs incurred due to increased border security or as a catalyst for overseas intervention to disrupt terrorist organisations.
+  
+  The UK is a natural candidate for terror analysis as a victim of both extreme events such as the London 7/7 Bombings as well as a long history of attacks due to the Troubles. Furthermore, the diverse nature of terrorism in the UK, with attacks inspired by both Islamic extremism and secessionist movements, suggests my results are likely to be externally valid and can be applied across a number of western economies where social and political discourse concerning terrorism is increasingly prevalent. Finally, the GTD reports over 3000 terror attacks on UK soil since 1970 as well as more than 100 attack variables providing ample data with which to estimate terror responses. The high number of attacks observed, however, is both a blessing and a curse, particularly when it comes to estimating event heterogeneity, as many attacks have to be discarded for fear of overlap and contamination of results. I employ a range of methods to address this overlap problem however none are entirely satisfactory.
+  
+  Throughout the paper as a proxy for terror responses I use daily returns of equity indices. This approach has a number of advantages over measuring a more direct economic variable of interest such as GDP or unemployment. Firstly, major UK indices are characterised by high liquidity and volumes and hence offer a clear, almost instantaeneous identification of agent reactions to terror attacks. Secondly, index prices, and therefore returns, are a function of agents' beliefs about current and future cash flows and therefore capture any changes in both direct and indirect effects unlike a stock variable. Finally, index returns encompass a broad range of firms within an economy and can be interpreted as a good proxy for the stochastic discount factor used in many traditional macro models.
+  
+  I use two methods to estimate index responses to attacks. First, I apply an event study methodology calculating cumulative abnormal returns (CARs) under the constant mean return model to quantify the effects of the five largest terror attacks, measured by a weighted sum of injuries and fatalities, and find mixed evidence of a significant fall in index returns in four of the five cases but no significant fall on aggregate. Then, I adapt @CHESNEY2011253's conditional probability approach within a bayesian setting and fail to conclude that any of the five attacks cause an extreme or abnormal movement in returns. Next, I apply the same methodologies to twenty of the UK's largest attacks, stratified by decade, and again fail to reject the null of significantly negative responses. Finally, I aggregate the cumulative abnormal returns to find a terror attack cumulative average abnormal return (CAAR) which, again, is not significantly different from zero.
+  
+  Estimating event heterogeneity produces broadly similar results. I regress event CAR's and event day returns on covariates such as weapons used; event location; event target; number of killed or wounded; attack success and a range of other variables using a Laplace prior to perform Bayesian LASSO in order to overcome concerns of overfitting. Projection predictive feature selection [@Piironen2017] suggests a number of variables of interest such as media intensity and number of injured provide the most predictive power when estimating event returns but my tests lack the power to conclude that these variables are different from 0 using 90% credibility intervals.
+  
+  Overall, it seems that index returns are resilient to terror attacks and the effects of terror are negligible, whilst more work is needed to definitively conclude that there is no event heterogeneity present.
+
+
+
+\section{Literature Review}
+
+Sample figure:
+
+\begin{figure}
+Figure here.
+
+\caption{Caption for figure below.}
+\begin{figurenotes}
+Figure notes without optional leadin.
+\end{figurenotes}
+\begin{figurenotes}[Source]
+Figure notes with optional leadin (Source, in this case).
+\end{figurenotes}
+\end{figure}
+
+Sample table:
+
+\begin{table}
+\caption{Caption for table above.}
+
+\begin{tabular}{lll}
+& Heading 1 & Heading 2 \\
+Row 1 & 1 & 2 \\
+Row 2 & 3 & 4%
+\end{tabular}
+\begin{tablenotes}
+Table notes environment without optional leadin.
+\end{tablenotes}
+\begin{tablenotes}[Source]
+Table notes environment with optional leadin (Source, in this case).
+\end{tablenotes}
+\end{table}
+
+References here (manual or bibTeX). If you are using bibTeX, add your bib file
+name in place of BibFile in the bibliography command.
+% Remove or comment out the next two lines if you are not using bibtex.
+\bibliographystyle{aea}
+\bibliography{references}
+
+% The appendix command is issued once, prior to all appendices, if any.
+\appendix
+
+\section{Mathematical Appendix}
