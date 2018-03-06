@@ -139,7 +139,7 @@ rm(list = removal.list.index)
 
 #### Terror Event Cleaning ####
 
-load('UKTerrorData.Rdata')
+load('Index and Terror Data/UKTerrorData.Rdata')
 
 # electing relevant columns
 terror.data <- subset(terror.UK.grouped, select = c(Date,
@@ -321,8 +321,8 @@ CAAR.10.by.decade
 
 # Compiling the pooled and separate stan model code. This is quicker than using the stan() function and constantly recompiling the C++ code stan uses. Doesn't matter for hierarchical as only run once.
 # This can often be very noisey with a ton of messages sent to the console - they're compiling messages and can be safely ignored
-separate.compiled <- stan_model(file = 'SeparateDecade.stan')
-pooled.compiled <- stan_model(file = 'PooledDecade.stan')
+separate.compiled <- stan_model(file = 'Stan Files/SeparateDecade.stan')
+pooled.compiled <- stan_model(file = 'Stan Files/PooledDecade.stan')
 ## +++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## Hierarchical
 ## +++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -338,7 +338,7 @@ stan.hierarchical.data <- list(N = nrow(stan.pooled.data), L = 20, id = stan.poo
                                terror_return = unique(stan.pooled.data$terror_return))
 
 
-hfit <- stan(file = 'HierarchicalLogit.stan',
+hfit <- stan(file = 'Stan Files/HierarchicalLogit.stan',
              data = stan.hierarchical.data,
              control = list(adapt_delta = 0.99))
 
@@ -430,17 +430,17 @@ separatefit.10s <- lapply(events.10s.data, function(x) sampling(object = separat
 
 ## Saving fitted model so don't need to re-fit the model all the time. Should ideally have done this using map()
 
-# save(hfit, file =  'hierarchicaldecadefit.Rdata')
-# save(poolfit.80s, file = 'poolfit80s.Rdata')
-# save(poolfit.90s, file = 'poolfit90s.Rdata')
-# save(poolfit.00s, file = 'poolfit00s.Rdata')
-# save(poolfit.10s, file = 'poolfit10s.Rdata')
+# save(hfit, file =  'Stanfit Objects/hierarchicaldecadefit.Rdata')
+# save(poolfit.80s, file = 'Stanfit Objects/poolfit80s.Rdata')
+# save(poolfit.90s, file = 'Stanfit Objects/poolfit90s.Rdata')
+# save(poolfit.00s, file = 'Stanfit Objects/poolfit00s.Rdata')
+# save(poolfit.10s, file = 'Stanfit Objects/poolfit10s.Rdata')
 # 
 # 
-# save(separatefit.80s, file = 'separatefit80s.Rdata')
-# save(separatefit.90s, file = 'separatefit90s.Rdata')
-# save(separatefit.00s, file = 'separatefit00s.Rdata')
-# save(separatefit.10s, file = 'separatefit10s.Rdata')
+# save(separatefit.80s, file = 'Stanfit Objects/separatefit80s.Rdata')
+# save(separatefit.90s, file = 'Stanfit Objects/separatefit90s.Rdata')
+# save(separatefit.00s, file = 'Stanfit Objects/separatefit00s.Rdata')
+# save(separatefit.10s, file = 'Stanfit Objects/separatefit10s.Rdata')
 
 
 
@@ -585,14 +585,14 @@ stan.largest5.pooled.data <- prepare.stan.data(n.events = 5, events = events.top
   map(data.frame) %>% 
   map2_dfr(.x = ., .y = 1:5, ~mutate(.x, event = .y))
 
-stan.largest5.hierarchical.data <- list(N = nrow(stan.largest5.pooled.data), L = 5, ll = stan.largest5.pooled.data$event,
+stan.largest5.hierarchical.data <- list(N = nrow(stan.largest5.pooled.data), L = 5, id = stan.largest5.pooled.data$event,
                                        Y = stan.largest5.pooled.data$Y,
                                        returns = stan.largest5.pooled.data$returns,
                                        terror_return = unique(stan.largest5.pooled.data$terror_return))
 
-hfit.large <- stan(file = 'HierarchicalLogit.stan',
+hfit.large <- stan(file = 'Stan Files/HierarchicalLogit.stan',
                    data = stan.largest5.hierarchical.data,
-                   control = list(adapt_delta = 0.99))
+                   control = list(adapt_delta = 0.99, max_treedepth = 20))
 
 # Pooled
 pooled.large.fit <- sampling(object = pooled.compiled,
@@ -621,4 +621,4 @@ results.separatefit.large$decade <- NULL
 large.cp.results <- bind_rows(results.hfit.large,
                               results.poolfit.large,
                               results.separatefit.large)
-
+save.image(file = 'AnalysisOutput/AnalysisOutput1.Rdata')
