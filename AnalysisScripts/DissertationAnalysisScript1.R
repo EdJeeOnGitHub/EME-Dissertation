@@ -22,7 +22,7 @@ filter <- dplyr::filter
 # Stan uses max number of cores when running MCMC simulations
 options(mc.cores = parallel::detectCores())
 # Loading analysis functions
-source('DissertationFunctions.R')
+source('AnalysisScripts/DissertationFunctions.R')
 
 ##### Index Data Cleaning #####
 
@@ -122,7 +122,7 @@ index.data.zoo.FTSE <- select.index(raw.index.data.UK,
 
 
 # Cleaning up unwanted variables
-removal.list.index <- c('root',
+removal.list.index <- c(
                  'raw.index.data',
                  'raw.index.data.UK',
                  'raw.index.data.UK.90s',
@@ -131,7 +131,6 @@ removal.list.index <- c('root',
                  'raw.index.data.UK.10s',
                  'index.data.UK.decade.list.ALLSHARE',
                  'keep.vars',
-                 'path.index',
                  'index.data.UK.decade.list',
                  'removal.list.index',
                  'index.zoo.UK.decade.list.ALLSHARE')
