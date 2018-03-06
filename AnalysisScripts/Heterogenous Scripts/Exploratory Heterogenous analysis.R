@@ -118,8 +118,3 @@ laplace.R.var.selected.fit
 
 
 
-## Notes: Have 51 predictors and only 88 observations of filtered events.
-## Variable selection techniques with CAR4 data suggest wounded and media intensity biggest determinants but don't have enough power to claim they're significantly different from 0.
-## Variable selection with terror return data indicates weaptype are biggest culprits but again very close to 0 - not sure how to interpret this.
-## Assuming events are iid - could possibly look into relaxing this assumption?
-
