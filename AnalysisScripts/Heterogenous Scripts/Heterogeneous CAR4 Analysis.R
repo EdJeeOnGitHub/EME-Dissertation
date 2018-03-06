@@ -1,4 +1,7 @@
 ## Second stage of analysis exploring heterogeneous effects of terror
+
+## This script will take ~ 4 hours to run and requires rstanarm and all its bells and whistles to be installed
+# See https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started
 rm(list = ls())
 
 
@@ -6,12 +9,12 @@ rm(list = ls())
 
 library(tidyverse)
 library(rstanarm)
-library(RPushbullet)
+# library(RPushbullet)  Lines starting pbPost send text notifications to me whenever a simulation finishes.
 options(mc.cores = parallel::detectCores())
-source('DissertationFunctions.R')
+source('AnalysisScripts/DissertationFunctions.R')
 
 #### Merging terror covariates and return data ####
-load('TerrorCovariates_subtype_media.Rdata')
+load('Index and Terror Data/TerrorCovariates_subtype_media.Rdata')
 load('AnalysisOutput/CAR_Data.RData')
 
 terror.covariates.subset <- terror.covariates.subset.media
@@ -58,7 +61,7 @@ X.R.u <- remove.constant.cols(X.R.u)
 CAR.model <- event.car ~ .
 R.model <- returns ~ .
 
-pbPost('note', 'Starting CAR4 Simulations', as.character(Sys.time()))
+# pbPost('note', 'Starting CAR4 Simulations', as.character(Sys.time()))
 
 
 #### Standard OLS models ####
@@ -66,12 +69,12 @@ pbPost('note', 'Starting CAR4 Simulations', as.character(Sys.time()))
 
 # CAR4s
 OLS.fit.CAR4.f <- stan_glm(CAR.model, family = gaussian(), data = X.CAR4.f)
-save(OLS.fit.CAR4.f, file = '~/Dropbox/Ed/AWS Output/CAR4/OLS_fit_CAR4_f.Rdata')
+save(OLS.fit.CAR4.f, file = 'AWS Output/CAR4/OLS_fit_CAR4_f.Rdata')
 
 OLS.fit.CAR4.u <- stan_glm(CAR.model, family = gaussian(), data = X.CAR4.u)
-save(OLS.fit.CAR4.u, file =  '~/Dropbox/Ed/AWS Output/CAR4/OLS_fit_CAR4_u.Rdata')
+save(OLS.fit.CAR4.u, file =  'AWS Output/CAR4/OLS_fit_CAR4_u.Rdata')
 
-pbPost('note', 'Model Completed', body = 'CAR4 OLS completed')
+# pbPost('note', 'Model Completed', body = 'CAR4 OLS completed')
 
 #### Laplace (LASSO) models ####
 
@@ -80,21 +83,21 @@ pbPost('note', 'Model Completed', body = 'CAR4 OLS completed')
 # CAR4s
 laplace.fit.CAR4.f <- stan_glm(CAR.model, family = gaussian(), data = X.CAR4.f,
                                prior = lasso())
-save(laplace.fit.CAR4.f, file = '~/Dropbox/Ed/AWS Output/CAR4/LASSO_fit_CAR4_f.Rdata')
+save(laplace.fit.CAR4.f, file = 'AWS Output/CAR4/LASSO_fit_CAR4_f.Rdata')
 
 laplace.fit.CAR4.u <- stan_glm(CAR.model, family = gaussian(), data = X.CAR4.u, prior = lasso())
-save(laplace.fit.CAR4.u, file =  '~/Dropbox/Ed/AWS Output/CAR4/LASSO_fit_CAR4_u.Rdata')
+save(laplace.fit.CAR4.u, file =  'AWS Output/CAR4/LASSO_fit_CAR4_u.Rdata')
 
-pbPost('note', 'Model Completed', body = 'CAR4 LASSOs completed')
+# pbPost('note', 'Model Completed', body = 'CAR4 LASSOs completed')
 
 
-pbPost('note', 'Simulations Finished:' , body = as.character(Sys.time()))
+# pbPost('note', 'Simulations Finished:' , body = as.character(Sys.time()))
 
 
 #### Returns ####
 ols.fit.R.u <- stan_glm(R.model, data = X.R.u)
-save(ols.fit.R.u, file = '~/Dropbox/Ed/AWS Output/CAR4/ols_fit_R_u.Rdata')
+save(ols.fit.R.u, file = 'AWS Output/CAR4/ols_fit_R_u.Rdata')
 
 laplace.fit.R.u <- stan_glm(R.model, family = gaussian(), data = X.R.u,
                             prior = lasso())
-save(laplace.fit.R.u, file = '~/Dropbox/Ed/AWS Output/CAR4/LASSO_fit_R_u.Rdata')
+save(laplace.fit.R.u, file = 'AWS Output/CAR4/LASSO_fit_R_u.Rdata')
