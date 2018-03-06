@@ -1,15 +1,17 @@
 # Exploring determinants of terror responses
+## The code commented out in this script isn't actually used in the final paper.
+
 rm(list = ls())
 library(tidyverse)
 library(readxl)
 library(car)
 library(dummies)
-source('DissertationFunctions.R')
-load('news.grouped.Rdata')
+source('AnalysisScripts/DissertationFunctions.R')
+load('News Data/news.grouped.Rdata')
 #### Preparing in depth terror data ####
-dropbox.path <- "C:/Users/nfa/Dropbox/Ed/Ed Uni work/EME/Data/Original Data/globalterrorismdb_0617dist.xlsx"
+terror.path <- "Index and Terror Data/globalterrorismdb_0617dist.xlsx"
 
-terror.tb <- read_xlsx(dropbox.path)
+terror.tb <- read_xlsx(terror.path)
 
 # Removing events where day of event is unknown as it seems reasonable that these are particularly insignificant events and are okay to drop. I think there's ~3 events dropped.
 # Removing a long list of variables that I don't really need
@@ -232,7 +234,7 @@ most.covariates.terror.and.date <- cbind(terror.UK$Date,
 terror.UK.grouped <- terror.UK %>% 
   group_by(Date) %>% 
   summarise_all(funs(if(is.numeric(.)) sum(., na.rm = TRUE) else first(.)))
-save(terror.UK.grouped, file = 'UKTerrorData.Rdata')
+save(terror.UK.grouped, file = 'Index and Terror Data/UKTerrorData.Rdata')
 
 terror.covariates <- bind_cols(terror.UK.grouped, most.covariates.terror.and.date) %>% as.tibble
 # Some of the original dummies in the dataset are now greater than 1 as we've aggregated events at the day level. Recoding dummies > 1 to 1.
@@ -249,46 +251,46 @@ terror.covariates <- bind_cols(terror.UK.grouped, most.covariates.terror.and.dat
 #          INT_MISC = replace(INT_MISC, INT_MISC >= 1, 1),
 #          guncertain1 = replace(guncertain1, guncertain1 >=1, 1))
 
-tidy.name.vector <- make.names(colnames(terror.covariates), unique=TRUE)
-colnames(terror.covariates) <- tidy.name.vector
-terror.covariates.subset <- subset(terror.covariates, select= -c(provstate,
-                                                          city,
-                                                          attacktype1_txt,
-                                                          attacktype2_txt,
-                                                          attacktype3_txt,
-                                                          targtype1_txt,
-                                                          targsubtype1_txt,
-                                                          natlty1_txt,
-                                                          targtype2_txt,
-                                                          targsubtype2_txt,
-                                                          target2,
-                                                          target3,
-                                                          natlty2_txt,
-                                                          targtype3_txt,
-                                                          targsubtype3_txt,
-                                                          target3,
-                                                          natlty3_txt,
-                                                          gname,
-                                                          weapsubtype1_txt,
-                                                          weapsubtype2_txt,
-                                                          weapsubtype3_txt,
-                                                          weapsubtype4_txt,
-                                                          weaptype1_txt,
-                                                          weaptype2_txt,
-                                                          weaptype3_txt,
-                                                          weaptype4_txt,
-                                                          weapdetail,
-                                                          weapsubtype1,
-                                                          weapsubtype2,
-                                                          weapsubtype3,
-                                                          weapsubtype4,
-                                                          hostkidoutcome_txt,
-                                                          claimed))
-                                                          
-
-
-
-save(terror.covariates.subset, file= 'TerrorCovariates_subtype.Rdata')
+# tidy.name.vector <- make.names(colnames(terror.covariates), unique=TRUE)
+# colnames(terror.covariates) <- tidy.name.vector
+# terror.covariates.subset <- subset(terror.covariates, select= -c(provstate,
+#                                                           city,
+#                                                           attacktype1_txt,
+#                                                           attacktype2_txt,
+#                                                           attacktype3_txt,
+#                                                           targtype1_txt,
+#                                                           targsubtype1_txt,
+#                                                           natlty1_txt,
+#                                                           targtype2_txt,
+#                                                           targsubtype2_txt,
+#                                                           target2,
+#                                                           target3,
+#                                                           natlty2_txt,
+#                                                           targtype3_txt,
+#                                                           targsubtype3_txt,
+#                                                           target3,
+#                                                           natlty3_txt,
+#                                                           gname,
+#                                                           weapsubtype1_txt,
+#                                                           weapsubtype2_txt,
+#                                                           weapsubtype3_txt,
+#                                                           weapsubtype4_txt,
+#                                                           weaptype1_txt,
+#                                                           weaptype2_txt,
+#                                                           weaptype3_txt,
+#                                                           weaptype4_txt,
+#                                                           weapdetail,
+#                                                           weapsubtype1,
+#                                                           weapsubtype2,
+#                                                           weapsubtype3,
+#                                                           weapsubtype4,
+#                                                           hostkidoutcome_txt,
+#                                                           claimed))
+#                                                           
+# 
+# 
+# 
+# save(terror.covariates.subset, file= 'Index and Terror Data/TerrorCovariates_subtype.Rdata')
 
 news.grouped$T <- seq_along(news.grouped$dates)
 terror.covariates.subset.media <- left_join(terror.covariates.subset, news.grouped, by = c('Date' = 'dates'))
@@ -296,4 +298,4 @@ terror.covariates.subset.media$`number of articles`[is.na(terror.covariates.subs
 terror.covariates.subset.media <- terror.covariates.subset.media[terror.covariates.subset.media$Date > as.Date('1984-12-06'),] %>% 
   na.omit
 
-save(terror.covariates.subset.media, file = 'TerrorCovariates_subtype_media.Rdata')
+save(terror.covariates.subset.media, file = 'Index and Terror Data/TerrorCovariates_subtype_media.Rdata')
