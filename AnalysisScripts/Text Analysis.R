@@ -1,17 +1,4 @@
 
-## News Reading ##
-
-library(quanteda)
-
-file <- "C:/Users/ed/Dropbox/Ed/Ed Uni work/EME/Data/Original Data/News Data/Headline Specification"
-
-news.text <- VCorpus(DirSource(file, encoding = 'UTF-8'), readerControl = list(language = 'lat'))
-
-
-
-file2 <- "C:/Users/ed/Dropbox/Ed/Ed Uni work/EME/Data/Original Data/News Data/Headline Specification/News 1980-2000.txt"
-news.text.split <- corpus_segment(file2, pattern = 'DOCUMENTS')
-
 # Dealing with newspaper data for media intensity index
 rm(list = ls())
 library(quanteda)
@@ -78,7 +65,6 @@ docvars(myCorpus.split, 'Article Date') <- dates.tibble$Date
 
 
 
-newsmap_dict <- dictionary(file = 'english.yml')
 UK.dict <- dictionary(list(
   in.UK = c(
     'uk',
@@ -131,20 +117,4 @@ summary(news.grouped)
   
 
 
-save(news.grouped, file = 'news.grouped.Rdata')
-
-# doc.feature.matrix <- dfm(myCorpus.split, remove = stopwords('english'), stem = TRUE, remove_punct = TRUE)
-# topfeatures(doc.feature.matrix)
-# 
-# 
-# UK.list <- c('UK',
-#              'Britain',
-#              'England',
-#              'Wales',
-#              'Scotland',
-#              'Ireland',
-#              'London')
-# 
-# 
-# filtered.dfm <- dfm_keep(doc.feature.matrix, pattern = UK.list )
-
+save(news.grouped, file = 'News Data/news.grouped.Rdata')
