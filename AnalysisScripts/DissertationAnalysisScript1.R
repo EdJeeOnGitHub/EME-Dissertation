@@ -340,7 +340,7 @@ stan.hierarchical.data <- list(N = nrow(stan.pooled.data), L = 20, id = stan.poo
 
 hfit <- stan(file = 'Stan Files/HierarchicalLogit.stan',
              data = stan.hierarchical.data,
-             control = list(adapt_delta = 0.99))
+             control = list(adapt_delta = 0.9999, max_treedepth = 20))
 
 
 #+++++++++++++++++++++++++++++++
