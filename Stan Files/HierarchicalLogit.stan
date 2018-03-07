@@ -18,6 +18,8 @@ parameters{
   
   real<lower=0> Sigma_L[L];
   real<lower=0> sigma_L;
+  
+  vector[N] x_beta_ll;
 }
 model {
 
@@ -36,9 +38,9 @@ model {
     a[l] ~ normal(mu_a, sigma_a);
   }
   {
-    vector[N] x_beta_ll;
+    
     for (n in 1:N)
-      x_beta_ll[n] ~ normal(a[id[n]] + returns[n] * beta[id[n]], sigma_L);
+      x_beta_ll[n] ~ normal(a[id[n]] + returns[n] * beta[id[n]], Sigma_L[id[n]]);
       Y ~ bernoulli_logit(x_beta_ll);
 }
   
