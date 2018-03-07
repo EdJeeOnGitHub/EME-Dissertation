@@ -4,7 +4,7 @@ data {
   
   int<lower=1, upper=L> id[N]; // id for each?
   vector[N] returns; // predictors
-  real Y[N]; // Response variable
+  int Y[N]; // Response variable
   vector[L] terror_return;
 }
 parameters{
@@ -38,8 +38,8 @@ model {
   {
     vector[N] x_beta_ll;
     for (n in 1:N)
-      x_beta_ll[n] = exp(a[id[n]] + returns[n] * beta[id[n]]) / (exp(a[id[n]] + returns[n] * beta[id[n]]) + 1);
-      Y ~ normal(x_beta_ll, sigma_L);
+      x_beta_ll[n] ~ normal(a[id[n]] + returns[n] * beta[id[n]], sigma_L);
+      Y ~ bernoulli_logit(x_beta_ll);
 }
   
 }
