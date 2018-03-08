@@ -541,6 +541,13 @@ largest.20.events.CAAR <- calculate.CAAR(events.sorted[1:20,],
                                          index.zoo.UK.ALLSHARE.omitted)
 
 
+largest.5.events.CAAR.table <- seq(11) %>% 
+  map_df( ~ calculate.CAAR(events = events.top5,
+                        index = index.zoo.UK.ALLSHARE.omitted,
+                        car.length = .x)) %>% 
+  mutate(day.CAAR = seq(nrow(.)) - 1)
+
+
 
 # The same but removing overlapping events that appear in the top 15 and 25 - N.B. not screening for tiny events occurring in window.
 events.top15.no.overlap <- screen.overlapping.events(events.sorted[1:15,])
