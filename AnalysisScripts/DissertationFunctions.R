@@ -484,6 +484,41 @@ collect.stan.results <- function(stan.fit, parameter, decade, model){
 }
 
 #### Terror Cleaning Functions (Mainly used on Script2) ####
+
+
+
+
+# Removes any events that have other terror events occurring in their estimation window
+screen.overlapping.events <- function(events, window.end = 10, drop = TRUE,  window.length = 20, arrange = TRUE){
+  events <- events %>%
+    mutate(
+      start.date = (Date - window.end - window.length),
+      end.date = (Date - window.end)
+    ) %>%
+    arrange(desc(Date)) %>% 
+    mutate(L.date = lead(Date),
+           L.start.date = L.date - window.end - window.length,
+           L.end.date = L.date - window.end,
+           estimation.interval = start.date %--% end.date,
+           L.interval = L.start.date %--% L.end.date,
+           overlap = int_overlaps(estimation.interval, L.interval)) %>% 
+    select(-c(start.date, end.date, L.date, L.start.date, L.end.date, estimation.interval, L.interval))
+  
+  if (arrange == TRUE){
+    events <- arrange(events, desc(terror.intensity))
+  } 
+  
+  
+  if (drop == TRUE){
+    events <- filter(events, overlap == FALSE | is.na(overlap)) # lubridate's interval function and dplyr's tibble don't get along
+  }                                                             # therefore have this workaround where very earliest event is classed as NA but not
+  return(events)                                                # dropped, by definition the first event can't overlap so this is ok.
+}
+
+
+
+
+
 # We have a problem where there are multiple factor columns when I only want one. i.e. we have weapon1/2/3 but these are separate and list the weapon used. If I want a 'used a gun' dummy I 
 # need to convert all these factor columns into a dummy column and then aggregate across them.
 

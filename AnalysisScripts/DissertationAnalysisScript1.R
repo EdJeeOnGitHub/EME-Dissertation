@@ -205,36 +205,6 @@ events.sorted <- filter.events(event.data = terror.data,
                                end.Date = '2020-01-01',
                                n.events = nrow(terror.data))
 
-
-# Removes any events that have other terror events occurring in their estimation window
-screen.overlapping.events <- function(events, window.end = 10, drop = TRUE,  window.length = 20){
-  events <- events %>%
-    mutate(
-      start.date = (Date - window.end - window.length),
-      end.date = (Date - window.end)
-    ) %>%
-    arrange(desc(Date)) %>% 
-    mutate(L.date = lead(Date),
-           L.start.date = L.date - window.end - window.length,
-           L.end.date = L.date - window.end,
-           estimation.interval = start.date %--% end.date,
-           L.interval = L.start.date %--% L.end.date,
-           overlap = int_overlaps(estimation.interval, L.interval)) %>% 
-    select(-c(start.date, end.date, L.date, L.start.date, L.end.date, estimation.interval, L.interval)) %>% 
-    arrange(desc(terror.intensity))
-  
-  if (drop == TRUE){
-    events <- filter(events, overlap == FALSE | is.na(overlap)) # lubridate's interval function and dplyr's tibble don't get along
-  }                                                             # therefore have this workaround where very earliest event is classed as NA but not
-  return(events)                                                # dropped, by definition the first event can't overlap so this is ok.
-}
-
-
-
-
-
-
-
 removal.list.terror <- c('fatality.weight',
                          'incident.weight',
                          'injury.weight',
