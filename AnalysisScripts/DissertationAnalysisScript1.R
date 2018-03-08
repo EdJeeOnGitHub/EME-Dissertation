@@ -277,7 +277,7 @@ FTSE100.finite.moment.pvalue
 # CAR10
 
 decade.event.study.CAR10 <- events.decade.list %>% 
-  map_dfr(calculate.car, index = index.zoo.UK.ALLSHARE.omitted)
+  map_dfr(calculate.car, index = index.zoo.UK.ALLSHARE.omitted, boot = TRUE)
 
 
 # CAR4 N.B. car.length set to 5 as it counts event day (i.e. t=0) inclusively
