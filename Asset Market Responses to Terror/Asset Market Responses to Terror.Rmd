@@ -22,7 +22,7 @@ acknowledgements: |
 abstract: |
   I show that large terror attacks do not have a significant negative effect on UK asset markets. Furthermore, when I expand my analysis to include all terror attacks from 1970 to present day I find no evidence of a negative asset market response. Finally, I find no evidence of event heterogeneity. That is, target type and location; success of an attack; number of wounded or killed; weapons used; attack type and media coverage cannot be used as predictors for asset market responses. Results are consistent across a range of UK indices and specifications.
 output: rticles::aea_article
-keep_tex: TRUE
+keep_tex: FALSE
 bibliography: BibFile.bib
 ---
 
@@ -65,7 +65,7 @@ Terror attacks in developed countries have long been studied by economists as so
   
   The UK is a natural candidate for terror analysis as a victim of both extreme events such as the London 7/7 Bombings as well as a long history of attacks due to the Troubles. Furthermore, the diverse nature of terrorism in the UK, with attacks inspired by both Islamic extremism and secessionist movements, suggests my results are likely to be externally valid and can be applied across a number of western economies where social and political discourse concerning terrorism is increasingly prevalent. Finally, the GTD reports over 3000 terror attacks on UK soil since 1970 as well as more than 100 attack variables providing ample data with which to estimate terror responses. The high number of attacks observed, however, is both a blessing and a curse, particularly when it comes to estimating event heterogeneity, as many attacks have to be discarded for fear of overlap and contamination of results. I employ a range of methods to address this overlap problem however none are entirely satisfactory.
   
-  Throughout the paper as a proxy for terror responses I use daily returns of equity indices. This approach has a number of advantages over measuring a more direct economic variable of interest such as GDP or unemployment. Firstly, major UK indices are characterised by high liquidity and volumes and hence offer a clear, almost instantaeneous identification of agent reactions to terror attacks. Secondly, index prices, and therefore returns, are a function of agents' beliefs about current and future cash flows and therefore capture any changes in both direct and indirect effects unlike a stock variable. Finally, index returns encompass a broad range of firms within an economy and can be interpreted as a good proxy for the stochastic discount factor used in many traditional macro models.
+  Throughout the paper as a proxy for terror responses I use daily equity index returns. This approach has a number of advantages over measuring a more direct economic variable of interest such as GDP or unemployment. Firstly, major UK indices are characterised by high liquidity and volumes and hence offer a clear, almost instantaeneous identification of agent reactions to terror attacks. Secondly, index prices, and therefore returns, are a function of agents' beliefs about current and future cash flows and therefore capture any changes in both direct and indirect effects unlike a stock variable. Finally, index returns encompass a broad range of firms within an economy and can be interpreted as a good proxy for the stochastic discount factor used in many traditional macro models.
   
   I use two methods to estimate index responses to attacks. First, I apply an event study methodology calculating cumulative abnormal returns (CARs) under the constant mean return model to quantify the effects of the five largest terror attacks, measured by a weighted sum of injuries and fatalities, and find mixed evidence of a significant fall in index returns in four of the five cases but no significant fall on aggregate. Then, I adapt @CHESNEY2011253's conditional probability approach within a bayesian setting and fail to conclude that any of the five attacks cause an extreme or abnormal movement in returns. Next, I apply the same methodologies to twenty of the UK's largest attacks, stratified by decade, and again fail to reject the null of significantly negative responses. Finally, I aggregate the cumulative abnormal returns to find a terror attack cumulative average abnormal return (CAAR) which, again, is not significantly different from zero.
   
@@ -77,45 +77,51 @@ Terror attacks in developed countries have long been studied by economists as so
 
 \section{Literature Review}
 
-Sample figure:
 
-\begin{figure}
-Figure here.
+\section{Methods and Results}
+Event studies are commonly used in finance^[A 2007 estimate puts the number of published papers in finance using an event study methodology at over 565 [@Kothari20073]] to identify the effect of an event on asset prices or returns and are often used in cases of small N, large T common to financial time series and extreme event modelling.
 
-\caption{Caption for figure below.}
-\begin{figurenotes}
-Figure notes without optional leadin.
-\end{figurenotes}
-\begin{figurenotes}[Source]
-Figure notes with optional leadin (Source, in this case).
-\end{figurenotes}
-\end{figure}
 
-Sample table:
 
-\begin{table}
-\caption{Caption for table above.}
+<!-- Sample figure: -->
 
-\begin{tabular}{lll}
-& Heading 1 & Heading 2 \\
-Row 1 & 1 & 2 \\
-Row 2 & 3 & 4%
-\end{tabular}
-\begin{tablenotes}
-Table notes environment without optional leadin.
-\end{tablenotes}
-\begin{tablenotes}[Source]
-Table notes environment with optional leadin (Source, in this case).
-\end{tablenotes}
-\end{table}
+<!-- \begin{figure} -->
+<!-- Figure here. -->
 
-References here (manual or bibTeX). If you are using bibTeX, add your bib file
-name in place of BibFile in the bibliography command.
-% Remove or comment out the next two lines if you are not using bibtex.
+<!-- \caption{Caption for figure below.} -->
+<!-- \begin{figurenotes} -->
+<!-- Figure notes without optional leadin. -->
+<!-- \end{figurenotes} -->
+<!-- \begin{figurenotes}[Source] -->
+<!-- Figure notes with optional leadin (Source, in this case). -->
+<!-- \end{figurenotes} -->
+<!-- \end{figure} -->
+
+<!-- Sample table: -->
+
+<!-- \begin{table} -->
+<!-- \caption{Caption for table above.} -->
+
+<!-- \begin{tabular}{lll} -->
+<!-- & Heading 1 & Heading 2 \\ -->
+<!-- Row 1 & 1 & 2 \\ -->
+<!-- Row 2 & 3 & 4% -->
+<!-- \end{tabular} -->
+<!-- \begin{tablenotes} -->
+<!-- Table notes environment without optional leadin. -->
+<!-- \end{tablenotes} -->
+<!-- \begin{tablenotes}[Source] -->
+<!-- Table notes environment with optional leadin (Source, in this case). -->
+<!-- \end{tablenotes} -->
+<!-- \end{table} -->
+
+<!-- References here (manual or bibTeX). If you are using bibTeX, add your bib file -->
+<!-- name in place of BibFile in the bibliography command. -->
+<!-- % Remove or comment out the next two lines if you are not using bibtex. -->
 \bibliographystyle{aea}
-\bibliography{references}
+\bibliography{BibFile.bib}
 
-% The appendix command is issued once, prior to all appendices, if any.
+
 \appendix
 
-\section{Mathematical Appendix}
+
