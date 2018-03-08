@@ -1,6 +1,43 @@
 # This script produces all the graphics used in the paper and presentations
 library(tidyverse)
+library(latex2exp)
 load("~/R Working Directory/EME-Dissertation/AnalysisOutput/AnalysisOutput1.RData")
+
+
+
+#### Explaining Event Study Graphics ####
+
+set.seed <- 15
+y <- 100 + rnorm(41, 0, 1)
+y.terror <- 98 + rnorm(10, 0 , 1)
+mu.bar <- mean(y[1:20])
+es.df <- tibble(y, mu.bar)
+es.df$Event.Date <- seq(-30, 10)
+es.df$y.obs <- y
+es.df$y.obs[37:41] <- y.terror
+
+
+event.study.explanation.plot <- ggplot(es.df, aes(Event.Date, y.obs)) +
+  geom_smooth(se = FALSE, method = 'loess') +
+  geom_line(aes(Event.Date, mu.bar), linetype = 'longdash', alpha = 0.3) +
+  geom_vline(xintercept = 0) +
+  ylim(96, 102) +
+  geom_segment( x = -30, xend = -10, y = 101, yend = 101,
+           colour = "black", size = 1, linetype = 'dotted') +
+  annotate("text", x = -20, y = 101.25, label = "Estimation Window") +
+  geom_segment(x = 0, xend = 10,y = 101, yend = 101,
+               colour = "black", size = 1, linetype = 'dotted' ) +
+  annotate('text', x = 5, y = 101.25, label = 'Event Window') +
+  annotate('text', x = 5, y = 100.35, label=TeX("$E\\[R_{i,\\tau}|\\Omega_{i,\\tau}\\]$", output='character'), parse=TRUE) + 
+  geom_segment( x = 10, xend = 10, y = 98.2, yend = mu.bar, linetype = 'longdash') +
+  annotate('text', x = 10.8, y = 99, label = TeX('$AR_{i,\\tau = 10}$', output = 'character'), parse = TRUE, angle = 270) +
+  xlab(label = TeX('$\\tau$')) +
+  ylab(TeX('$\\R_{it}')) +
+  ggtitle('An Event Study') +
+  theme_minimal() 
+
+event.study.explanation.plot
+# ggsave(filename = 'Event Study Explanation.png') Don't redo this one, random seed makes it messy
 
 #### Summary Statistics Graphics ####
 
