@@ -118,22 +118,29 @@ proxy for the stochastic discount factor used in many traditional macro
 models.
 
 I use two methods to estimate index responses to attacks. First, I apply
-an event study methodology calculating cumulative abnormal returns
-(CARs) under the constant mean return model to quantify the effects of
-the five largest terror attacks, measured by a weighted sum of injuries
-and fatalities, and find mixed evidence of a significant fall in index
-returns in four of the five cases but no significant fall on aggregate.
-Then, I adapt Chesney, Reshetar, and Karaman (2011)'s conditional
-probability approach within a bayesian setting and fail to conclude that
-any of the five attacks cause an extreme or abnormal movement in
-returns. Next, I apply the same methodologies to twenty of the UK's
-largest attacks, stratified by decade, and again fail to reject the null
-of significantly negative responses. Finally, I aggregate the cumulative
-abnormal returns to find a terror attack cumulative average abnormal
-return (CAAR) which, again, is not significantly different from zero.
+an event study methodology, which is commonly used in the finance
+literature\footnote{A 2007 estimate puts the number of published papers
+  in finance using an event study methodology at over 565 (Kothari and
+  Warner 2007).}, to identify the effect of an event on asset prices or
+returns. Event studies are particularly useful in this situation due to
+their ability to handle small N, large T situations common to financial
+time series and extreme event modelling. I calculate cumulative abnormal
+returns (CARs) under the constant mean return model to quantify the
+effects of the five largest terror attacks, measured by a weighted sum
+of injuries and fatalities, and find mixed evidence of a significant
+fall in index returns in four of the five cases but no significant fall
+on aggregate. Then, I adapt Chesney, Reshetar, and Karaman (2011)'s
+conditional probability approach within a bayesian setting and fail to
+conclude that any of the five attacks cause an extreme or abnormal
+movement in returns. Next, I apply the same methodologies to twenty of
+the UK's largest attacks, stratified by decade, and again fail to reject
+the null of significantly negative responses. Finally, I aggregate the
+cumulative abnormal returns to find a terror attack cumulative average
+abnormal return (CAAR) which, again, is not significantly different from
+zero.
 
 Estimating event heterogeneity produces broadly similar results. I
-regress event CAR's and event day returns on covariates such as weapons
+regress event CARs and event day returns on covariates such as weapons
 used; event location; event target; number of killed or wounded; attack
 success and a range of other variables using a Laplace prior to perform
 Bayesian LASSO in order to overcome concerns of overfitting. Projection
@@ -149,16 +156,36 @@ definitively conclude that there is no event heterogeneity present.
 
 \section{Literature Review}
 
-\section{Methods and Results}
+\section{Methods and Results}\subsection{Event Study}
 
-Event studies are commonly used in finance\footnote{A 2007 estimate puts
-  the number of published papers in finance using an event study
-  methodology at over 565 (Kothari and Warner 2007)} to identify the
-effect of an event on asset prices or returns and are often used in
-cases of small N, large T common to financial time series and extreme
-event modelling.
+I use a standard event study approach, outlined by MacKinlay (1997),
+where the event day is indexed by \(t = 0\). I first calculate abnormal
+returns to give cumulative abnormal returns
+\[ \begin{aligned} AR_{i,\tau} &=R_{i,\tau}-E[R_{i,\tau}\vert\Omega_{i,\tau}] \\
+CAR_{i(\tau_{1},\tau_{2})} &=\sum_{t=\tau_{1}}^{\tau_{2}} AR_{i,t} \end{aligned}\]
+where \(E[R_{i,\tau}\vert\Omega_{i,\tau}]\) is the expected index return
+derived from the constant mean return model (the mean of index returns
+within the estimation window) conditioning on information,
+\(Omega_{i,\tau}\) common to all agents. The constant mean return model
+can be written as \(R_{it} = \mu_i + \psi_{it}\), \(E(\psi_{it}) = 0)\)
+\(var(\psi_{it}) = \sigma_{\psi_{it}}^2\). Whilst the constant mean
+return model is the most simple,\footnote{compared to more advanced
+  methods such as the market model which incorporates CAPM or
+  multi-factor models building on Fama and French (1993)'s three factor
+  model} it has been shown to perform similarly to these more advanced
+models and has the advantage of being well defined for index returns
+rather than individual securities which would be problematic under a
+CAPM approach.
 
-\bibliographystyle{aea}\bibliography{BibFile.bib}
+My estimation window contains twenty observations and ends ten days
+before the event occurs. I choose an event window of 10 days
+post-attack.
+
+\$\$ y = x
+
+\$\$
+
+\section{References}\bibliographystyle{aea}\bibliography{BibFile.bib}
 
 \appendix
 
@@ -200,12 +227,23 @@ Transnational Terrorism and Tourism: The Case of Spain.''
 \emph{Terrorism} 14 (1). Routledge: 49--58.
 doi:\href{https://doi.org/10.1080/10576109108435856}{10.1080/10576109108435856}.
 
+\hypertarget{ref-FAMA19933}{}
+Fama, Eugene F., and Kenneth R. French. 1993. ``Common Risk Factors in
+the Returns on Stocks and Bonds.'' \emph{Journal of Financial Economics}
+33 (1): 3--56.
+doi:\href{https://doi.org/https://doi.org/10.1016/0304-405X(93)90023-5}{https://doi.org/10.1016/0304-405X(93)90023-5}.
+
 \hypertarget{ref-Kothari20073}{}
 Kothari, S.P., and Jerold B. Warner. 2007. ``Chapter 1 - Econometrics of
 Event Studies*.'' In \emph{Handbook of Empirical Corporate Finance},
 edited by B. Espen Eckbo, 3--36. Handbooks in Finance. San Diego:
 Elsevier.
 doi:\href{https://doi.org/https://doi.org/10.1016/B978-0-444-53265-7.50015-9}{https://doi.org/10.1016/B978-0-444-53265-7.50015-9}.
+
+\hypertarget{ref-10.2307ux2f2729691}{}
+MacKinlay, A. Craig. 1997. ``Event Studies in Economics and Finance.''
+\emph{Journal of Economic Literature} 35 (1). American Economic
+Association: 13--39. \url{http://www.jstor.org/stable/2729691}.
 
 \hypertarget{ref-Piironen2017}{}
 Piironen, Juho, and Aki Vehtari. 2017. ``Comparison of Bayesian

@@ -24,6 +24,8 @@ abstract: |
 output: rticles::aea_article
 keep_tex: FALSE
 bibliography: BibFile.bib
+header-includes:
+   - \usepackage{amsmath}
 ---
 
 \pagestyle{plain}
@@ -67,9 +69,9 @@ Terror attacks in developed countries have long been studied by economists as so
   
   Throughout the paper as a proxy for terror responses I use daily equity index returns. This approach has a number of advantages over measuring a more direct economic variable of interest such as GDP or unemployment. Firstly, major UK indices are characterised by high liquidity and volumes and hence offer a clear, almost instantaeneous identification of agent reactions to terror attacks. Secondly, index prices, and therefore returns, are a function of agents' beliefs about current and future cash flows and therefore capture any changes in both direct and indirect effects unlike a stock variable. Finally, index returns encompass a broad range of firms within an economy and can be interpreted as a good proxy for the stochastic discount factor used in many traditional macro models.
   
-  I use two methods to estimate index responses to attacks. First, I apply an event study methodology calculating cumulative abnormal returns (CARs) under the constant mean return model to quantify the effects of the five largest terror attacks, measured by a weighted sum of injuries and fatalities, and find mixed evidence of a significant fall in index returns in four of the five cases but no significant fall on aggregate. Then, I adapt @CHESNEY2011253's conditional probability approach within a bayesian setting and fail to conclude that any of the five attacks cause an extreme or abnormal movement in returns. Next, I apply the same methodologies to twenty of the UK's largest attacks, stratified by decade, and again fail to reject the null of significantly negative responses. Finally, I aggregate the cumulative abnormal returns to find a terror attack cumulative average abnormal return (CAAR) which, again, is not significantly different from zero.
+  I use two methods to estimate index responses to attacks. First, I apply an event study methodology, which is commonly used in the finance literature^[A 2007 estimate puts the number of published papers in finance using an event study methodology at over 565 [@Kothari20073].], to identify the effect of an event on asset prices or returns. Event studies are particularly useful in this situation due to their ability to handle small N, large T situations common to financial time series and extreme event modelling. I calculate cumulative abnormal returns (CARs) under the constant mean return model to quantify the effects of the five largest terror attacks, measured by a weighted sum of injuries and fatalities, and find mixed evidence of a significant fall in index returns in four of the five cases but no significant fall on aggregate. Then, I adapt @CHESNEY2011253's conditional probability approach within a bayesian setting and fail to conclude that any of the five attacks cause an extreme or abnormal movement in returns. Next, I apply the same methodologies to twenty of the UK's largest attacks, stratified by decade, and again fail to reject the null of significantly negative responses. Finally, I aggregate the cumulative abnormal returns to find a terror attack cumulative average abnormal return (CAAR) which, again, is not significantly different from zero.
   
-  Estimating event heterogeneity produces broadly similar results. I regress event CAR's and event day returns on covariates such as weapons used; event location; event target; number of killed or wounded; attack success and a range of other variables using a Laplace prior to perform Bayesian LASSO in order to overcome concerns of overfitting. Projection predictive feature selection [@Piironen2017] suggests a number of variables of interest such as media intensity and number of injured provide the most predictive power when estimating event returns but my tests lack the power to conclude that these variables are different from 0 using 90% credibility intervals.
+  Estimating event heterogeneity produces broadly similar results. I regress event CARs and event day returns on covariates such as weapons used; event location; event target; number of killed or wounded; attack success and a range of other variables using a Laplace prior to perform Bayesian LASSO in order to overcome concerns of overfitting. Projection predictive feature selection [@Piironen2017] suggests a number of variables of interest such as media intensity and number of injured provide the most predictive power when estimating event returns but my tests lack the power to conclude that these variables are different from 0 using 90% credibility intervals.
   
   Overall, it seems that index returns are resilient to terror attacks and the effects of terror are negligible, whilst more work is needed to definitively conclude that there is no event heterogeneity present.
 
@@ -79,7 +81,18 @@ Terror attacks in developed countries have long been studied by economists as so
 
 
 \section{Methods and Results}
-Event studies are commonly used in finance^[A 2007 estimate puts the number of published papers in finance using an event study methodology at over 565 [@Kothari20073]] to identify the effect of an event on asset prices or returns and are often used in cases of small N, large T common to financial time series and extreme event modelling.
+\subsection{Event Study}
+I use a standard event study approach, outlined by @10.2307/2729691, where the event day is indexed by $t = 0$. I first calculate abnormal returns to give cumulative abnormal returns $$ \begin{aligned} AR_{i,\tau} &=R_{i,\tau}-E[R_{i,\tau}\vert\Omega_{i,\tau}] \\
+CAR_{i(\tau_{1},\tau_{2})} &=\sum_{t=\tau_{1}}^{\tau_{2}} AR_{i,t} \end{aligned}$$ where $E[R_{i,\tau}\vert\Omega_{i,\tau}]$ is the expected index return derived from the constant mean return model (the mean of index returns within the estimation window) conditioning on information, $Omega_{i,\tau}$ common to all agents. The constant mean return model can be written as $R_{it} = \mu_i + \psi_{it}$, $E(\psi_{it}) = 0)$ $var(\psi_{it}) = \sigma_{\psi_{it}}^2$. Whilst the constant mean return model is the most simple, ^[compared to more advanced methods such as the market model which incorporates CAPM or multi-factor models building on @FAMA19933's three factor model] it has been shown to perform similarly to these more advanced models and has the advantage of being well defined for index returns rather than individual securities which would be problematic under a CAPM approach.
+
+
+My estimation window contains twenty observations and ends ten days before the event occurs. I choose an event window of 10 days post-attack.
+
+$$
+y = x
+
+
+$$
 
 
 
@@ -118,6 +131,7 @@ Event studies are commonly used in finance^[A 2007 estimate puts the number of p
 <!-- References here (manual or bibTeX). If you are using bibTeX, add your bib file -->
 <!-- name in place of BibFile in the bibliography command. -->
 <!-- % Remove or comment out the next two lines if you are not using bibtex. -->
+\section{References}
 \bibliographystyle{aea}
 \bibliography{BibFile.bib}
 
