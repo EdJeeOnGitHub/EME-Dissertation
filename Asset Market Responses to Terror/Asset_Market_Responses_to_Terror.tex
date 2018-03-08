@@ -159,23 +159,37 @@ definitively conclude that there is no event heterogeneity present.
 \section{Methods and Results}\subsection{Event Study}
 
 I use a standard event study approach, outlined by MacKinlay (1997),
-where the event day is indexed by \(t = 0\). I first calculate abnormal
-returns to give cumulative abnormal returns
+where \(\tau\) is defined in relation to event time so that \(\tau = 0\)
+indicates the day of the attack. I first calculate abnormal returns at
+time \(\tau\) for event \(i\) to give cumulative abnormal returns:
 \[ \begin{aligned} AR_{i,\tau} &=R_{i,\tau}-E[R_{i,\tau}\vert\Omega_{i,\tau}] \\
-CAR_{i(\tau_{1},\tau_{2})} &=\sum_{t=\tau_{1}}^{\tau_{2}} AR_{i,t} \end{aligned}\]
-where \(E[R_{i,\tau}\vert\Omega_{i,\tau}]\) is the expected index return
-derived from the constant mean return model (the mean of index returns
-within the estimation window) conditioning on information,
-\(Omega_{i,\tau}\) common to all agents. The constant mean return model
-can be written as \(R_{it} = \mu_i + \psi_{it}\), \(E(\psi_{it}) = 0)\)
-\(var(\psi_{it}) = \sigma_{\psi_{it}}^2\). Whilst the constant mean
-return model is the most simple,\footnote{compared to more advanced
-  methods such as the market model which incorporates CAPM or
-  multi-factor models building on Fama and French (1993)'s three factor
-  model} it has been shown to perform similarly to these more advanced
-models and has the advantage of being well defined for index returns
-rather than individual securities which would be problematic under a
-CAPM approach.
+CAR_{i(\tau_{1},\tau_{2})} &=\sum_{t=\tau_{1}}^{\tau_{2}} AR_{i,t} \end{aligned}
+\] where \(\tau_1 = 0\) and \(\tau_2 = 9\), indicating an event window
+of ten days, and \(E[R_{i,\tau}\vert\Omega_{i,\tau}]\) is the expected
+index return derived from the constant mean return model conditioning on
+information, \(\Omega_{i,\tau}\), common to all agents. The constant
+mean return model can be written as:
+\[ \begin{aligned} R_{it} &= \mu_i + \psi_{it} \\ E(\psi_{it}) &= 0, \ \text{var}(\psi_{it}) = \sigma_{\psi_{it}}^2 \end{aligned}\]
+Where \(\mu_i\) is some constant and \(\psi_{it}\) white noise i.e.~a
+random walk with drift. Whilst the constant mean return model is the
+most simple,\footnote{Compared to more advanced methods such as the
+  market model which incorporates CAPM or multi-factor models building
+  on Fama and French (1993)'s three factor model.} it has been shown by
+Brown and Warner (1980) to perform similar to more advanced methods and
+has the advantage of being well defined for indices in addition to
+individual securities which would be problematic under a CAPM approach.
+To estimate constant mean returns I use a twenty day estimation window
+that ends ten days before the terror attack. Unfortunately, there is a
+trade-off unique to event studies between T and N; a longer estimation
+window, i.e.~greater T, results in less events being included in the
+experiment as there is greater risk of event overlap i.e.~another event
+ocurring during the estimation (or event window). This problem becomes
+particularly acute when studying many thousands of small terror attacks
+rather than one catastrophic event.\footnote{Particularly if attacks are
+  planned as part of a terror campaign over the course of multiple days.}
+To overcome this problem I report both screened and overlapping results
+where appropriate and perform robustness checks using a constant median
+return model which should be less sensitive to potential overlap issues.
 
 My estimation window contains twenty observations and ends ten days
 before the event occurs. I choose an event window of 10 days
@@ -208,6 +222,12 @@ Brodeur, Abel. Forthcoming. ``The Effect of Terrorism on Employment and
 Consumer Sentiment: Evidence from Successful and Failed Terror
 Attacks.'' \emph{American Economic Journal} Forthcoming.
 \url{https://www.aeaweb.org/articles?id=10.1257/app.20160556}.
+
+\hypertarget{ref-BROWN1980205}{}
+Brown, Stephen J., and Jerold B. Warner. 1980. ``Measuring Security
+Price Performance.'' \emph{Journal of Financial Economics} 8 (3):
+205--58.
+doi:\href{https://doi.org/https://doi.org/10.1016/0304-405X(80)90002-1}{https://doi.org/10.1016/0304-405X(80)90002-1}.
 
 \hypertarget{ref-CHESNEY2011253}{}
 Chesney, Marc, Ganna Reshetar, and Mustafa Karaman. 2011. ``The Impact
