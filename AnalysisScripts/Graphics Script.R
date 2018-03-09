@@ -37,6 +37,7 @@ event.study.explanation.plot <- ggplot(es.df, aes(Event.Date, y.obs)) +
   theme_minimal() 
 
 event.study.explanation.plot
+save(event.study.explanation.plot, file = 'Event Study Explanation ggplot.Rdata')
 # ggsave(filename = 'Event Study Explanation.png') Don't redo this one, random seed makes it messy
 
 #### Summary Statistics Graphics ####
