@@ -98,11 +98,11 @@ social and political discourse concerning terrorism is increasingly
 prevalent. Finally, the GTD reports over 3000 terror attacks on UK soil
 since 1970 as well as more than 100 attack variables providing ample
 data with which to estimate terror responses. The high number of attacks
-observed, however, is both a blessing and a curse, particularly when it
-comes to estimating event heterogeneity, as many attacks have to be
-discarded for fear of overlap and contamination of results. I employ a
-range of methods to address this overlap problem however none are
-entirely satisfactory.
+observed, however, is both a blessing and a curse, particularly when
+estimating event heterogeneity, as many attacks have to be discarded for
+fear of overlap and contamination of results. I employ a range of
+methods to address this overlap problem however none are entirely
+satisfactory.
 
 Throughout the paper as a proxy for terror responses I use daily equity
 index returns. This approach has a number of advantages over measuring a
@@ -124,13 +124,13 @@ literature\footnote{A 2007 estimate puts the number of published papers
   Warner 2007).}, to identify the effect of an event on asset prices or
 returns. Event studies are particularly useful in this situation due to
 their ability to handle small N, large T situations common to financial
-time series and extreme event modelling. I calculate cumulative abnormal
+time series and extreme event modelling. I estimate cumulative abnormal
 returns (CARs) under the constant mean return model to quantify the
 effects of the five largest terror attacks, measured by a weighted sum
 of injuries and fatalities, and find mixed evidence of a significant
 fall in index returns in four of the five cases but no significant fall
 on aggregate. Then, I adapt Chesney, Reshetar, and Karaman (2011)'s
-conditional probability approach within a bayesian setting and fail to
+conditional probability approach within a Bayesian setting and fail to
 conclude that any of the five attacks cause an extreme or abnormal
 movement in returns. Next, I apply the same methodologies to twenty of
 the UK's largest attacks, stratified by decade, and again fail to reject
@@ -162,6 +162,7 @@ I use a standard event study approach, outlined by MacKinlay (1997),
 where \(\tau\) is defined in relation to event time so that \(\tau = 0\)
 indicates the day of the attack. I first calculate abnormal returns at
 time \(\tau\) for event \(i\) to give cumulative abnormal returns:
+
 \[ \begin{aligned} AR_{i,\tau} &=R_{i,\tau}-E[R_{i,\tau}\vert\Omega_{i,\tau}] \\
 CAR_{i(\tau_{1},\tau_{2})} &=\sum_{t=\tau_{1}}^{\tau_{2}} AR_{i,t} \end{aligned}
 \] where \(\tau_1 = 0\) and \(\tau_2 = 9\), indicating an event window
@@ -170,34 +171,64 @@ index return derived from the constant mean return model conditioning on
 information, \(\Omega_{i,\tau}\), common to all agents. The constant
 mean return model can be written as:
 \[ \begin{aligned} R_{it} &= \mu_i + \psi_{it} \\ E(\psi_{it}) &= 0, \ \text{var}(\psi_{it}) = \sigma_{\psi_{it}}^2 \end{aligned}\]
-Where \(\mu_i\) is some constant and \(\psi_{it}\) white noise i.e.~a
-random walk with drift. Whilst the constant mean return model is the
-most simple,\footnote{Compared to more advanced methods such as the
-  market model which incorporates CAPM or multi-factor models building
-  on Fama and French (1993)'s three factor model.} it has been shown by
-Brown and Warner (1980) to perform similar to more advanced methods and
-has the advantage of being well defined for indices in addition to
-individual securities which would be problematic under a CAPM approach.
-To estimate constant mean returns I use a twenty day estimation window
-that ends ten days before the terror attack. Unfortunately, there is a
-trade-off unique to event studies between T and N; a longer estimation
-window, i.e.~greater T, results in less events being included in the
-experiment as there is greater risk of event overlap i.e.~another event
-ocurring during the estimation (or event window). This problem becomes
-particularly acute when studying many thousands of small terror attacks
-rather than one catastrophic event.\footnote{Particularly if attacks are
-  planned as part of a terror campaign over the course of multiple days.}
-To overcome this problem I report both screened and overlapping results
-where appropriate and perform robustness checks using a constant median
-return model which should be less sensitive to potential overlap issues.
 
-My estimation window contains twenty observations and ends ten days
-before the event occurs. I choose an event window of 10 days
-post-attack.
+where \(\mu_i\) is some constant and \(\psi_{it}\) white noise
+i.e.~index prices follow a random walk with drift\footnote{From log
+  differencing prices \(P_{it}\) to get returns \(R_{it}\).}. Whilst the
+constant mean return model is the most simple,\footnote{Compared to more
+  advanced methods such as the market model which incorporates CAPM or
+  multi-factor models building on Fama and French (1993)'s three factor
+  model.} it has been shown by Brown and Warner (1980) to perform
+similar to more advanced methods and has the advantage of being well
+defined for indices in addition to individual securities which would be
+problematic under a CAPM approach. To estimate constant mean returns I
+use a twenty day estimation window that ends ten days before the terror
+attack. Unfortunately, there is a trade-off unique to event studies
+between T and N; a longer estimation window, i.e.~greater T, results in
+less events being included in the experiment as there is greater risk of
+event overlap i.e.~another event ocurring during the estimation (or
+event) window. This problem becomes particularly acute when studying
+many thousands of small terror attacks rather than one catastrophic
+event.\footnote{Particularly if attacks are planned as part of a terror
+  campaign over the course of multiple days.} To overcome this problem I
+report both screened and overlapping results where appropriate and
+perform robustness checks using a constant median return model which
+should be less sensitive to potential overlap issues.
 
-\$\$ y = x
+After calculating CARs for each event I aggregate estimates into
+cumulative average abnormal returns (CAARs):
 
-\$\$
+\[CAAR_{(\tau_{1},\tau_{2})}=\frac{1}N \sum_{i=1}^{N} CAR_{i(\tau_{1},\tau_{2})}\]
+it is these CAARs that form our estimators of interest since they rely
+on fewer identifying assumptions than the CARs they are are derived
+from.
+
+For CAARs and CARs to admit a causal interpretation we need to rely on
+the following assumption: \(E(\textit{attack}_i | \Omega_{i\tau}) = 0\).
+That is, terror attacks are realised orthogonally to any current and
+past information that influences equity indices. It's worth noting that
+this structure allows for terror attacks that aren't independent and
+identically distributed provided agents can surmise this from the
+(first) attack, since the estimation window is re-estimated using a new
+information set, \(\Omega_{i\tau}\), for each event. However, in
+practice we need i.i.d. events\footnote{I attempt to relax this
+  assumption in the conditional probability approach to little success.}
+because I screen for overlapping attacks. For example, any events that
+are planned to occur in close proximity as part of a terror campaign
+will therefore be systematically removed from the dataset - events are
+not dropped at random.
+
+Finally, for CARs to be interpreted causally we also need to make use of
+a `tweaked' parallel trends assumption where the estimated constant mean
+return \(E[R_{i,\tau}\vert\Omega_{i,\tau}] = \bar{\mu}\) is identical
+for event \(i\)'s estimation \textit{and} event window. Essentially
+\(E[R_{i,\tau}\vert\Omega_{i,\tau}]\) needs to be a good counterfactual
+for stock market returns in the absence of a terror attack. However, our
+estimator of interest, CAARs, can relax this assumption by exploiting
+the law of large numbers\footnote{Whether five or twenty events are
+  enough for this is debatable.} and rely instead on any deviations from
+the parallel trends assumption to be random and hence wash out during
+aggregation.
 
 \section{References}\bibliographystyle{aea}\bibliography{BibFile.bib}
 
