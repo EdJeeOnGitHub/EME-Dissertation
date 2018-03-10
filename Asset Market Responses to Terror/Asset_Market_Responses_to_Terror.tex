@@ -163,14 +163,16 @@ where \(\tau\) is defined in relation to event time so that \(\tau = 0\)
 indicates the day of the attack. I first calculate abnormal returns at
 time \(\tau\) for event \(i\) to give cumulative abnormal returns:
 
-\[ \begin{aligned} AR_{i,\tau} &=R_{i,\tau}-E[R_{i,\tau}\vert\Omega_{i,\tau}] \\
-CAR_{i(\tau_{1},\tau_{2})} &=\sum_{t=\tau_{1}}^{\tau_{2}} AR_{i,t} \end{aligned}
-\] where \(\tau_1 = 0\) and \(\tau_2 = 9\), indicating an event window
-of ten days, and \(E[R_{i,\tau}\vert\Omega_{i,\tau}]\) is the expected
+\[\begin{aligned} AR_{i,\tau} &=R_{i,\tau}-E[R_{i,\tau}\vert\Omega_{i,\tau}] \\
+CAR_{i(\tau_{1},\tau_{2})} &=\sum_{t=\tau_{1}}^{\tau_{2}} AR_{i,t} \end{aligned}\]
+
+where \(\tau_1 = 0\) and \(\tau_2 = 9\), indicating an event window of
+ten days, and \(E[R_{i,\tau}\vert\Omega_{i,\tau}]\) is the expected
 index return derived from the constant mean return model conditioning on
 information, \(\Omega_{i,\tau}\), common to all agents. The constant
 mean return model can be written as:
-\[ \begin{aligned} R_{it} &= \mu_i + \psi_{it} \\ E(\psi_{it}) &= 0, \ \text{var}(\psi_{it}) = \sigma_{\psi_{it}}^2 \end{aligned}\]
+
+\[\begin{aligned} R_{it} &= \mu_i + \psi_{it} \\ E[\psi_{it}] &= 0, \ \text{var}[\psi_{it}] = \sigma_{\psi_{it}}^2 \end{aligned}\]
 
 where \(\mu_i\) is some constant and \(\psi_{it}\) white noise
 i.e.~index prices follow a random walk with drift\footnote{From log
@@ -203,25 +205,40 @@ it is these CAARs that form our estimators of interest since they rely
 on fewer identifying assumptions than the CARs they are are derived
 from.
 
-For CAARs and CARs to admit a causal interpretation we need to rely on
-the following assumption: \(E(\textit{attack}_i | \Omega_{i\tau}) = 0\).
+For CAARs and CARs to admit a causal interpretation I rely on the
+following assumption: \(E[\textit{attack}_i | \Omega_{i\tau}] = 0\).
 That is, terror attacks are realised orthogonally to any current and
-past information that influences equity indices. It's worth noting that
-this structure allows for terror attacks that aren't independent and
-identically distributed provided agents can surmise this from the
-(first) attack, since the estimation window is re-estimated using a new
-information set, \(\Omega_{i\tau}\), for each event. However, in
-practice we need i.i.d. events\footnote{I attempt to relax this
-  assumption in the conditional probability approach to little success.}
-because I screen for overlapping attacks. For example, any events that
-are planned to occur in close proximity as part of a terror campaign
-will therefore be systematically removed from the dataset - events are
+past information that influences equity indices. Intuitively, if terror
+groups plan attacks based off economic observables likely to move
+markets we cannot disentangle the effect of terror attacks from these
+confounders. This seems like a plausible assumption, it is unlikely that
+terror groups would plan attacks based off macroeconomic news likely to
+influence equity indices and if this were the case presumably
+governments would incorporate the same information to inform
+counter-terror strategy, something of which there is no
+evidence\footnote{For example, Staniforth (2013)'s counter-terrorism
+  handbook makes no mention of such a relationship.}. However, this
+condition also means that terror attacks must occur
+independently\footnote{I attempt to relax this assumption in the
+  conditional probability approach to little success.}. If an attack
+occurs and agents surmise that this attack presages multiple, related
+attacks then this information will enter \(\Omega_{i\tau}\) when
+\(E[R_{i,\tau}\vert\Omega_{i,\tau}]\) is next estimated since each event
+re-estimates \(E[R_{i,\tau}]\) using a new estimation window. Instead of
+identifying the effect of terror attacks, the event study would estimate
+the effect of terror attacks conditional on agents' attack expectations
+- a negative CAR would suggest the attack was worse than expected given
+the first attack and vice versa. Non-independent attacks also creates a
+problem when I screen for overlapping attacks. For example, any events
+that are planned to occur in close proximity as part of a terror
+campaign will be systematically removed from the dataset - events are
 not dropped at random.
 
-Finally, for CARs to be interpreted causally we also need to make use of
-a `tweaked' parallel trends assumption where the estimated constant mean
+Finally, for CARs to be interpreted causally I also need to make use of
+a tweaked parallel trends assumption where the estimated constant mean
 return \(E[R_{i,\tau}\vert\Omega_{i,\tau}] = \bar{\mu}\) is identical
-for event \(i\)'s estimation \textit{and} event window. Essentially
+for event \(i\)'s estimation window (which occurs by construction)
+\textit{and} event window. Essentially
 \(E[R_{i,\tau}\vert\Omega_{i,\tau}]\) needs to be a good counterfactual
 for stock market returns in the absence of a terror attack. However, our
 estimator of interest, CAARs, can relax this assumption by exploiting
@@ -230,7 +247,40 @@ the law of large numbers\footnote{Whether five or twenty events are
 the parallel trends assumption to be random and hence wash out during
 aggregation.
 
-\section{References}\bibliographystyle{aea}\bibliography{BibFile.bib}
+Sample figure:
+
+\begin{figure}
+\includegraphic{C:/Users/ed/Documents/R Working Directory/Dissertation/Event Study Explanation.png}
+Figure here.
+
+\caption{Caption for figure below.}
+\begin{figurenotes}
+Figure notes without optional leadin.
+\end{figurenotes}
+\begin{figurenotes}[Source]
+Figure notes with optional leadin (Source, in this case).
+\end{figurenotes}
+\end{figure}
+
+Sample table:
+
+\begin{table}
+\caption{Caption for table above.}
+
+\begin{tabular}{lll}
+& Heading 1 & Heading 2 \\
+Row 1 & 1 & 2 \\
+Row 2 & 3 & 4%
+\end{tabular}
+\begin{tablenotes}
+Table notes environment without optional leadin.
+\end{tablenotes}
+\begin{tablenotes}[Source]
+Table notes environment with optional leadin (Source, in this case).
+\end{tablenotes}
+\end{table}
+
+\bibliographystyle{aea}\bibliography{BibFile.bib}
 
 \appendix
 
@@ -309,6 +359,10 @@ Terrorism in Developed and Developing Countries: An Overview.'' In
 by Philip Keefer and NormanEditors Loayza, 17--47. Cambridge University
 Press.
 doi:\href{https://doi.org/10.1017/CBO9780511754388.002}{10.1017/CBO9780511754388.002}.
+
+\hypertarget{ref-Blackstone}{}
+Staniforth, Andrew. 2013. \emph{Blackstone's Counter-Terrorism Handbook:
+The Science of Microfabrication}. Oxford University Press.
 
 \hypertarget{ref-GTD}{}
 Study of Terrorism, National Consortium for the, and Responses to
