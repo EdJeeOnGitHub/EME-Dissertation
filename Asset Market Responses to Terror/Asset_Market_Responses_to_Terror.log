@@ -1,9 +1,9 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (MiKTeX 2.9.6630 64-bit) (preloaded format=pdflatex 2018.3.10)  10 MAR 2018 21:13
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (MiKTeX 2.9.6500 64-bit) (preloaded format=pdflatex 2018.1.29)  11 MAR 2018 13:11
 entering extended mode
 **./Asset_Market_Responses_to_Terror.tex
 (Asset_Market_Responses_to_Terror.tex
 LaTeX2e <2017-04-15>
-Babel <3.18> and hyphenation patterns for 75 language(s) loaded.
+Babel <3.15> and hyphenation patterns for 75 language(s) loaded.
 (AEA.cls
 Document Class: AEA 2011/07/24 American Economic Association Article Classes
 (multicol.sty
@@ -55,22 +55,20 @@ Package: multicol 2004/02/14 v1.6e multicolumn formatting (FMi)
 ) (setspace.sty
 Package: setspace 2000/12/01 6.7 Contributed and Supported LaTeX2e package
 Package: `setspace' 6.7 <2000/12/01>
-) ("C:\Users\ed\AppData\Local\Programs\MiKTeX 2.9\tex\latex\amsmath\amsmath.sty
-"
+) ("C:\Program Files\MiKTeX 2.9\tex\latex\amsmath\amsmath.sty"
 Package: amsmath 2017/09/02 v2.17a AMS math features
 \@mathmargin=\skip43
 For additional information on amsmath, use the `?' option.
-("C:\Users\ed\AppData\Local\Programs\MiKTeX 2.9\tex\latex\amsmath\amstext.sty"
+("C:\Program Files\MiKTeX 2.9\tex\latex\amsmath\amstext.sty"
 Package: amstext 2000/06/29 v2.01 AMS text
-("C:\Users\ed\AppData\Local\Programs\MiKTeX 2.9\tex\latex\amsmath\amsgen.sty"
+("C:\Program Files\MiKTeX 2.9\tex\latex\amsmath\amsgen.sty"
 File: amsgen.sty 1999/11/30 v2.0 generic functions
 \@emptytoks=\toks14
 \ex@=\dimen110
-)) ("C:\Users\ed\AppData\Local\Programs\MiKTeX 2.9\tex\latex\amsmath\amsbsy.sty
-"
+)) ("C:\Program Files\MiKTeX 2.9\tex\latex\amsmath\amsbsy.sty"
 Package: amsbsy 1999/11/29 v1.2d Bold Symbols
 \pmbraise@=\dimen111
-) ("C:\Users\ed\AppData\Local\Programs\MiKTeX 2.9\tex\latex\amsmath\amsopn.sty"
+) ("C:\Program Files\MiKTeX 2.9\tex\latex\amsmath\amsopn.sty"
 Package: amsopn 2016/03/08 v2.02 operator names
 )
 \inf@bad=\count87
@@ -126,23 +124,18 @@ Mode Selected: final
 \abovecaptionskip=\skip48
 \belowcaptionskip=\skip49
 \bibindent=\dimen119
-) ("C:\Users\ed\AppData\Local\Programs\MiKTeX 2.9\tex\latex\natbib\natbib.sty"
+) (C:\Users\nfa\AppData\Roaming\MiKTeX\2.9\tex\latex\natbib\natbib.sty
 Package: natbib 2010/09/13 8.31b (PWD, AO)
 \bibhang=\skip50
 \bibsep=\skip51
 LaTeX Info: Redefining \cite on input line 694.
 \c@NAT@ctr=\count107
-) ("C:\Users\ed\AppData\Local\Programs\MiKTeX 2.9\tex\latex\hyperref\hyperref.s
-ty"
-Package: hyperref 2018/02/06 v6.86b Hypertext links for LaTeX
-
-("C:\Users\ed\AppData\Local\Programs\MiKTeX 2.9\tex\generic\oberdiek\hobsub-hyp
-erref.sty"
+) ("C:\Program Files\MiKTeX 2.9\tex\latex\hyperref\hyperref.sty"
+Package: hyperref 2017/03/14 v6.85a Hypertext links for LaTeX
+("C:\Program Files\MiKTeX 2.9\tex\generic\oberdiek\hobsub-hyperref.sty"
 Package: hobsub-hyperref 2016/05/16 v1.14 Bundle oberdiek, subset hyperref (HO)
 
-
-("C:\Users\ed\AppData\Local\Programs\MiKTeX 2.9\tex\generic\oberdiek\hobsub-gen
-eric.sty"
+("C:\Program Files\MiKTeX 2.9\tex\generic\oberdiek\hobsub-generic.sty"
 Package: hobsub-generic 2016/05/16 v1.14 Bundle oberdiek, subset generic (HO)
 Package: hobsub 2016/05/16 v1.14 Construct package bundles (HO)
 Package: infwarerr 2016/05/16 v1.4 Providing info/warning/error messages (HO)
@@ -160,7 +153,7 @@ Package etexcmds Info: Could not find \expanded.
 (etexcmds)             In the latter case, load this package earlier.
 Package: kvsetkeys 2016/05/16 v1.17 Key value parser (HO)
 Package: kvdefinekeys 2016/05/16 v1.4 Define keys (HO)
-Package: pdftexcmds 2018/01/21 v0.26 Utility functions of pdfTeX for LuaTeX (HO
+Package: pdftexcmds 2017/03/19 v0.25 Utility functions of pdfTeX for LuaTeX (HO
 )
 Package pdftexcmds Info: LuaTeX not detected.
 Package pdftexcmds Info: \pdf@primitive is available.
@@ -181,70 +174,64 @@ Package atveryend Info: \enddocument detected (standard20110627).
 Package: atbegshi 2016/06/09 v1.18 At begin shipout hook (HO)
 Package: refcount 2016/05/16 v3.5 Data extraction from label references (HO)
 Package: hycolor 2016/05/16 v1.8 Color options for hyperref/bookmark (HO)
-) ("C:\Users\ed\AppData\Local\Programs\MiKTeX 2.9\tex\latex\graphics\keyval.sty
-"
+) ("C:\Program Files\MiKTeX 2.9\tex\latex\graphics\keyval.sty"
 Package: keyval 2014/10/28 v1.15 key=value parser (DPC)
 \KV@toks@=\toks19
-) ("C:\Users\ed\AppData\Local\Programs\MiKTeX 2.9\tex\generic\ifxetex\ifxetex.s
-ty"
+) ("C:\Program Files\MiKTeX 2.9\tex\generic\ifxetex\ifxetex.sty"
 Package: ifxetex 2010/09/12 v0.6 Provides ifxetex conditional
-) ("C:\Users\ed\AppData\Local\Programs\MiKTeX 2.9\tex\latex\oberdiek\auxhook.st
-y"
+) ("C:\Program Files\MiKTeX 2.9\tex\latex\oberdiek\auxhook.sty"
 Package: auxhook 2016/05/16 v1.4 Hooks for auxiliary files (HO)
-)
-("C:\Users\ed\AppData\Local\Programs\MiKTeX 2.9\tex\latex\oberdiek\kvoptions.st
-y"
+) ("C:\Program Files\MiKTeX 2.9\tex\latex\oberdiek\kvoptions.sty"
 Package: kvoptions 2016/05/16 v3.12 Key value format for package options (HO)
 )
 \@linkdim=\dimen120
 \Hy@linkcounter=\count108
 \Hy@pagecounter=\count109
-("C:\Users\ed\AppData\Local\Programs\MiKTeX 2.9\tex\latex\hyperref\pd1enc.def"
-File: pd1enc.def 2018/02/06 v6.86b Hyperref: PDFDocEncoding definition (HO)
+("C:\Program Files\MiKTeX 2.9\tex\latex\hyperref\pd1enc.def"
+File: pd1enc.def 2017/03/14 v6.85a Hyperref: PDFDocEncoding definition (HO)
 )
 \Hy@SavedSpaceFactor=\count110
-("C:\Users\ed\AppData\Local\Programs\MiKTeX 2.9\tex\latex\00miktex\hyperref.cfg
-"
+("C:\Program Files\MiKTeX 2.9\tex\latex\00miktex\hyperref.cfg"
 File: hyperref.cfg 2002/06/06 v1.2 hyperref configuration of TeXLive
 )
-Package hyperref Info: Hyper figures OFF on input line 4509.
-Package hyperref Info: Link nesting OFF on input line 4514.
-Package hyperref Info: Hyper index ON on input line 4517.
-Package hyperref Info: Plain pages OFF on input line 4524.
-Package hyperref Info: Backreferencing OFF on input line 4529.
+Package hyperref Info: Hyper figures OFF on input line 4498.
+Package hyperref Info: Link nesting OFF on input line 4503.
+Package hyperref Info: Hyper index ON on input line 4506.
+Package hyperref Info: Plain pages OFF on input line 4513.
+Package hyperref Info: Backreferencing OFF on input line 4518.
 Package hyperref Info: Implicit mode ON; LaTeX internals redefined.
-Package hyperref Info: Bookmarks ON on input line 4762.
+Package hyperref Info: Bookmarks ON on input line 4751.
 \c@Hy@tempcnt=\count111
-("C:\Users\ed\AppData\Local\Programs\MiKTeX 2.9\tex\latex\url\url.sty"
+(C:\Users\nfa\AppData\Roaming\MiKTeX\2.9\tex\latex\url\url.sty
 \Urlmuskip=\muskip11
 Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
 )
-LaTeX Info: Redefining \url on input line 5115.
+LaTeX Info: Redefining \url on input line 5104.
 \XeTeXLinkMargin=\dimen121
 \Fld@menulength=\count112
 \Field@Width=\dimen122
 \Fld@charsize=\dimen123
-Package hyperref Info: Hyper figures OFF on input line 6369.
-Package hyperref Info: Link nesting OFF on input line 6374.
-Package hyperref Info: Hyper index ON on input line 6377.
-Package hyperref Info: backreferencing OFF on input line 6384.
-Package hyperref Info: Link coloring OFF on input line 6389.
-Package hyperref Info: Link coloring with OCG OFF on input line 6394.
-Package hyperref Info: PDF/A mode OFF on input line 6399.
-LaTeX Info: Redefining \ref on input line 6439.
-LaTeX Info: Redefining \pageref on input line 6443.
+Package hyperref Info: Hyper figures OFF on input line 6358.
+Package hyperref Info: Link nesting OFF on input line 6363.
+Package hyperref Info: Hyper index ON on input line 6366.
+Package hyperref Info: backreferencing OFF on input line 6373.
+Package hyperref Info: Link coloring OFF on input line 6378.
+Package hyperref Info: Link coloring with OCG OFF on input line 6383.
+Package hyperref Info: PDF/A mode OFF on input line 6388.
+LaTeX Info: Redefining \ref on input line 6428.
+LaTeX Info: Redefining \pageref on input line 6432.
 \Hy@abspage=\count113
 \c@Item=\count114
 \c@Hfootnote=\count115
 )
-Package hyperref Info: Driver (autodetected): hpdftex.
-("C:\Users\ed\AppData\Local\Programs\MiKTeX 2.9\tex\latex\hyperref\hpdftex.def"
-File: hpdftex.def 2018/02/06 v6.86b Hyperref driver for pdfTeX
+
+Package hyperref Message: Driver (autodetected): hpdftex.
+
+("C:\Program Files\MiKTeX 2.9\tex\latex\hyperref\hpdftex.def"
+File: hpdftex.def 2017/03/14 v6.85a Hyperref driver for pdfTeX
 \Fld@listcount=\count116
 \c@bookmark@seq@number=\count117
-
-("C:\Users\ed\AppData\Local\Programs\MiKTeX 2.9\tex\latex\oberdiek\rerunfileche
-ck.sty"
+("C:\Program Files\MiKTeX 2.9\tex\latex\oberdiek\rerunfilecheck.sty"
 Package: rerunfilecheck 2016/05/16 v1.8 Rerun checks for auxiliary files (HO)
 Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
 82.
@@ -269,11 +256,9 @@ LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 28.
 LaTeX Font Info:    ... okay on input line 28.
 \AtBeginShipoutBox=\box54
 Package hyperref Info: Link coloring OFF on input line 28.
-("C:\Users\ed\AppData\Local\Programs\MiKTeX 2.9\tex\latex\hyperref\nameref.sty"
+("C:\Program Files\MiKTeX 2.9\tex\latex\hyperref\nameref.sty"
 Package: nameref 2016/05/21 v2.44 Cross-referencing by name of section
-
-("C:\Users\ed\AppData\Local\Programs\MiKTeX 2.9\tex\generic\oberdiek\gettitlest
-ring.sty"
+("C:\Program Files\MiKTeX 2.9\tex\generic\oberdiek\gettitlestring.sty"
 Package: gettitlestring 2016/05/16 v1.5 Cleanup title references (HO)
 )
 \c@section@level=\count118
@@ -286,7 +271,7 @@ LaTeX Info: Redefining \nameref on input line 28.
 \openout3 = `Asset_Market_Responses_to_Terror.out'.
 
 LaTeX Font Info:    Try loading font information for OMS+cmr on input line 63.
-("C:\Users\ed\AppData\Local\Programs\MiKTeX 2.9\tex\latex\base\omscmr.fd"
+("C:\Program Files\MiKTeX 2.9\tex\latex\base\omscmr.fd"
 File: omscmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <8> not available
@@ -295,19 +280,71 @@ LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <6> not available
 (Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 63.
 [1
 
-{C:/Users/ed/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}] [2] [3]
-! Undefined control sequence.
-<recently read> \includegraphic 
-                                
-l.253 \includegraphic
-                     {C:/Users/ed/Documents/R Working Directory/Dissertation...
- 
+{C:/Users/nfa/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}] [2] [3]
+No file Asset_Market_Responses_to_Terror.bbl.
+[4]
+Overfull \hbox (4.6706pt too wide) in paragraph at lines 269--273
+\OT1/cmr/m/n/10.95 Con-sumer Sen-ti-ment: Ev-i-dence from Suc-cess-ful and Fail
+ed Ter-ror At-tacks.'' \OT1/cmr/m/it/10.95 Amer-
+ []
+
+
+Overfull \hbox (55.48431pt too wide) in paragraph at lines 275--279
+\OT1/cmr/m/n/10.95 for-mance.'' \OT1/cmr/m/it/10.95 Jour-nal of Fi-nan-cial Eco
+-nomics \OT1/cmr/m/n/10.95 8 (3): 205--58. doi:[]https://doi.org/10.1016/0304-
+ []
+
+
+Overfull \hbox (55.53778pt too wide) in paragraph at lines 305--310
+\OT1/cmr/m/n/10.95 Eckbo, 3--36. Hand-books in Fi-nance. San Diego: El-se-vier.
+ doi:[]https://doi.org/10.1016/B978-
+ []
+
+
+Overfull \hbox (62.30042pt too wide) in paragraph at lines 323--329
+\OT1/cmr/m/n/10.95 manEd-i-tors Loayza, 17--47. Cam-bridge Uni-ver-sity Press. 
+doi:[]10.1017/CBO9780511754388.002[]. 
+ []
+
+[5]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 339.
+[6]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 339.
+(Asset_Market_Responses_to_Terror.aux)
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 339.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 339.
+Package rerunfilecheck Info: File `Asset_Market_Responses_to_Terror.out' has no
+t changed.
+(rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 339.
+ ) 
 Here is how much of TeX's memory you used:
- 5399 strings out of 493305
- 79565 string characters out of 3131107
- 169210 words of memory out of 3000000
- 8932 multiletter control sequences out of 15000+200000
- 10489 words of font info for 37 fonts, out of 3000000 for 9000
+ 5425 strings out of 493312
+ 79067 string characters out of 3138905
+ 169131 words of memory out of 3000000
+ 8930 multiletter control sequences out of 15000+200000
+ 10657 words of font info for 38 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
  34i,9n,22p,231b,322s stack positions out of 5000i,500n,10000p,200000b,50000s
-!  ==> Fatal error occurred, no output PDF file produced!
+<C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmbx10.pfb><C:/Pr
+ogram Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmcsc10.pfb><C:/Program F
+iles/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmex10.pfb><C:/Program Files/MiK
+TeX 2.9/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Program Files/MiKTeX 2.9/
+fonts/type1/public/amsfonts/cm/cmmi6.pfb><C:/Program Files/MiKTeX 2.9/fonts/typ
+e1/public/amsfonts/cm/cmmi8.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public
+/amsfonts/cm/cmr10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts
+/cm/cmr6.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr8.p
+fb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmssbx10.pfb><C:
+/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program
+ Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy6.pfb><C:/Program Files/Mi
+KTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy8.pfb><C:/Program Files/MiKTeX 2.9/
+fonts/type1/public/amsfonts/cm/cmti10.pfb><C:/Program Files/MiKTeX 2.9/fonts/ty
+pe1/public/amsfonts/cm/cmti8.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/publi
+c/amsfonts/cm/cmtt10.pfb>
+Output written on Asset_Market_Responses_to_Terror.pdf (6 pages, 216394 bytes).
+
+PDF statistics:
+ 154 PDF objects out of 1000 (max. 8388607)
+ 33 named destinations out of 1000 (max. 500000)
+ 1 words of extra memory for PDF output out of 10000 (max. 10000000)
+

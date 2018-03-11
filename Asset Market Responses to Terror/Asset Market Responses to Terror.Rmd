@@ -57,6 +57,8 @@ Terror attacks in developed countries have long been studied by economists as so
 
 \section{Methods and Results}
 \subsection{Event Study}
+
+\begin{Event Study Figure Here}
 I use a standard event study approach, outlined by @10.2307/2729691, where $\tau$ is defined in relation to event time so that $\tau = 0$ indicates the day of the attack. I first calculate abnormal returns at time $\tau$ for event $i$ to give cumulative abnormal returns: 
 
 $$\begin{aligned} AR_{i,\tau} &=R_{i,\tau}-E[R_{i,\tau}\vert\Omega_{i,\tau}] \\
@@ -69,58 +71,21 @@ $$\begin{aligned} R_{it} &= \mu_i + \psi_{it} \\ E[\psi_{it}] &= 0, \ \text{var}
 
 where $\mu_i$ is some constant and $\psi_{it}$ white noise i.e. index prices follow a random walk with drift^[From log differencing prices $P_{it}$ to get returns $R_{it}$.]. Whilst the constant mean return model is the most simple ^[Compared to more advanced methods such as the market model which incorporates CAPM or multi-factor models building on @FAMA19933's three factor model.], it has been shown by @BROWN1980205 to perform similar to more advanced methods and has the advantage of being well defined for indices in addition to individual securities which would be problematic under a CAPM approach. To estimate constant mean returns I use a twenty day estimation window that ends ten days before the terror attack. Unfortunately, there is a trade-off unique to event studies between T and N; a longer estimation window, i.e. greater T, results in less events being included in the experiment as there is greater risk of event overlap i.e. another event ocurring during the estimation (or event) window. This problem becomes particularly acute when studying many thousands of small terror attacks rather than one catastrophic event ^[Particularly if attacks are planned as part of a terror campaign over the course of multiple days.]. To overcome this problem I report both screened and overlapping results where appropriate and perform robustness checks using a constant median return model which should be less sensitive to potential overlap issues.
 
+\begin{figure: London 7/7 bombings plot}
+
 After calculating CARs for each event I aggregate estimates into cumulative average abnormal returns (CAARs):
 
 $$CAAR_{(\tau_{1},\tau_{2})}=\frac{1}N \sum_{i=1}^{N} CAR_{i(\tau_{1},\tau_{2})}$$
 it is these CAARs that form our estimators of interest since they rely on fewer identifying assumptions than the CARs they are are derived from.
 
-For CAARs and CARs to admit a causal interpretation I rely on the following assumption: $E[\textit{attack}_i | \Omega_{i\tau}] = 0$. That is, terror attacks are realised orthogonally to any current and past information that influences equity indices. Intuitively, if terror groups plan attacks based off economic observables likely to move markets we cannot disentangle the effect of terror attacks from these confounders. This seems like a plausible assumption, it is unlikely that terror groups would plan attacks based off macroeconomic news likely to influence equity indices and if this were the case presumably governments would incorporate the same information to inform counter-terror strategy, something of which there is no evidence^[For example, @Blackstone's counter-terrorism handbook makes no mention of such a relationship.]. However, this condition also means that terror attacks must occur independently^[I attempt to relax this assumption in the conditional probability approach to little success.]. If an attack occurs and agents surmise that this attack presages multiple, related attacks then this information will enter $\Omega_{i\tau}$ when $E[R_{i,\tau}\vert\Omega_{i,\tau}]$ is next estimated since each event re-estimates $E[R_{i,\tau}]$ using a new estimation window. Instead of identifying the effect of terror attacks, the event study would estimate the effect of terror attacks conditional on agents' attack expectations - a negative CAR would suggest the attack was worse than expected given the first attack and vice versa. Non-independent attacks also creates a problem when I screen for overlapping attacks. For example, any events that are planned to occur in close proximity as part of a terror campaign will be systematically removed from the dataset - events are not dropped at random. 
-
-
+For CAARs and CARs to admit a causal interpretation I rely on the following assumption: $E[\textit{attack}_i | \Omega_{i\tau}] = 0$. That is, terror attacks are realised orthogonally to any current and past information that influences equity indices. Intuitively, if terror groups plan attacks based off economic observables likely to move markets we cannot disentangle the effect of terror attacks from these confounders. This seems like a plausible assumption, it is unlikely that terror groups would plan attacks based off macroeconomic news likely to influence equity indices and if this were the case presumably governments would incorporate the same information to inform counter-terror strategy, something of which there is no evidence^[For example, @Blackstone's counter-terrorism handbook makes no mention of such a relationship.]. However, this condition also means that terror attacks must occur independently^[I attempt to relax this assumption in the conditional probability approach to little success.]. If an attack occurs and agents surmise that this attack presages multiple, related attacks then this information will enter $\Omega_{i\tau}$ when $E[R_{i,\tau}\vert\Omega_{i,\tau}]$ is next estimated since each event re-estimates $E[R_{i,\tau}]$ using a new estimation window. Instead of identifying the effect of terror attacks, the event study would estimate the effect of terror attacks conditional on agents' attack expectations - a negative CAR would suggest the attack was worse than expected given the first attack and vice versa. Non-independent attacks also creates a problem when I screen for overlapping attacks. For example, any events that are planned to occur in close proximity as part of a terror campaign will be systematically removed from the dataset - events are not dropped at random.
 
 Finally, for CARs to be interpreted causally I also need to make use of a tweaked parallel trends assumption where the estimated constant mean return $E[R_{i,\tau}\vert\Omega_{i,\tau}] = \bar{\mu}$ is identical for event $i$'s estimation window (which occurs by construction) \textit{and} event window. Essentially $E[R_{i,\tau}\vert\Omega_{i,\tau}]$ needs to be a good counterfactual for stock market returns in the absence of a terror attack. However, our estimator of interest, CAARs, can relax this assumption by exploiting the law of large numbers^[Whether five or twenty events are enough for this is debatable.] and rely instead on any deviations from the parallel trends assumption to be random and hence wash out during aggregation.
 
-<!-- \begin{center} -->
-<!-- \includegraphics{C:/Users/ed/Documents/R Working Directory/Dissertation/Event Study Explanation} -->
-<!-- \end{center} -->
+\subsection{Results I}
 
+\begin{figure = top5.CAAR.plot}
 
-Sample figure:
-
-\begin{figure}
-\includegraphic{C:/Users/ed/Documents/R Working Directory/Dissertation/Event Study Explanation.png}
-Figure here.
-
-\caption{Caption for figure below.}
-\begin{figurenotes}
-Figure notes without optional leadin.
-\end{figurenotes}
-\begin{figurenotes}[Source]
-Figure notes with optional leadin (Source, in this case).
-\end{figurenotes}
-\end{figure}
-
-Sample table:
-
-\begin{table}
-\caption{Caption for table above.}
-
-\begin{tabular}{lll}
-& Heading 1 & Heading 2 \\
-Row 1 & 1 & 2 \\
-Row 2 & 3 & 4%
-\end{tabular}
-\begin{tablenotes}
-Table notes environment without optional leadin.
-\end{tablenotes}
-\begin{tablenotes}[Source]
-Table notes environment with optional leadin (Source, in this case).
-\end{tablenotes}
-\end{table}
-
-<!-- References here (manual or bibTeX). If you are using bibTeX, add your bib file -->
-<!-- name in place of BibFile in the bibliography command. -->
-<!-- % Remove or comment out the next two lines if you are not using bibtex. -->
 
 \bibliographystyle{aea}
 \bibliography{BibFile.bib}
