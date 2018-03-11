@@ -1,7 +1,8 @@
 # This script produces all the graphics used in the paper and presentations
 library(tidyverse)
 library(latex2exp)
-load("~/R Working Directory/EME-Dissertation/AnalysisOutput/AnalysisOutput1.RData")
+library(broom)
+load("AnalysisOutput/AnalysisOutput1.RData")
 
 
 
@@ -38,7 +39,7 @@ event.study.explanation.plot <- ggplot(es.df, aes(Event.Date, y.obs)) +
 
 event.study.explanation.plot
 save(event.study.explanation.plot, file = 'Event Study Explanation ggplot.Rdata')
-# ggsave(filename = 'Event Study Explanation.png') Don't redo this one, random seed makes it messy
+# #ggsave(filename = 'Event Study Explanation.png') Don't redo this one, random seed makes it messy
 
 #### Summary Statistics Graphics ####
 
@@ -176,7 +177,7 @@ lockerbie.plot <- ggplot(lockerbie.bombing.event.study, aes(time.delta, event.ca
   ggtitle('Lockerbie Bombing, Cumulative Abnormal Returns', subtitle = 'FTSE ALL SHARE Price Index, log differenced - 21 December 1988') +
   ylim(-3, 5) +
   theme_minimal()
-ggsave('lockerbie_plot.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
+#ggsave('lockerbie_plot.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
 
 ## @knitr london.7.7.plot
 london.7.7.plot <-ggplot(london.7.7.bombing.event.study, aes(time.delta, event.car)) +
@@ -189,7 +190,7 @@ london.7.7.plot <-ggplot(london.7.7.bombing.event.study, aes(time.delta, event.c
   ggtitle('London 7/7 Bombings, Cumulative Abnormal Returns', subtitle = 'FTSE ALL SHARE Price Index, log differenced - 7 July 2005') +
   ylim(-3, 3.5) +
   theme_minimal() 
-ggsave('London_plot.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
+#ggsave('London_plot.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
 ## @knitr omagh.plot
 omagh.plot <- ggplot(omagh.bombing.event.study, aes(time.delta, event.car)) +
   geom_line(size = 2, colour = 'pink') +
@@ -200,7 +201,7 @@ omagh.plot <- ggplot(omagh.bombing.event.study, aes(time.delta, event.car)) +
   ylab('Cumulate Abnormal Returns (%)')+
   ggtitle('Omagh Bombing, Cumulative Abnormal Returns', subtitle = 'FTSE ALL SHARE Price Index, log differenced - 15 August 1998') +
   theme_minimal()
-ggsave('Omagh_plot.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
+#ggsave('Omagh_plot.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
 ## @knitr manchester.plot
 manchester.plot <- ggplot(manchester.bombing.1996.event.study, aes(time.delta, event.car)) +
   geom_line(size = 2, colour = 'pink') +
@@ -212,7 +213,7 @@ manchester.plot <- ggplot(manchester.bombing.1996.event.study, aes(time.delta, e
   ggtitle('1996 Manchester Bombing, Cumulative Abnormal Returns', subtitle = 'FTSE ALL SHARE Price Index, log differenced - 15 June 1996') +
   ylim(-3, 3) +
   theme_minimal()
-ggsave('Manchester_plot.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
+#ggsave('Manchester_plot.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
 ## @knitr droppin.well.plot
 droppin.well.plot <- ggplot(droppin.well.bombing.event.study, aes(time.delta, event.car)) +
   geom_line(size = 2, colour = 'pink') +
@@ -224,7 +225,7 @@ droppin.well.plot <- ggplot(droppin.well.bombing.event.study, aes(time.delta, ev
   ggtitle('Droppin Well Disco Bombing, Cumulative Abnormal Returns', subtitle = 'FTSE ALL SHARE Price Index, log differenced - 6 December 1982') +
   ylim(-5, 3) +
   theme_minimal()
-ggsave('Droppin_plot.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
+#ggsave('Droppin_plot.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
 # lockerbie.plot
 # london.7.7.plot
 # omagh.plot
@@ -244,7 +245,7 @@ rolling.CAAR.plot <- ggplot(all.CAR.10.day.ALLSHARE, aes(n, rolling.CAAR))+
   ggtitle('Rolling mean of Cumulative Abnormal Returns', subtitle = 'UK Terror Attacks with FTSE ALLSHARE data, 1980-2016') +
   theme_minimal()
 rolling.CAAR.plot
-ggsave('All_CAAR_plot.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
+#ggsave('All_CAAR_plot.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
 
 ## Rolling CAAR plot but with filtered data
 rolling.CAAR.filtered.plot <-  ggplot(all.CAR.10.day.ALLSHARE.no.overlap, aes(n, rolling.CAAR)) +
@@ -257,7 +258,7 @@ rolling.CAAR.filtered.plot <-  ggplot(all.CAR.10.day.ALLSHARE.no.overlap, aes(n,
   ylab('Rolling Cumulative Average Abnormal Return (%)') +
   ggtitle('Rolling mean of Cumulative Abnormal Returns, screened', subtitle = 'UK Terror Attacks with FTSE ALLSHARE data, 1980-2016') +
   theme_minimal()
-ggsave('All_CAAR_filtered.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
+#ggsave('All_CAAR_filtered.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
 rolling.CAAR.filtered.plot
 
 # Plotting conditional probability results
@@ -281,7 +282,19 @@ large.cp.results.plot <- ggplot(large.cp.results, aes(event, estimate)) +
   theme_bw()
 large.cp.results.plot
 
-ggsave('large_cp_plot.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
+#ggsave('large_cp_plot.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
+
+
+# CAAR for top 5 events plot
+top5.CAAR.plot <- ggplot(largest.5.events.CAAR.table, aes(day.CAAR, CAAR)) +
+  geom_line() +
+  geom_ribbon(aes(day.CAAR, ymin = boot.ci.lower, ymax = boot.ci.upper), linetype = 'longdash', alpha = 0.1) +  geom_line(aes(day.CAAR, CAAR + `CI width`), linetype = 'longdash', alpha = 0.3) +
+  geom_line(aes(day.CAAR, CAAR - `CI width`), linetype = 'longdash', alpha = 0.3) +
+  scale_x_discrete(limits = seq(11) - 1) +
+  xlab('Days since attack') +
+  theme_minimal()
+top5.CAAR.plot
+
 
 #### Decade Graphics ####
 
@@ -301,7 +314,7 @@ bar.chart.decade.event.study.by.CAR <- ggplot(decade.event.study.CAR10, aes(mark
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = 'none')
 
 
-ggsave('bar_chart_decade_CAR_plot.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
+#ggsave('bar_chart_decade_CAR_plot.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
 
 # This time ordering temporally
 decade.event.study.CAR10$market.date <- factor(decade.event.study.CAR10$market.date)
@@ -317,7 +330,7 @@ bar.chart.decade.event.study.by.time <- ggplot(decade.event.study.CAR10, aes(mar
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = 'none',
         axis.text.x = element_text(angle = 270, hjust = 1))
 
-ggsave('bar_chart_decade_time.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
+#ggsave('bar_chart_decade_time.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
 
 ## Decade Event studies with CAR4
 # Need to recode some variables as factors for plot to be ordered by event.car size
@@ -334,12 +347,12 @@ bar.chart.decade.event.study.by.CAR4 <- ggplot(decade.event.study.CAR4, aes(mark
   ggtitle('4 Day Cumulative Abnormal Returns in Response to Terror Event', subtitle = 'Top 5 Events per Decade') +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = 'none')
 
-ggsave('decade_event_study_CAR4.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
+#ggsave('decade_event_study_CAR4.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
 
 ## CAAR by decade
 
 
-# ggsave('bar_chart_time_plot.png')
+# #ggsave('bar_chart_time_plot.png')
 decade.cp.subset <- subset(select(decade.cp.results, -c(decade)))
 
 decade.cp.results.plot <- ggplot(decade.cp.results, aes(event, estimate, colour = decade, shape = model)) +
@@ -354,7 +367,7 @@ decade.cp.results.plot <- ggplot(decade.cp.results, aes(event, estimate, colour 
           subtitle = '5 largest attacks per decade') +
   theme_bw()
 decade.cp.results.plot
-ggsave('decade_cp_plot.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
+#ggsave('decade_cp_plot.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
 results.hfit.y_hat.subset <-  subset(select(results.hfit.y_hat, -c(decade)))
 
 
@@ -369,5 +382,9 @@ decade.cp.results.plot.hierarchical <- ggplot(results.hfit.y_hat, aes(event, est
   ggtitle('Conditional Probability of observing more extreme market return on day of attack',
           subtitle = '5 largest attacks per decade - hierarchical model only') +
   theme_bw()
-ggsave('decade_cp_hierarchical_plot.png',path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
+#ggsave('decade_cp_hierarchical_plot.png',path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
 
+
+####################################################################
+#### Largest Event Tables ####
+largest.5.events.CAAR.table <- as.tibble(largest.5.events.CAAR.table)
