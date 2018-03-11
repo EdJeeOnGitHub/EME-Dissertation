@@ -38,7 +38,7 @@ event.study.explanation.plot <- ggplot(es.df, aes(Event.Date, y.obs)) +
   theme_minimal() 
 
 event.study.explanation.plot
-save(event.study.explanation.plot, file = 'Event Study Explanation ggplot.Rdata')
+# save(event.study.explanation.plot, file = 'Event Study Explanation ggplot.Rdata')
 # #ggsave(filename = 'Event Study Explanation.png') Don't redo this one, random seed makes it messy
 
 #### Summary Statistics Graphics ####
@@ -181,16 +181,18 @@ lockerbie.plot <- ggplot(lockerbie.bombing.event.study, aes(time.delta, event.ca
 
 ## @knitr london.7.7.plot
 london.7.7.plot <-ggplot(london.7.7.bombing.event.study, aes(time.delta, event.car)) +
-  geom_line(size = 2, colour = 'pink') +
+  geom_line(size = 2, colour = 'red') +
   geom_line(aes(time.delta, event.car + event.confidence.interval), linetype = 'longdash', alpha = 0.3) +
   geom_line(aes(time.delta, event.car - event.confidence.interval), linetype = 'longdash', alpha = 0.3) +
   geom_hline(aes(yintercept = 0), linetype = 'longdash', size = 1, colour = 'red', alpha = 0.4) +
   xlab('Days Since Attack') +
   ylab('Cumulate Abnormal Returns (%)')+
-  ggtitle('London 7/7 Bombings, Cumulative Abnormal Returns', subtitle = 'FTSE ALL SHARE Price Index, log differenced - 7 July 2005') +
   ylim(-3, 3.5) +
-  theme_minimal() 
-#ggsave('London_plot.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
+  scale_x_discrete(limit = seq(11) - 1) +
+  theme_minimal() +
+  theme(panel.grid.minor = element_blank(), panel.grid.major.x = element_blank())
+london.7.7.plot
+# ggsave('London_plot.pdf', path = 'Figures/')
 ## @knitr omagh.plot
 omagh.plot <- ggplot(omagh.bombing.event.study, aes(time.delta, event.car)) +
   geom_line(size = 2, colour = 'pink') +
@@ -388,3 +390,5 @@ decade.cp.results.plot.hierarchical <- ggplot(results.hfit.y_hat, aes(event, est
 ####################################################################
 #### Largest Event Tables ####
 largest.5.events.CAAR.table <- as.tibble(largest.5.events.CAAR.table)
+
+
