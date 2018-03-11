@@ -120,6 +120,12 @@ index.data.zoo.FTSE <- select.index(raw.index.data.UK,
   na.omit %>% 
   prices.to.returns
 
+index.data.zoo.MSCI <- select.index(raw.index.data.UK,
+                                    index.to.select = "MSCI.UK...PRICE.INDEX") %>% 
+  read.zoo %>% 
+  na.omit %>% 
+  prices.to.returns
+
 
 # Cleaning up unwanted variables
 removal.list.index <- c(
@@ -520,18 +526,27 @@ all.CAR.10.day.ALLSHARE.no.overlap <- calculate.car(all.CAR.10.day.ALLSHARE.no.o
 
 # Calculating CAAR for the 5 largest events
 
-largest.5.events.CAAR <- calculate.CAAR(events.top5, index.zoo.UK.ALLSHARE.omitted)
+largest.5.events.CAAR.allshare <- calculate.CAAR(events.top5, index.zoo.UK.ALLSHARE.omitted)
 largest.10.events.CAAR <- calculate.CAAR(events.sorted[1:10,],
                                          index.zoo.UK.ALLSHARE.omitted)
 largest.20.events.CAAR <- calculate.CAAR(events.sorted[1:20,],
                                          index.zoo.UK.ALLSHARE.omitted)
 
+largest.5.events.CAAR.MSCI <- seq(11) %>% 
+  map_df( ~ calculate.CAAR(events = events.top5,
+                           index = index.data.zoo.MSCI,
+                           car.length = .x)) %>% 
+  mutate(day.CAAR = seq(nrow(.)) - 1)
 
-largest.5.events.CAAR.table <- seq(11) %>% 
+largest.5.events.CAAR.ALLSHARE <- seq(11) %>% 
   map_df( ~ calculate.CAAR(events = events.top5,
                         index = index.zoo.UK.ALLSHARE.omitted,
                         car.length = .x)) %>% 
   mutate(day.CAAR = seq(nrow(.)) - 1)
+
+
+
+largest.5.events.CAAR.table <- left_join(x = largest.5.events.CAAR.ALLSHARE, y = largest.5.events.CAAR.MSCI,by = 'day.CAAR', suffix = c('.allshare', '.MSCI'))
 
 
 
