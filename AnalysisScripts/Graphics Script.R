@@ -2,7 +2,7 @@
 library(tidyverse)
 library(latex2exp)
 library(broom)
-load("AnalysisOutput/AnalysisOutput1.RData")
+load("AnalysisOutput/AnalysisOutput.RData")
 
 
 
@@ -288,10 +288,11 @@ large.cp.results.plot
 
 
 # CAAR for top 5 events plot
-top5.CAAR.plot <- ggplot(largest.5.events.CAAR.table, aes(day.CAAR, CAAR)) +
+top5.CAAR.plot <- ggplot(largest.5.events.CAAR.table, aes(day.CAAR, CAAR.allshare)) +
   geom_line() +
-  geom_ribbon(aes(day.CAAR, ymin = boot.ci.lower, ymax = boot.ci.upper), linetype = 'longdash', alpha = 0.1) +  geom_line(aes(day.CAAR, CAAR + `CI width`), linetype = 'longdash', alpha = 0.3) +
-  geom_line(aes(day.CAAR, CAAR - `CI width`), linetype = 'longdash', alpha = 0.3) +
+  geom_ribbon(aes(day.CAAR, ymin = boot.ci.lower.allshare, ymax = boot.ci.upper.allshare), linetype = 'longdash', alpha = 0.1) + 
+  geom_line(aes(day.CAAR, CAAR.allshare + `CI width.allshare`), linetype = 'longdash', alpha = 0.3) +
+  geom_line(aes(day.CAAR, CAAR.allshare - `CI width.allshare`), linetype = 'longdash', alpha = 0.3) +
   scale_x_discrete(limits = seq(11) - 1) +
   xlab('Days since attack') +
   theme_minimal()
