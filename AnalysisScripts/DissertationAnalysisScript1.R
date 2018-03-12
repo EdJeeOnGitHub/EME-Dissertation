@@ -259,7 +259,7 @@ for (i in 1:4){
 
 # CAR10
 decade.event.study.CAR10 <- events.decade.list %>% 
-  map_dfr(calculate.car, index = index.zoo.UK.ALLSHARE.omitted, boot = FALSE)
+  map_dfr(calculate.car, index = index.zoo.UK.ALLSHARE.omitted, boot = TRUE)
 
 
 # CAR4 N.B. car.length set to 5 as it counts event day (i.e. t=0) inclusively
@@ -564,7 +564,7 @@ largest.20.no.overlap.CAAR <- calculate.CAAR(events.top25.no.overlap[1:20,],
 
 
 
-largest.5.events.CAAR
+largest.5.events.CAAR.table
 largest.10.events.CAAR
 largest.10.no.overlap.CAAR
 largest.20.events.CAAR
@@ -629,4 +629,5 @@ results.separatefit.large$decade <- NULL
 large.cp.results <- bind_rows(results.hfit.large,
                               results.poolfit.large,
                               results.separatefit.large)
-save.image(file = 'AnalysisOutput/AnalysisOutput1.Rdata')
+save.image(file = 'AnalysisOutput/AnalysisOutput.Rdata')
+beepr::beep()
