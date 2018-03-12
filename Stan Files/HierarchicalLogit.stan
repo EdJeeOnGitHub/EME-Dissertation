@@ -4,7 +4,7 @@ data {
   
   int<lower=1, upper=L> id[N]; // id for each?
   vector[N] returns; // predictors
-  real Y[N]; // Response variable
+  int Y[N]; // Response variable
   vector[L] terror_return;
 }
 parameters{
@@ -22,14 +22,14 @@ model {
   // priors
   
   mu_b ~ normal(0,1);
-  sigma_b ~ normal(2.5, 5);
+  sigma_b ~ cauchy(0, 5);
   
-  mu_a ~ normal(0.5, 0.5);
-  sigma_a ~ normal(1, 5);
+  mu_a ~ normal(0, 1);
+  sigma_a ~ cauchy(0, 5);
   
   for (l in 1:L){
     beta[l] ~ student_t(3, mu_b, sigma_b);
-    a[l] ~ normal(mu_a, sigma_a);
+    a[l] ~ student_t(3, mu_a, sigma_a);
   }
   {
     vector[N] x_beta_ll;
