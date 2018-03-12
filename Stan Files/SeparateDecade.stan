@@ -9,7 +9,7 @@ parameters {
   real b_returns; // beta for returns
 }
 model {
-  alpha ~ normal(0, 1); // Intercept with weak prior
+  alpha ~ student_t(3, 0, 2.5); // Intercept with weak prior
   b_returns ~ student_t(3, 0, 2.5); // Another weak prior
   Y ~ bernoulli_logit(alpha + b_returns * returns); // The model
 }
