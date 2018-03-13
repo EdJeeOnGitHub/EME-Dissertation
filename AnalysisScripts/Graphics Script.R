@@ -1,4 +1,5 @@
 # This script produces all the graphics used in the paper and presentations
+rm(list = ls())
 library(tidyverse)
 library(latex2exp)
 library(broom)
