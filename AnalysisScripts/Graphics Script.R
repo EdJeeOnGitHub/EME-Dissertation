@@ -3,11 +3,12 @@ rm(list = ls())
 library(tidyverse)
 library(latex2exp)
 library(broom)
+library(gridExtra)
 load("AnalysisOutput/AnalysisOutput.RData")
 
 
 
-#### Explaining Event Study Graphics ####
+#### Explaining Graphics ####
 
 set.seed <- 15
 y <- 100 + rnorm(41, 0, 1)
@@ -42,6 +43,36 @@ event.study.explanation.plot
 # save(event.study.explanation.plot, file = 'Event Study Explanation ggplot.Rdata')
 # #ggsave(filename = 'Event Study Explanation.png') Don't redo this one, random seed makes it messy
 
+
+
+# Explaining Laplace prior for Bayesian LASSO
+x <- -100:100
+laplace <- dlaplace(x, log = TRUE) + 100
+laplace.df <- data.frame(laplace, x, 'laplace')
+l_1_norm <- -abs(x) + 100
+L1.data <- data.frame(l_1_norm, x, 'L1')
+
+LASSO.1.plot <- ggplot(laplace.df) +
+  geom_line(aes(x, -laplace)) +
+  geom_line(aes(x, laplace)) +
+  ylab('Marginal Log-prior Laplace') +
+  theme_minimal() +
+  theme(panel.grid = element_blank())
+ggsave('LASSO1.pdf')
+LASSO.2.plot <- ggplot(L1.data) +
+  geom_line(aes(x, l_1_norm)) +
+  geom_line(aes(x, -l_1_norm)) +
+  ylab(expression("Traditional  L1-norm Penalty Function")) +
+  theme_minimal() +
+  theme(panel.grid = element_blank())
+  ggsave('LASSO2.pdf')
+LASSO.3.plot <- ggplot(laplace.df)  +
+  geom_line(aes(x, dlaplace(x))) +
+  xlim(-10,10) +
+  theme_minimal() +
+  ylab('Laplace Density') +
+  theme(panel.grid = element_blank())
+ggsave('LASSO3.pdf')
 #### Summary Statistics Graphics ####
 
 ## Histograms ##
