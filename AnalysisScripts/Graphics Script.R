@@ -309,14 +309,12 @@ large.cp.results.plot <- ggplot(large.cp.results, aes(event, estimate)) +
   geom_hline(yintercept = 0.05, linetype = 'longdash', alpha = 0.2)+
   facet_wrap(~ model) +
   guides(colour = FALSE)+
-  ylab('Probability of observing a market movement as bad or worse than return observed') +
+  ylab('Probability of observing a market movement \n as bad or worse than return observed') +
   xlab('Event number') +
-  ggtitle('Conditional Probability of observing more extreme market return on day of attack',
-          subtitle = '5 largest attacks') +
   theme_bw()
 large.cp.results.plot
 
-#ggsave('large_cp_plot.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
+# ggsave('large_cp_plot.pdf', path = 'Figures/')
 
 
 # CAAR for top 5 events plot
@@ -403,6 +401,7 @@ decade.cp.results.plot <- ggplot(decade.cp.results, aes(event, estimate, colour 
   theme_bw()
 decade.cp.results.plot
 #ggsave('decade_cp_plot.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
+results.hfit.y_hat <- mutate(results.hfit.y_hat, decade = paste0(decade, 's'))
 results.hfit.y_hat.subset <-  subset(select(results.hfit.y_hat, -c(decade)))
 
 
@@ -412,11 +411,12 @@ decade.cp.results.plot.hierarchical <- ggplot(results.hfit.y_hat, aes(event, est
   geom_hline(yintercept = 0.05, linetype = 'longdash', alpha = 0.2)+
   facet_wrap(~ decade) +
   guides(colour = FALSE)+
-  ylab('Probability of observing a market movement as bad or worse than return observed') +
+  ylab('Probability of observing a market movement \nas bad or worse than return observed') +
   xlab('Event number') +
-  ggtitle('Conditional Probability of observing more extreme market return on day of attack',
-          subtitle = '5 largest attacks per decade - hierarchical model only') +
+  scale_x_discrete(limits = 1:5) +
   theme_bw()
+decade.cp.results.plot.hierarchical
+# ggsave('decade_cp_hierarchical.pdf', path = 'Figures/')
 #ggsave('decade_cp_hierarchical_plot.png',path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
 
 
@@ -424,4 +424,5 @@ decade.cp.results.plot.hierarchical <- ggplot(results.hfit.y_hat, aes(event, est
 #### Largest Event Tables ####
 largest.5.events.CAAR.table <- as.tibble(largest.5.events.CAAR.table)
 
+large.cp.results <- as.tibble(large.cp.results)
 
