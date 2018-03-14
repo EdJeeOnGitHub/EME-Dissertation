@@ -58,21 +58,21 @@ LASSO.1.plot <- ggplot(laplace.df) +
   ylab('Marginal Log-prior Laplace') +
   theme_minimal() +
   theme(panel.grid = element_blank())
-ggsave('LASSO1.pdf')
+# ggsave('LASSO1.pdf')
 LASSO.2.plot <- ggplot(L1.data) +
   geom_line(aes(x, l_1_norm)) +
   geom_line(aes(x, -l_1_norm)) +
   ylab(expression("Traditional  L1-norm Penalty Function")) +
   theme_minimal() +
   theme(panel.grid = element_blank())
-  ggsave('LASSO2.pdf')
+  # ggsave('LASSO2.pdf')
 LASSO.3.plot <- ggplot(laplace.df)  +
   geom_line(aes(x, dlaplace(x))) +
   xlim(-10,10) +
   theme_minimal() +
   ylab('Laplace Density') +
   theme(panel.grid = element_blank())
-ggsave('LASSO3.pdf')
+# ggsave('LASSO3.pdf')
 #### Summary Statistics Graphics ####
 
 ## Histograms ##
