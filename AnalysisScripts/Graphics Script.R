@@ -401,13 +401,15 @@ decade.cp.results.plot <- ggplot(decade.cp.results, aes(event, estimate, colour 
   theme_bw()
 decade.cp.results.plot
 #ggsave('decade_cp_plot.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
+
+
 results.hfit.y_hat <- mutate(results.hfit.y_hat, decade = paste0(decade, 's'))
 results.hfit.y_hat.subset <-  subset(select(results.hfit.y_hat, -c(decade)))
 
 
 decade.cp.results.plot.hierarchical <- ggplot(results.hfit.y_hat, aes(event, estimate, colour = decade)) +
   geom_point(data = results.hfit.y_hat.subset, colour = 'grey', alpha = 0.2, size = 3) +
-  geom_pointrange(aes(ymin = conf.low, ymax = conf.high),  size=1, color="blue", fill="white", shape=22, linetype = 'longdash') +
+  geom_pointrange(aes(ymin = conf.low, ymax = conf.high),  size=1, color="blue", fill="white", shape=22) +
   geom_hline(yintercept = 0.05, linetype = 'longdash', alpha = 0.2)+
   facet_wrap(~ decade) +
   guides(colour = FALSE)+
