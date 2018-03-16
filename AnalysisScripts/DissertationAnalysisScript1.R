@@ -523,12 +523,25 @@ all.CAR.10.day.ALLSHARE.no.overlap <- calculate.car(all.CAR.10.day.ALLSHARE.no.o
 
 # Calculating 10-day and 4-day CAAR with bootstrapped confidence intervals using every event - Used in tables for all CAAR
 CAAR.all.10.day <- calculate.CAAR(events.sorted, index.zoo.UK.ALLSHARE.omitted)
-CAAR.filtered.10.day <- calculate.CAAR(screen.overlapping.events(events.sorted))
 
-CAAR.all.4.day <- calculate.CAAR(events.sorted, car.length = 5)
-CAAR.filtered.4.day <- calculate.CAAR(screen.overlapping.events(events.sorted), car.length = 5)
+all.events.filtered <- screen.overlapping.events(events.sorted) %>% 
+  subset(select = -c(overlap))
 
+CAAR.filtered.10.day <- calculate.CAAR(all.events.filtered, index.zoo.UK.ALLSHARE.omitted)
 
+CAAR.all.4.day <- calculate.CAAR(events.sorted, car.length = 5, index.zoo.UK.ALLSHARE.omitted)
+CAAR.filtered.4.day <- calculate.CAAR(all.events.filtered, car.length = 5, index.zoo.UK.ALLSHARE.omitted)
+
+CAAR.all.10.day$Parameter <- '10-day CAAR unfiltered'
+CAAR.filtered.10.day$Parameter <- '10-day CAAR filtered'
+CAAR.all.4.day$Parameter <- '4-day CAAR unfiltered'
+CAAR.filtered.4.day$Parameter <- '4-day CAAR filtered'
+CAAR.table <- rbind(CAAR.all.10.day,
+                    CAAR.filtered.10.day,
+                    CAAR.all.4.day,
+                    CAAR.filtered.4.day) %>% 
+  as.tibble %>% 
+  subset(select = -c(event.car))
 
 # Calculating CAAR for the N largest events
 largest.5.events.CAAR.allshare <- calculate.CAAR(events.top5, index.zoo.UK.ALLSHARE.omitted)
