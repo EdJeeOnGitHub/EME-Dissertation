@@ -505,7 +505,7 @@ manchester.bombing.1996.event.study
 droppin.well.bombing.event.study
 
 
-# Calculating rolling CAAR of all terror events recorded
+# Calculating rolling CAAR of all terror events recorded - used in the graphic for all CAAR
 all.CAR.10.day.ALLSHARE <- calculate.car(events = events.sorted,
                                                index = index.zoo.UK.ALLSHARE.omitted)
 
@@ -513,7 +513,7 @@ all.CAR.10.day.ALLSHARE <- calculate.rolling.CAAR(all.CAR.10.day.ALLSHARE)
 
 all.CAR.10.day.ALLSHARE <- calculate.CI.rolling.CAAR(all.CAR.10.day.ALLSHARE)
 
-# The same but now I screen for overlapping events, significantly reducing the number of events used
+# The same but now I screen for overlapping events, significantly reducing the number of events used - used in graphic for filtered CAAR
 all.CAR.10.day.ALLSHARE.no.overlap <- screen.overlapping.events(events.sorted)
 all.CAR.10.day.ALLSHARE.no.overlap <- calculate.car(all.CAR.10.day.ALLSHARE.no.overlap, index.zoo.UK.ALLSHARE.omitted) %>% 
   calculate.rolling.CAAR %>% 
@@ -521,11 +521,16 @@ all.CAR.10.day.ALLSHARE.no.overlap <- calculate.car(all.CAR.10.day.ALLSHARE.no.o
   as.tibble
 
 
+# Calculating 10-day and 4-day CAAR with bootstrapped confidence intervals using every event - Used in tables for all CAAR
+CAAR.all.10.day <- calculate.CAAR(events.sorted, index.zoo.UK.ALLSHARE.omitted)
+CAAR.filtered.10.day <- calculate.CAAR(screen.overlapping.events(events.sorted))
+
+CAAR.all.4.day <- calculate.CAAR(events.sorted, car.length = 5)
+CAAR.filtered.4.day <- calculate.CAAR(screen.overlapping.events(events.sorted), car.length = 5)
 
 
 
-# Calculating CAAR for the 5 largest events
-
+# Calculating CAAR for the N largest events
 largest.5.events.CAAR.allshare <- calculate.CAAR(events.top5, index.zoo.UK.ALLSHARE.omitted)
 largest.10.events.CAAR <- calculate.CAAR(events.sorted[1:10,],
                                          index.zoo.UK.ALLSHARE.omitted)
@@ -571,7 +576,8 @@ largest.20.events.CAAR
 largest.20.no.overlap.CAAR
 
 
-## Calculating 10- and 4- day CAR for every event observed both screened and un-screened
+## Calculating 10- and 4- day CAR for every event observed both screened and un-screened. Subtle difference here. This function calculates the CAR for every event but doesnt aggregate up into cAARs.
+# Really this is quite inefficient since just repeating steps used above to calculate CAAR
 
 CAR.10.unfiltered <- calculate.car(events.sorted, index.zoo.UK.ALLSHARE.omitted)
 CAR.10.filtered <- calculate.car(screen.overlapping.events(events.sorted), index.zoo.UK.ALLSHARE.omitted)
