@@ -4,6 +4,7 @@ library(tidyverse)
 library(latex2exp)
 library(broom)
 library(gridExtra)
+library(xtable)
 load("AnalysisOutput/AnalysisOutput.RData")
 
 
@@ -275,12 +276,10 @@ rolling.CAAR.plot <- ggplot(all.CAR.10.day.ALLSHARE, aes(n, rolling.CAAR))+
   geom_line(aes(n, rolling.CAAR + rolling.ci), alpha = 0.3, linetype = 'longdash') +
   ylim(-5, 5) +
   xlab('Largest N attacks') +
-  ylab('Rolling Cumulative Average Abnormal Return (%)') +
-  ggtitle('Rolling mean of Cumulative Abnormal Returns', subtitle = 'UK Terror Attacks with FTSE ALLSHARE data, 1980-2016') +
+  ylab('Cumulative Average Abnormal Return') +
   theme_minimal()
 rolling.CAAR.plot
-#ggsave('All_CAAR_plot.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
-
+ggsave('all_CAARS_plot.pdf', file = 'Figures/')
 ## Rolling CAAR plot but with filtered data
 rolling.CAAR.filtered.plot <-  ggplot(all.CAR.10.day.ALLSHARE.no.overlap, aes(n, rolling.CAAR)) +
   geom_point(shape = 16, size = 3, colour = "#fdafee", show.legend = FALSE, alpha = 0.6) +
@@ -289,8 +288,7 @@ rolling.CAAR.filtered.plot <-  ggplot(all.CAR.10.day.ALLSHARE.no.overlap, aes(n,
   geom_smooth(se = FALSE) +
   ylim(-5, 5) +
   xlab('Largest N attacks') +
-  ylab('Rolling Cumulative Average Abnormal Return (%)') +
-  ggtitle('Rolling mean of Cumulative Abnormal Returns, screened', subtitle = 'UK Terror Attacks with FTSE ALLSHARE data, 1980-2016') +
+  ylab('Cumulative Average Abnormal Return') +
   theme_minimal()
 #ggsave('All_CAAR_filtered.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
 rolling.CAAR.filtered.plot
@@ -427,4 +425,11 @@ decade.cp.results.plot.hierarchical
 largest.5.events.CAAR.table <- as.tibble(largest.5.events.CAAR.table)
 
 large.cp.results <- as.tibble(large.cp.results)
+
+CAAR.table.latex <- CAAR.table %>% 
+  subset(select = -c(`CI width`, `st.dev`)) %>% 
+  mutate(p = 2*pt(-abs(`T statistic`), df = `number of events` -1))
+
+CAAR.table.latex <- CAAR.table.latex[, c('Parameter', 'CAAR', 'boot.ci.lower', 'boot.ci.upper', 'T statistic', 'p', 'number of events')] %>% 
+  xtable
 
