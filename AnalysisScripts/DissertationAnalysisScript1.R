@@ -126,6 +126,12 @@ index.data.zoo.MSCI <- select.index(raw.index.data.UK,
   na.omit %>% 
   prices.to.returns
 
+index.data.zoo.FT30 <- select.index(raw.index.data.UK,
+                                    index.to.select = "FT.30.ORDINARY.SHARE...PRICE.INDEX") %>% 
+  read.zoo %>% 
+  na.omit %>% 
+  prices.to.returns
+
 
 # Cleaning up unwanted variables
 removal.list.index <- c(
@@ -207,7 +213,7 @@ events.top5$event.name <- factor(events.top5$event.name, levels = events.top5$ev
 
 # using filter.events to sort the terror data and select every observation rather than top n
 events.sorted <- filter.events(event.data = terror.data, 
-                               start.Date = '1970-01-01',
+                               start.Date = '1980-01-01',
                                end.Date = '2020-01-01',
                                n.events = nrow(terror.data))
 
@@ -554,17 +560,27 @@ largest.5.events.CAAR.MSCI <- seq(11) %>%
   map_df( ~ calculate.CAAR(events = events.top5,
                            index = index.data.zoo.MSCI,
                            car.length = .x)) %>% 
-  mutate(day.CAAR = seq(nrow(.)) - 1)
+  mutate(day.CAAR = as.integer(seq(nrow(.)) - 1),
+         index = 'MSCI')
 
 largest.5.events.CAAR.ALLSHARE <- seq(11) %>% 
   map_df( ~ calculate.CAAR(events = events.top5,
                         index = index.zoo.UK.ALLSHARE.omitted,
                         car.length = .x)) %>% 
-  mutate(day.CAAR = seq(nrow(.)) - 1)
+  mutate(day.CAAR = as.integer(seq(nrow(.)) - 1),
+         index = 'FTSE Allshare')
+
+largest.5.events.CAAR.FT30 <- seq(11) %>% 
+  map_df(~calculate.CAAR(events = events.top5,
+                         index = index.data.zoo.FT30,
+                         car.length = .x)) %>% 
+  mutate(day.CAAR = as.integer(seq(nrow(.)) - 1),
+                        index = 'FT30')
 
 
-
-largest.5.events.CAAR.table <- left_join(x = largest.5.events.CAAR.ALLSHARE, y = largest.5.events.CAAR.MSCI,by = 'day.CAAR', suffix = c('.allshare', '.MSCI'))
+largest.5.events.CAAR.table <- rbind(largest.5.events.CAAR.ALLSHARE,
+                                     largest.5.events.CAAR.MSCI,
+                                     largest.5.events.CAAR.FT30)
 
 
 
@@ -573,21 +589,33 @@ events.top15.no.overlap <- screen.overlapping.events(events.sorted[1:15,])
 events.top25.no.overlap <- screen.overlapping.events(events.sorted[1:25,])
 
 
-largest.10.no.overlap.CAAR <- calculate.CAAR(events.top15.no.overlap[1:10,],
-                                             index.zoo.UK.ALLSHARE.omitted)
-largest.20.no.overlap.CAAR <- calculate.CAAR(events.top25.no.overlap[1:20,],
-                                             index.zoo.UK.ALLSHARE.omitted)
+
+
+largest.20.no.overlap.CAAR.ALLSHARE <- seq(11) %>% 
+  map_df(~calculate.CAAR(events = events.top25.no.overlap[1:20,],
+                         index = index.zoo.UK.ALLSHARE.omitted,
+                         car.length = .x)) %>% 
+  mutate(index = 'FTSE Allshare')
+
+
+largest.20.no.overlap.CAAR.MSCI <- seq(11) %>% 
+  map_df(~calculate.CAAR(events = events.top25.no.overlap[1:20,],
+                         index = index.data.zoo.MSCI,
+                         car.length = .x)) %>% 
+  mutate(index = 'MSCI')
+
+largest.20.no.overlap.CAAR.FT30 <- seq(11) %>% 
+  map_df(~calculate.CAAR(events = events.top25.no.overlap[1:20,],
+                         index = index.data.zoo.FT30,
+                         car.length = .x)) %>% 
+  mutate( index = 'FT30')
+  
 
 
 
-
-
-largest.5.events.CAAR.table
-largest.10.events.CAAR
-largest.10.no.overlap.CAAR
-largest.20.events.CAAR
-largest.20.no.overlap.CAAR
-
+largest.20.CAAR.table <- rbind(largest.20.no.overlap.CAAR.ALLSHARE,
+                               largest.20.no.overlap.CAAR.MSCI,
+                               largest.20.no.overlap.CAAR.FT30)
 
 ## Calculating 10- and 4- day CAR for every event observed both screened and un-screened. Subtle difference here. This function calculates the CAR for every event but doesnt aggregate up into cAARs.
 # Really this is quite inefficient since just repeating steps used above to calculate CAAR
@@ -650,3 +678,4 @@ large.cp.results <- bind_rows(results.hfit.large,
                               results.separatefit.large)
 save.image(file = 'AnalysisOutput/AnalysisOutput.Rdata')
 beepr::beep()
+
