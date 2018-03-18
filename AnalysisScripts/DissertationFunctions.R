@@ -314,7 +314,12 @@ calculate.CI.rolling.CAAR <- function(all.events.CAR){
   all.events.CAR <- mutate(all.events.CAR, 
                            temp.diff = (event.car - rolling.CAAR)^2,
                            rolling.sd = sqrt(cumsum(temp.diff)/df),
-                           rolling.ci = qt(0.975, df = df)*rolling.sd/(sqrt(n)),
+                           rolling.ci = if (df > 0 ){
+                             qt(0.975, df = df)*rolling.sd/(sqrt(n))
+                           } else {
+                               'NA'
+                             }
+                           ,
                            rolling.t = rolling.CAAR/(rolling.sd/sqrt(n)))
   # all.events.CAR$temp.diff <- (all.events.CAR$event.CAR - all.events.CAR$rolling.CAAR)^2
   # # all.events.CAR$rolling.sd <- sqrt(cumsum(all.events.CAR$temp.diff)/all.events.CAR$df)
