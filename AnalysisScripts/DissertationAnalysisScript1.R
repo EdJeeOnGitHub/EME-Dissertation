@@ -213,7 +213,7 @@ events.top5$event.name <- factor(events.top5$event.name, levels = events.top5$ev
 
 # using filter.events to sort the terror data and select every observation rather than top n
 events.sorted <- filter.events(event.data = terror.data, 
-                               start.Date = '1980-01-01',
+                               start.Date = '1970-01-01',
                                end.Date = '2020-01-01',
                                n.events = nrow(terror.data))
 
@@ -378,7 +378,8 @@ poolfit.90s <- sampling(object = pooled.compiled,
                     data = pooled.datalist.90s)
 
 # Separate model
-separatefit.90s <- lapply(events.90s.data, function(x) sampling(object = separate.compiled, data = x))
+separatefit.90s <- lapply(events.90s.data, function(x) sampling(object = separate.compiled, data = x,
+                                                                control = list(adapt_delta = 0.9999, max_treedepth = 20)))
 
 
 
@@ -521,9 +522,9 @@ all.CAR.10.day.ALLSHARE <- calculate.CI.rolling.CAAR(all.CAR.10.day.ALLSHARE)
 
 # The same but now I screen for overlapping events, significantly reducing the number of events used - used in graphic for filtered CAAR
 all.CAR.10.day.ALLSHARE.no.overlap <- screen.overlapping.events(events.sorted)
-all.CAR.10.day.ALLSHARE.no.overlap <- calculate.car(all.CAR.10.day.ALLSHARE.no.overlap, index.zoo.UK.ALLSHARE.omitted) %>% 
-  calculate.rolling.CAAR %>% 
-  calculate.CI.rolling.CAAR %>% 
+all.CAR.10.day.ALLSHARE.no.overlap <- calculate.car(all.CAR.10.day.ALLSHARE.no.overlap, index.zoo.UK.ALLSHARE.omitted) %>%
+  calculate.rolling.CAAR %>%
+  calculate.CI.rolling.CAAR %>%
   as.tibble
 
 

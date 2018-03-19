@@ -422,10 +422,35 @@ decade.cp.results.plot.hierarchical
 
 ####################################################################
 #### Largest Event Tables ####
-largest.5.events.CAAR.table <- as.tibble(largest.5.events.CAAR.table)
+largest.5.events.CAAR.table.latex <- as.tibble(largest.5.events.CAAR.table) %>% 
+  subset(select = -c(event.car, `number of events`, st.dev))
 
-large.cp.results <- as.tibble(large.cp.results)
+largest.5.events.CAAR.table.latex <- largest.5.events.CAAR.table.latex[, c('index',
+                                                                           'day.CAAR',
+                                                                           'CAAR',
+                                                                           'boot.ci.lower',
+                                                                           'boot.ci.upper',
+                                                                           'T statistic')] %>% 
+  mutate(p = 2*pt(-abs(`T statistic`), df = 5 - 1))
 
+
+largest.5.events.CAAR.table.latex <- xtable(largest.5.events.CAAR.table.latex)
+
+
+# Now largest 20
+largest.20.CAAR.table.latex <- as.tibble(largest.20.CAAR.table) %>% 
+  subset(select = -c(event.car, `number of events`, st.dev))
+largest.20.CAAR.table.latex <- largest.20.CAAR.table.latex[, c('index',
+                                                               'CAAR',
+                                                               'boot.ci.lower',
+                                                               'boot.ci.upper',
+                                                               'T statistic')] %>% 
+  mutate(p = 2*pt(-abs(`T statistic`), df = 20 - 1)) 
+largest.20.CAAR.table.latex$Day <- 0:10
+largest.20.CAAR.table.latex <- xtable(largest.20.CAAR.table.latex)
+
+
+# All events
 CAAR.table.latex <- CAAR.table %>% 
   subset(select = -c(`CI width`, `st.dev`)) %>% 
   mutate(p = 2*pt(-abs(`T statistic`), df = `number of events` -1))
@@ -433,3 +458,9 @@ CAAR.table.latex <- CAAR.table %>%
 CAAR.table.latex <- CAAR.table.latex[, c('Parameter', 'CAAR', 'boot.ci.lower', 'boot.ci.upper', 'T statistic', 'p', 'number of events')] %>% 
   xtable
 
+events.top25.no.overlap$Date <- as.character(events.top25.no.overlap$Date)
+events.top20.latex <- xtable(events.top25.no.overlap, digits = 0 )
+
+
+events.top5$Date <- as.character(events.top5$Date)
+events.top5.latex <- xtable(events.top5)
