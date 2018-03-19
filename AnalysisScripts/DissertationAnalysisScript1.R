@@ -216,6 +216,8 @@ events.sorted <- filter.events(event.data = terror.data,
                                start.Date = '1970-01-01',
                                end.Date = '2020-01-01',
                                n.events = nrow(terror.data))
+all.events.filtered <- screen.overlapping.events(events.sorted) %>% 
+  subset(select = -c(overlap))
 
 removal.list.terror <- c('fatality.weight',
                          'incident.weight',
@@ -530,9 +532,6 @@ all.CAR.10.day.ALLSHARE.no.overlap <- calculate.car(all.CAR.10.day.ALLSHARE.no.o
 
 # Calculating 10-day and 4-day CAAR with bootstrapped confidence intervals using every event - Used in tables for all CAAR
 CAAR.all.10.day <- calculate.CAAR(events.sorted, index.zoo.UK.ALLSHARE.omitted)
-
-all.events.filtered <- screen.overlapping.events(events.sorted) %>% 
-  subset(select = -c(overlap))
 
 CAAR.filtered.10.day <- calculate.CAAR(all.events.filtered, index.zoo.UK.ALLSHARE.omitted)
 
