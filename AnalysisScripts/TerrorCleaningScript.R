@@ -238,7 +238,7 @@ save(terror.UK.grouped, file = 'Index and Terror Data/UKTerrorData.Rdata')
 
 terror.covariates <- bind_cols(terror.UK.grouped, most.covariates.terror.and.date) %>% as.tibble
 # Some of the original dummies in the dataset are now greater than 1 as we've aggregated events at the day level. Recoding dummies > 1 to 1.
-# terror.covariates.dummies <- terror.covariates %>% 
+# terror.covariates.dummies <- terror.covariates %>%
 #   mutate(success = replace(success, success >= 1, 1),
 #          multiple = replace(multiple, multiple >=1, 1),
 #          suicide = replace(suicide, suicide >=1, 1),
@@ -250,7 +250,7 @@ terror.covariates <- bind_cols(terror.UK.grouped, most.covariates.terror.and.dat
 #          INT_IDEO = replace(INT_IDEO, INT_IDEO >= 1, 1),
 #          INT_MISC = replace(INT_MISC, INT_MISC >= 1, 1),
 #          guncertain1 = replace(guncertain1, guncertain1 >=1, 1))
-
+# 
 # tidy.name.vector <- make.names(colnames(terror.covariates), unique=TRUE)
 # colnames(terror.covariates) <- tidy.name.vector
 # terror.covariates.subset <- subset(terror.covariates, select= -c(provstate,
@@ -286,7 +286,7 @@ terror.covariates <- bind_cols(terror.UK.grouped, most.covariates.terror.and.dat
 #                                                           weapsubtype4,
 #                                                           hostkidoutcome_txt,
 #                                                           claimed))
-#                                                           
+# 
 # 
 # 
 # 
