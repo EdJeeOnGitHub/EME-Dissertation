@@ -315,11 +315,8 @@ calculate.CI.rolling.CAAR <- function(all.events.CAR){
   all.events.CAR <- mutate(all.events.CAR,
                            temp.diff = (event.car - rolling.CAAR)^2,
                            rolling.sd = sqrt(cumsum(temp.diff)/df),
-                           rolling.ci = ifelse(df > 0, qt(0.975, df = df)*rolling.sd/(sqrt(n)), NA),
-                           rolling.t = rolling.CAAR/(rolling.sd/sqrt(n)))
-  # all.events.CAR$temp.diff <- (all.events.CAR$event.CAR - all.events.CAR$rolling.CAAR)^2
-  # # all.events.CAR$rolling.sd <- sqrt(cumsum(all.events.CAR$temp.diff)/all.events.CAR$df)
-  # # all.events.CAR$ci <- qt(0.975, df = df)*(all.events.CAR$rolling.sd/(sqrt(all.events.CAR$n)))
+                           rolling.ci = qt(0.975, df = ifelse(df > 0, df, NA))*rolling.sd/(sqrt(n)),
+                           rolling.t =  rolling.CAAR/(rolling.sd/sqrt(n)))
   return(all.events.CAR)                                         
 }
 
@@ -330,27 +327,6 @@ calculate.boot.CAAR <- function(data, indices){
 
 # Given a dataframe with n-day CARs calculated, will calculate n-day CAAR with confidence intervals etc.
 calculate.CAAR <- function(events, index, estimation.window.length = 20, estimation.window.end = 10, car.length = 11){
-  
-  CAAR <-
-    calculate.car(events,
-                  index,
-                  estimation.window.length,
-                  estimation.window.end,
-                  car.length) %>%
-    calculate.rolling.CAAR %>%
-    select(c(event.car, rolling.CAAR))
-  
-  colnames(CAAR) <- c('event.car', 'CAAR', 'number of events')
-  boot.CAARs <- boot(data = CAAR$event.car,
-                     statistic = calculate.boot.CAAR,
-                     R = 10000)
-  CAAR <- CAAR[nrow(CAAR), ]
-  CAAR$boot.ci.lower <- boot.ci(boot.CAARs, type = 'bca')$bca[4]
-  CAAR$boot.ci.upper <- boot.ci(boot.CAARs, type = 'bca')$bca[5]
-  return(CAAR)
-}
-
-calculate.CAAR.2 <- function(events, index, estimation.window.length = 20, estimation.window.end = 10, car.length = 11){
   
   CAAR <-
     calculate.car(events,
