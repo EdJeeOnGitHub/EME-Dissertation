@@ -420,11 +420,11 @@ decade.cp.results.plot.hierarchical
 #ggsave('decade_cp_hierarchical_plot.png',path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
 
 
-####################################################################
 #### Largest Event Tables ####
 largest.5.events.CAAR.table.latex <- as.tibble(largest.5.events.CAAR.table) %>% 
   subset(select = -c(event.car, `number of events`, st.dev))
 
+# Latex label reference {table: top 5 CAARs}
 largest.5.events.CAAR.table.latex <- largest.5.events.CAAR.table.latex[, c('index',
                                                                            'day.CAAR',
                                                                            'CAAR',
@@ -437,7 +437,7 @@ largest.5.events.CAAR.table.latex <- largest.5.events.CAAR.table.latex[, c('inde
 largest.5.events.CAAR.table.latex <- xtable(largest.5.events.CAAR.table.latex)
 
 
-# Now largest 20
+# Now largest 20 - \label{table: CAARs 20}
 largest.20.CAAR.table.latex <- as.tibble(largest.20.CAAR.table) %>% 
   subset(select = -c(event.car, `number of events`, st.dev))
 largest.20.CAAR.table.latex <- largest.20.CAAR.table.latex[, c('index',
@@ -450,7 +450,7 @@ largest.20.CAAR.table.latex$Day <- 0:10
 largest.20.CAAR.table.latex <- xtable(largest.20.CAAR.table.latex)
 
 
-# All events
+# All events - \label{fig: CAAR table}
 CAAR.table.latex <- CAAR.table %>% 
   subset(select = -c(`CI width`, `st.dev`)) %>% 
   mutate(p = 2*pt(-abs(`T statistic`), df = `number of events` -1))
