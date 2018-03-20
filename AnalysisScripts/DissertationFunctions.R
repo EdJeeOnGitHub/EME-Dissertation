@@ -347,7 +347,7 @@ calculate.CAAR <- function(events, index, estimation.window.length = 20, estimat
   boot.CAARs <- boot(data = CAAR$event.car,
                      statistic = calculate.boot.CAAR,
                      R = 20000)
-  # CAAR <- CAAR[nrow(CAAR), ]
+  CAAR <- CAAR[nrow(CAAR), ]
   CAAR$boot.ci.lower <- boot.ci(boot.CAARs, type = 'bca')$bca[4]
   CAAR$boot.ci.upper <- boot.ci(boot.CAARs, type = 'bca')$bca[5]
   return(CAAR)
