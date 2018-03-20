@@ -152,7 +152,7 @@ rm(list = removal.list.index)
 #### Terror Event Cleaning ####
 
 load('Index and Terror Data/UKTerrorData.Rdata')
-
+load('Index and Terror Data/TerrorCovariates_subtype.Rdata')
 # electing relevant columns
 terror.data <- subset(terror.UK.grouped, select = c(Date,
                                                       nkill,
@@ -216,8 +216,25 @@ events.sorted <- filter.events(event.data = terror.data,
                                start.Date = '1970-01-01',
                                end.Date = '2020-01-01',
                                n.events = nrow(terror.data))
+
 all.events.filtered <- screen.overlapping.events(events.sorted) %>% 
   subset(select = -c(overlap))
+
+
+# Overlapping and non-overlapping (the two are complements) events
+no.overlap.dates <- all.events.filtered$Date
+no.overlap <- merge(all.events.filtered, terror.covariates.subset, by.x = 'Date', by.y = 'Date', all.x = TRUE) %>% 
+  as.tibble %>% 
+  subset(select = -c(nkill.y,
+                     nwound.y,
+                     incident.y))
+
+overlap <- merge(terror.covariates.subset, all.events.filtered, by = 'Date', all.x = TRUE) %>% 
+  as.tibble
+overlap <- overlap[is.na(overlap$nkill.y),]
+overlap <- subset(overlap, select = -c(nkill.y,
+                                       nwound.y,
+                                       incident.y))
 
 removal.list.terror <- c('fatality.weight',
                          'incident.weight',
@@ -532,20 +549,28 @@ all.CAR.10.day.ALLSHARE.no.overlap <- calculate.car(all.CAR.10.day.ALLSHARE.no.o
 
 # Calculating 10-day and 4-day CAAR with bootstrapped confidence intervals using every event - Used in tables for all CAAR
 CAAR.all.10.day <- calculate.CAAR(events.sorted, index.zoo.UK.ALLSHARE.omitted)
-
 CAAR.filtered.10.day <- calculate.CAAR(all.events.filtered, index.zoo.UK.ALLSHARE.omitted)
+CAAR.overlap.10.day <- calculate.CAAR(overlap, index.zoo.UK.ALLSHARE.omitted)
+
 
 CAAR.all.4.day <- calculate.CAAR(events.sorted, car.length = 5, index.zoo.UK.ALLSHARE.omitted)
 CAAR.filtered.4.day <- calculate.CAAR(all.events.filtered, car.length = 5, index.zoo.UK.ALLSHARE.omitted)
+CAAR.overlap.4.day <- calculate.CAAR(overlap, car.length = 5, index.zoo.UK.ALLSHARE.omitted)
 
-CAAR.all.10.day$Parameter <- '10-day CAAR unfiltered'
+CAAR.all.10.day$Parameter <- '10-day CAAR all'
 CAAR.filtered.10.day$Parameter <- '10-day CAAR filtered'
-CAAR.all.4.day$Parameter <- '4-day CAAR unfiltered'
+CAAR.overlap.10.day$Parameter <- '10-day CAAR overlap'
+CAAR.all.4.day$Parameter <- '4-day CAAR all'
 CAAR.filtered.4.day$Parameter <- '4-day CAAR filtered'
+CAAR.overlap.4.day <- '4-day CAAR overlap'
+
+
 CAAR.table <- rbind(CAAR.all.10.day,
                     CAAR.filtered.10.day,
+                    CAAR.overlap.10.day,
                     CAAR.all.4.day,
-                    CAAR.filtered.4.day) %>% 
+                    CAAR.filtered.4.day,
+                    CAAR.overlap.4.day) %>% 
   as.tibble %>% 
   subset(select = -c(event.car))
 
@@ -676,6 +701,57 @@ results.separatefit.large$decade <- NULL
 large.cp.results <- bind_rows(results.hfit.large,
                               results.poolfit.large,
                               results.separatefit.large)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### Misc ####
+
+
+
+## Testing overlapping and non-overlapping data is balanced.
+overlap$overlap <- 1
+no.overlap$overlap <- 0
+data.on.overlap <- rbind(overlap,
+                         no.overlap)
+data.on.overlap <- subset(data.on.overlap, select = -c(Date,
+                                                       terror.UK.Date,
+                                                       terror.intensity))
+
+
+
+tests <- data.on.overlap %>% 
+  summarise_at(vars(1:81),
+               funs(t.test(.[overlap == 1] , .[overlap == 0])$p.value))
+
+tests
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### End Script ####
 save.image(file = 'AnalysisOutput/AnalysisOutput.Rdata')
 beepr::beep()
+
 
