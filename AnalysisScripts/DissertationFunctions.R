@@ -333,21 +333,25 @@ calculate.CAAR <- function(events, index, estimation.window.length = 20, estimat
                   index,
                   estimation.window.length,
                   estimation.window.end,
-                  car.length) %>%
-    calculate.rolling.CAAR %>%
-    calculate.CI.rolling.CAAR %>% 
-    select(c(event.car, rolling.CAAR, n, rolling.sd, rolling.ci, rolling.t))
+                  car.length)
   
-  colnames(CAAR) <- c('event.car', 'CAAR', 'number of events', 'st.dev', 'CI width', 'T statistic')
+  CAAR$CAAR <- mean(CAAR$event.car)
+  CAAR$n <- nrow(CAAR)
+  CAAR$st.dev <- sd(CAAR$event.car)
+  CAAR$CI.width <- qt(0.975, df = nrow(CAAR) - 1)*CAAR$st.dev[1]/(sqrt(nrow(CAAR)))
+  CAAR$T.statistic <- CAAR$CAAR[1]/(CAAR$st.dev[1]/sqrt(nrow(CAAR)))
+    
+    
+  CAAR <- subset(CAAR, select = c(event.car, CAAR, n, st.dev, CI.width, T.statistic))
+  
   boot.CAARs <- boot(data = CAAR$event.car,
                      statistic = calculate.boot.CAAR,
-                     R = 10000)
-  CAAR <- CAAR[nrow(CAAR), ]
+                     R = 20000)
+  # CAAR <- CAAR[nrow(CAAR), ]
   CAAR$boot.ci.lower <- boot.ci(boot.CAARs, type = 'bca')$bca[4]
   CAAR$boot.ci.upper <- boot.ci(boot.CAARs, type = 'bca')$bca[5]
   return(CAAR)
 }
-
 #### Probability Analysis Functions ####
 ## Functions used for probability methods
 
