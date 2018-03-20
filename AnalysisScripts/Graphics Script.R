@@ -5,6 +5,7 @@ library(latex2exp)
 library(broom)
 library(gridExtra)
 library(xtable)
+library(rmutil)
 load("AnalysisOutput/AnalysisOutput.RData")
 
 
@@ -105,13 +106,7 @@ histogram.killed <- ggplot(terror.data, aes(nkill, fill = cut(nkill, 100))) +
   ggtitle('Number of fatalities from UK Terror Attacks, 1970-2016') +
   theme_minimal()
 
-histogram.prop.damage.at.least.1 <- ggplot(terror.data[(terror.data$propvalue > 0), ], aes(propvalue)) +
-  geom_histogram(show.legend = FALSE) +
-  xlab('Recorded Property Damage | Property Damage > 0') +
-  ggtitle('Property Damage from UK Terror Attacks, 1970-2016') +
-  annotate('text', x = 2.5*10^9, y = 20, label = '1992 Manchester \n Bombing', colour = 'red') +
-  annotate('text', x = 1.2*10^9, y = 15, label = '1996 Manchester Bombing', colour = 'red') +
-  theme_minimal()
+
 
 histogram.terror.intensity <- ggplot(terror.data, aes(log(terror.intensity), fill = cut(log(terror.intensity), 1000))) +
   geom_histogram(show.legend = FALSE) +
@@ -279,7 +274,7 @@ rolling.CAAR.plot <- ggplot(all.CAR.10.day.ALLSHARE, aes(n, rolling.CAAR))+
   ylab('Cumulative Average Abnormal Return') +
   theme_minimal()
 rolling.CAAR.plot
-ggsave('all_CAARS_plot.pdf', file = 'Figures/')
+# ggsave('all_CAARS_plot.pdf', file = 'Figures/')
 ## Rolling CAAR plot but with filtered data
 rolling.CAAR.filtered.plot <-  ggplot(all.CAR.10.day.ALLSHARE.no.overlap, aes(n, rolling.CAAR)) +
   geom_point(shape = 16, size = 3, colour = "#fdafee", show.legend = FALSE, alpha = 0.6) +
@@ -422,7 +417,7 @@ decade.cp.results.plot.hierarchical
 
 #### Largest Event Tables ####
 largest.5.events.CAAR.table.latex <- as.tibble(largest.5.events.CAAR.table) %>% 
-  subset(select = -c(event.car, `number of events`, st.dev))
+  subset(select = -c(event.car, n, st.dev))
 
 # Latex label reference {table: top 5 CAARs}
 largest.5.events.CAAR.table.latex <- largest.5.events.CAAR.table.latex[, c('index',
@@ -430,8 +425,8 @@ largest.5.events.CAAR.table.latex <- largest.5.events.CAAR.table.latex[, c('inde
                                                                            'CAAR',
                                                                            'boot.ci.lower',
                                                                            'boot.ci.upper',
-                                                                           'T statistic')] %>% 
-  mutate(p = 2*pt(-abs(`T statistic`), df = 5 - 1))
+                                                                           'T.statistic')] %>% 
+  mutate(p = 2*pt(-abs(`T.statistic`), df = 5 - 1))
 
 
 largest.5.events.CAAR.table.latex <- xtable(largest.5.events.CAAR.table.latex)
@@ -439,23 +434,24 @@ largest.5.events.CAAR.table.latex <- xtable(largest.5.events.CAAR.table.latex)
 
 # Now largest 20 - \label{table: CAARs 20}
 largest.20.CAAR.table.latex <- as.tibble(largest.20.CAAR.table) %>% 
-  subset(select = -c(event.car, `number of events`, st.dev))
+  subset(select = -c(event.car, n, st.dev))
 largest.20.CAAR.table.latex <- largest.20.CAAR.table.latex[, c('index',
                                                                'CAAR',
                                                                'boot.ci.lower',
                                                                'boot.ci.upper',
-                                                               'T statistic')] %>% 
-  mutate(p = 2*pt(-abs(`T statistic`), df = 20 - 1)) 
+                                                               'T.statistic')] %>% 
+  mutate(p = 2*pt(-abs(`T.statistic`), df = 20 - 1)) 
 largest.20.CAAR.table.latex$Day <- 0:10
 largest.20.CAAR.table.latex <- xtable(largest.20.CAAR.table.latex)
 
-
+CAAR.table$n <- as.numeric(CAAR.table$n)
+CAAR.table$T.statistic <- as.numeric(CAAR.table$T.statistic)
 # All events - \label{fig: CAAR table}
 CAAR.table.latex <- CAAR.table %>% 
-  subset(select = -c(`CI width`, `st.dev`)) %>% 
-  mutate(p = 2*pt(-abs(`T statistic`), df = `number of events` -1))
+  subset(select = -c(`CI.width`, `st.dev`)) %>% 
+  mutate(p = 2*pt(-abs(`T.statistic`), df = n - 1))
 
-CAAR.table.latex <- CAAR.table.latex[, c('Parameter', 'CAAR', 'boot.ci.lower', 'boot.ci.upper', 'T statistic', 'p', 'number of events')] %>% 
+CAAR.table.latex <- CAAR.table.latex[, c('Parameter', 'CAAR', 'boot.ci.lower', 'boot.ci.upper', 'T.statistic', 'p', 'n')] %>% 
   xtable
 
 events.top25.no.overlap$Date <- as.character(events.top25.no.overlap$Date)
