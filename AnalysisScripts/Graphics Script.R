@@ -6,8 +6,14 @@ library(broom)
 library(gridExtra)
 library(xtable)
 library(rmutil)
-load("AnalysisOutput/AnalysisOutput.RData")
-
+# load("AnalysisOutput/AnalysisOutput.RData")
+load('AnalysisOutput/CAR_Data.RData')
+load('AnalysisOutput/Decade CAR Output.Rdata')
+load('AnalysisOutput/Decade Logit Output.Rdata')
+load('AnalysisOutput/Largest Event Logit Results.Rdata')
+load('AnalysisOutput/Largest Events CAR Output.Rdata')
+load('AnalysisOutput/Misc Output.Rdata')
+load('AnalysisOutput/Analysis Script Data.Rdata')
 
 
 #### Explaining Graphics ####
@@ -311,11 +317,11 @@ large.cp.results.plot
 
 
 # CAAR for top 5 events plot
-top5.CAAR.plot <- ggplot(largest.5.events.CAAR.table, aes(day.CAAR, CAAR.allshare)) +
+top5.CAAR.plot <- ggplot(largest.5.events.CAAR.table[1:12,], aes(day.CAAR, CAAR)) +
   geom_line() +
-  geom_ribbon(aes(day.CAAR, ymin = boot.ci.lower.allshare, ymax = boot.ci.upper.allshare), linetype = 'longdash', alpha = 0.1) + 
-  geom_line(aes(day.CAAR, CAAR.allshare + `CI width.allshare`), linetype = 'longdash', alpha = 0.3) +
-  geom_line(aes(day.CAAR, CAAR.allshare - `CI width.allshare`), linetype = 'longdash', alpha = 0.3) +
+  geom_ribbon(aes(day.CAAR, ymin = boot.ci.lower, ymax = boot.ci.upper), linetype = 'longdash', alpha = 0.1) + 
+  geom_line(aes(day.CAAR, CAAR + `CI.width`), linetype = 'longdash', alpha = 0.3) +
+  geom_line(aes(day.CAAR, CAAR - `CI.width`), linetype = 'longdash', alpha = 0.3) +
   scale_x_discrete(limits = seq(11) - 1) +
   xlab('Days since attack') +
   theme_minimal()
@@ -460,3 +466,26 @@ events.top20.latex <- xtable(events.top25.no.overlap, digits = 0 )
 
 events.top5$Date <- as.character(events.top5$Date)
 events.top5.latex <- xtable(events.top5)
+
+#### Heterogeneous results tables ####
+
+load('AWS Output/CAR4/OLS_fit_CAR4_f.Rdata')
+load('AWS Output/CAR4/OLS_fit_CAR4_u.Rdata')
+load('AWS Output/CAR4/ols_fit_R_u.Rdata')
+
+
+# Used in appendix table for OLS results
+OLS.CAR4.f.table <- tidy(OLS.fit.CAR4.f) %>% 
+  mutate_if(~ any(is.numeric(.x)), ~round(., 4))
+OLS.CAR4.u.table <- tidy(OLS.fit.CAR4.u) %>%
+  mutate_if(~any(is.numeric(.x)), ~round(., 4))
+OLS.R.u.table <- tidy(ols.fit.R.u) %>% 
+  mutate_if(~any(is.numeric(.x)), ~round(.,4))
+
+OLS.heterogeneous.table <- left_join(OLS.R.u.table, OLS.CAR4.f.table, by = 'term', suffix=c('.R', '.CAR4.f')) %>% 
+  left_join(y=OLS.CAR4.u.table, by = 'term') %>% 
+  as.tibble
+OLS.heterogeneous.table  
+OLS.heterogeneous.latex <- xtable(OLS.heterogeneous.table)
+glance(OLS.fit.CAR4.f)
+
