@@ -106,7 +106,8 @@ laplace.f.plot.3 <- plot(laplace.fit.R.u, regex_pars = 'target') +
 laplace.f.plot.4 <- plot(laplace.fit.R.u, regex_pars = 'weap') +
   ggtitle('Terror Day Return Determinants', subtitle = 'All Events, LASSO')
 
-laplace.R.varsel <- varsel(laplace.fit.R.u)
+laplace.CAR.varsel <- varsel(laplace.fit.CAR4.f)
+fit_cv <- cv_varsel(laplace.CAR.varsel, method='forward')
 laplace.R.var.selected.fit <- mcmc_areas(as.matrix(laplace.R.varsel), 
                                     pars = c('(Intercept)', names(laplace.R.varsel$varsel$vind[1:5]))) + coord_cartesian(xlim = c(-0.05, 0.05)) +
   ggtitle('Variables with greatest predictive power - Terror Day Returns')
@@ -116,5 +117,10 @@ laplace.f.plot.3
 laplace.f.plot.4
 laplace.R.var.selected.fit
 
+loo1 <- loo(log_lik(laplace.fit.CAR4.f))
+plot(loo1)
 
+waic1 <- loo(log_lik(laplace.fit.CAR4.f))
+waic2 <- loo(log_lik(OLS.fit.CAR4.f))
+compare(waic1, waic2)
 
