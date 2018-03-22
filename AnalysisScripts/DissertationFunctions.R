@@ -1,5 +1,19 @@
 # This script contains all the user written functions necessary for the dissertation
-
+# Libraries
+library(tidyverse) # Data manipulation
+library(zoo) # Time series manipulation
+library(readxl) # Reading in excel
+library(ggthemes) # Some extra themes for plotting
+library(lubridate) # Date manipulation
+library(rstan) # Bayesian package
+library(shinystan) # Bayesian model exploration
+library(boot) # Bootstrapping library
+library(dynlm) # Time series regression
+library(broom) # Regression output
+# Clearing up masking problems where tseries::filter and dplyr::filter share the same namespace
+filter <- dplyr::filter
+# Stan uses max number of cores when running MCMC simulations
+options(mc.cores = parallel::detectCores())
 
 
 
