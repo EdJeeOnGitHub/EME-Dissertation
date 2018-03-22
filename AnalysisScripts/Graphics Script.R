@@ -6,6 +6,8 @@ library(broom)
 library(gridExtra)
 library(xtable)
 library(rmutil)
+library(rstanarm)
+library(bayesplot)
 # load("AnalysisOutput/AnalysisOutput.RData")
 load('AnalysisOutput/CAR_Data.RData')
 load('AnalysisOutput/Decade CAR Output.Rdata')
@@ -488,4 +490,57 @@ OLS.heterogeneous.table <- left_join(OLS.R.u.table, OLS.CAR4.f.table, by = 'term
 OLS.heterogeneous.table  
 OLS.heterogeneous.latex <- xtable(OLS.heterogeneous.table)
 glance(OLS.fit.CAR4.f)
+
+## Plots ##
+non.count.vector <- c(
+  "(Intercept)",
+  "multiple",
+  "success",
+  "guncertain1",
+  "nperps",
+  "nperpcap",
+  "nkill",
+  "nwound",
+  "nwoundte" ,
+  "property" ,
+  "ishostkid",
+  "nhostkid",
+  "INT_IDEO",
+  "incident",
+  'MA4',
+  'T'
+)
+
+# Shows posterior medians, 50% and 90% CIs
+
+CAR4.f.plot.1 <- plot(OLS.fit.CAR4.f, pars = non.count.vector) +
+  xlab('Posterior Density')
+CAR4.f.plot.2 <- plot(OLS.fit.CAR4.f, regex_pars =  c('attack', 'prov')) +
+  xlab('Posterior Density')
+CAR4.f.plot.3 <- plot(OLS.fit.CAR4.f, regex_pars = 'target') +
+  xlab('Posterior Density')
+CAR4.f.plot.4 <- plot(OLS.fit.CAR4.f, regex_pars = 'weap') +
+  xlab('Posterior Density')
+
+CAR4.f.plot.1
+CAR4.f.plot.2
+CAR4.f.plot.3
+CAR4.f.plot.4
+
+# Now LASSO estimates
+load('AWS Output/CAR4/LASSO_fit_CAR4_f.Rdata')
+
+CAR4.f.laplace.plot.1 <- plot(laplace.fit.CAR4.f, pars = non.count.vector) +
+  xlab('Posterior Density')
+CAR4.f.laplace.plot.2 <- plot(laplace.fit.CAR4.f, regex_pars =  c('attack', 'prov'))  + xlab('Posterior Density')
+CAR4.f.laplace.plot.3 <- plot(laplace.fit.CAR4.f, regex_pars = 'target')  +
+  xlab('Posterior Density')
+CAR4.f.laplace.plot.4 <- plot(laplace.fit.CAR4.f, regex_pars = 'weap')  +
+  xlab('Posterior Density')
+
+CAR4.f.laplace.plot.1
+CAR4.f.laplace.plot.2
+CAR4.f.laplace.plot.3
+CAR4.f.laplace.plot.4
+
 
