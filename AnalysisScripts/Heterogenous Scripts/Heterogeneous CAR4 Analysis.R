@@ -23,7 +23,8 @@ merged.data.u.4 <- merge.and.drop.covariates(CAR.4.unfiltered, terror.covariates
 merged.data.f.4 <- merge.and.drop.covariates(CAR.4.filtered, terror.covariates.subset)
 
 
-
+colnames(merged.data.u.4) <- gsub('.dummies', '', colnames(merged.data.u.4), fixed=TRUE)
+colnames(merged.data.f.4) <- gsub('.dummies', '', colnames(merged.data.f.4), fixed=TRUE)
 ## Creating dataframes that only contain regressors of interest. This makes it easier to use . notation when specifying models
 
 
