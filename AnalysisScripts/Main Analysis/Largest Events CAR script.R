@@ -65,7 +65,7 @@ CAAR.filtered.10.day$Parameter <- '10-day CAAR filtered'
 CAAR.overlap.10.day$Parameter <- '10-day CAAR overlap'
 CAAR.all.4.day$Parameter <- '4-day CAAR all'
 CAAR.filtered.4.day$Parameter <- '4-day CAAR filtered'
-CAAR.overlap.4.day <- '4-day CAAR overlap'
+CAAR.overlap.4.day$Parameter <- '4-day CAAR overlap'
 
 
 CAAR.table <- rbind(CAAR.all.10.day,
