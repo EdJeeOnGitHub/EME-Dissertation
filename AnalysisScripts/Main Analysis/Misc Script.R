@@ -39,7 +39,7 @@ histogram.killed.at.least.1 <- ggplot(terror.data[(terror.data$nkill > 0), ], ae
 
 
 histogram.wounded.small
-histogram.killed.at.least.1
+
 tests
 tests$bonferroni %>% 
   sum
@@ -48,7 +48,7 @@ tests$sig.difference %>%
 
 joint.orthog.test <- lm(overlap ~ ., data = data.on.overlap)
 F.stat <- summary(joint.orthog.test)
-F.stat
+# F.stat
 F.stat$fstatistic
 # Questions:
 
