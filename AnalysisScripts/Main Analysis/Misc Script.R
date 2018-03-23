@@ -1,6 +1,6 @@
 
 rm(list = ls())
-
+try(dev.off(), silent = TRUE)
 
 source('AnalysisScripts/DissertationFunctions.R')
 load('AnalysisOutput/Analysis Script Data.Rdata')
@@ -46,13 +46,18 @@ tests$bonferroni %>%
 tests$sig.difference %>% 
   sum
 
-
+joint.orthog.test <- lm(overlap ~ ., data = data.on.overlap)
+F.stat <- summary(joint.orthog.test)
+F.stat
+F.stat$fstatistic
 # Questions:
 
-# Alternatives to simple two-sided t test?
+# Alternatives to simple two-sided t test and joint F-test?
 
 # Incorporate information about the distribution using bayesian approach?
 
 # Feasible to claim lack of balance comes from small sample and skewed distribution - just got unlucky with the sample?
+
+# Also, how best to present many many estimates.
 save(tests,
      file = 'AnalysisOutput/Misc Output.Rdata')
