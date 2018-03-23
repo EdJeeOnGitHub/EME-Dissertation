@@ -5,6 +5,7 @@ library(rstanarm)
 library(broom)
 library(projpred)
 library(bayesplot)
+library(loo)
 #OLS
 load('AWS Output/CAR4/OLS_fit_CAR4_f.Rdata')
 # load('AWS Output/CAR4/OLS_fit_CAR4_u.Rdata')
@@ -34,93 +35,33 @@ non.count.vector <- c(
   'T'
 )
 
-## OLS CAR4 filtered ####
 
-CAR4.f.plot.1 <- plot(OLS.fit.CAR4.f, pars = non.count.vector) +
-  ggtitle('CAR4 Determinants', subtitle = 'Filtered Events')
+## Returns Projection Prediction LASSO ####
+# 
+# laplace.CAR.varsel <- varsel(laplace.fit.CAR4.f)
+# fit_cv <- cv_varsel(laplace.CAR.varsel, method='forward')
+# laplace.R.var.selected.fit <- mcmc_areas(as.matrix(laplace.R.varsel), 
+#                                     pars = c('(Intercept)', names(laplace.R.varsel$varsel$vind[1:5]))) + coord_cartesian(xlim = c(-0.05, 0.05)) +
+#   ggtitle('Variables with greatest predictive power - Terror Day Returns')
+# laplace.f.plot.1
+# laplace.f.plot.2
+# laplace.f.plot.3
+# laplace.f.plot.4
+# laplace.R.var.selected.fit
+#####
 
-CAR4.f.plot.2 <- plot(OLS.fit.CAR4.f, regex_pars =  c('attack', 'prov')) +
-  ggtitle('CAR4 Determinants', subtitle = 'Filtered Events')
-CAR4.f.plot.3 <- plot(OLS.fit.CAR4.f, regex_pars = 'target') +
-  ggtitle('CAR4 Determinants', subtitle = 'Filtered Events')
-CAR4.f.plot.4 <- plot(OLS.fit.CAR4.f, regex_pars = 'weap') +
-  ggtitle('CAR4 Determinants', subtitle = 'Filtered Events')
+loo.LASSO<- loo(log_lik(laplace.fit.CAR4.f))
+loo.OLS <- loo(log_lik(OLS.fit.CAR4.f))
 
+loo.LASSO
+loo.OLS
 
-CAR4.f.plot.1
-CAR4.f.plot.2
-CAR4.f.plot.3
-CAR4.f.plot.4
+compare(loo.LASSO, loo.OLS)
 
-## CAR4 Filtered LASSO ####
-CAR4.f.laplace.plot.1 <- plot(laplace.fit.CAR4.f, pars = non.count.vector) +
-  ggtitle('CAR4 Determinants', subtitle = 'Filtered Events, LASSO')
+waic.LASSO <-  waic(log_lik(laplace.fit.CAR4.f))
+waic.OLS <- waic(log_lik(OLS.fit.CAR4.f))
 
-CAR4.f.laplace.plot.2 <- plot(laplace.fit.CAR4.f, regex_pars =  c('attack', 'prov')) +
-  ggtitle('CAR4 Determinants', subtitle = 'Filtered Events, LASSO')
-CAR4.f.laplace.plot.3 <- plot(laplace.fit.CAR4.f, regex_pars = 'target') +
-  ggtitle('CAR4 Determinants', subtitle = 'Filtered Events, LASSO')
-CAR4.f.laplace.plot.4 <- plot(laplace.fit.CAR4.f, regex_pars = 'weap') +
-  ggtitle('CAR4 Determinants', subtitle = 'Filtered Events, LASSO')
+waic.LASSO
+waic.OLS
 
-CAR4.varsel <- varsel(laplace.fit.CAR4.f)
-CAR4.var.selected.fit <- mcmc_areas(as.matrix(CAR4.varsel), 
-                                    pars = c('(Intercept)', names(CAR4.varsel$varsel$vind[1:5]))) + coord_cartesian(xlim = c(-2, 2)) +
-  ggtitle('Variables with greatest predictive power - CAR4')
-
-CAR4.f.laplace.plot.1
-CAR4.f.laplace.plot.2
-CAR4.f.laplace.plot.3
-CAR4.f.laplace.plot.4
-CAR4.var.selected.fit
-
-
-## Returns OLS ####
-non.count.vector2 <- replace(non.count.vector, non.count.vector == 'MA4', '`number of articles`')
-
-R.f.plot.1 <- plot(ols.fit.R.u, pars = non.count.vector2) +
-  ggtitle('Terror Day Return Determinants', subtitle = 'All Events')
-
-R.f.plot.2 <- plot(ols.fit.R.u, regex_pars =  c('attack', 'prov')) +
-  ggtitle('Terror Day Return Determinants', subtitle = 'All Events')
-R.f.plot.3 <- plot(ols.fit.R.u, regex_pars = 'target') +
-  ggtitle('Terror Day Return Determinants', subtitle = 'All Events')
-R.f.plot.4 <- plot(ols.fit.R.u, regex_pars = 'weap') +
-  ggtitle('Terror Day Return Determinants', subtitle = 'All Events')
-
-
-R.f.plot.1
-R.f.plot.2
-R.f.plot.3
-R.f.plot.4
-
-
-## Returns LASSO ####
-laplace.f.plot.1 <- plot(laplace.fit.R.u, pars = non.count.vector2) +
-  ggtitle('Terror Day Return Determinants', subtitle = 'All Events, LASSO')
-
-laplace.f.plot.2 <- plot(laplace.fit.R.u, regex_pars =  c('attack', 'prov')) +
-  ggtitle('Terror Day Return Determinants', subtitle = 'All Events, LASSO')
-laplace.f.plot.3 <- plot(laplace.fit.R.u, regex_pars = 'target') +
-  ggtitle('Terror Day Return Determinants', subtitle = 'All Events, LASSO')
-laplace.f.plot.4 <- plot(laplace.fit.R.u, regex_pars = 'weap') +
-  ggtitle('Terror Day Return Determinants', subtitle = 'All Events, LASSO')
-
-laplace.CAR.varsel <- varsel(laplace.fit.CAR4.f)
-fit_cv <- cv_varsel(laplace.CAR.varsel, method='forward')
-laplace.R.var.selected.fit <- mcmc_areas(as.matrix(laplace.R.varsel), 
-                                    pars = c('(Intercept)', names(laplace.R.varsel$varsel$vind[1:5]))) + coord_cartesian(xlim = c(-0.05, 0.05)) +
-  ggtitle('Variables with greatest predictive power - Terror Day Returns')
-laplace.f.plot.1
-laplace.f.plot.2
-laplace.f.plot.3
-laplace.f.plot.4
-laplace.R.var.selected.fit
-
-loo1 <- loo(log_lik(laplace.fit.CAR4.f))
-plot(loo1)
-
-waic1 <- loo(log_lik(laplace.fit.CAR4.f))
-waic2 <- loo(log_lik(OLS.fit.CAR4.f))
-compare(waic1, waic2)
-
+compare(waic.LASSO, waic.OLS)
