@@ -544,3 +544,23 @@ CAR4.f.laplace.plot.3
 CAR4.f.laplace.plot.4
 
 
+## Returns OLS ####
+# non.count.vector2 <- replace(non.count.vector, non.count.vector == 'MA4', '`number of articles`')
+# 
+# R.f.plot.1 <- plot(ols.fit.R.u, pars = non.count.vector2) +
+#   ggtitle('Terror Day Return Determinants', subtitle = 'All Events')
+# 
+# R.f.plot.2 <- plot(ols.fit.R.u, regex_pars =  c('attack', 'prov')) +
+#   ggtitle('Terror Day Return Determinants', subtitle = 'All Events')
+# R.f.plot.3 <- plot(ols.fit.R.u, regex_pars = 'target') +
+#   ggtitle('Terror Day Return Determinants', subtitle = 'All Events')
+# R.f.plot.4 <- plot(ols.fit.R.u, regex_pars = 'weap') +
+#   ggtitle('Terror Day Return Determinants', subtitle = 'All Events')
+# 
+# 
+# R.f.plot.1
+# R.f.plot.2
+# R.f.plot.3
+# R.f.plot.4
+
+
