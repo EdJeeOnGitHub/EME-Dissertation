@@ -12,10 +12,12 @@ data.on.overlap <- subset(data.on.overlap, select = -c(Date,
                                                        terror.intensity))
 
 
-
 tests <- data.on.overlap %>% 
   summarise_at(vars(1:81),
-               funs(t.test(.[overlap == 1] , .[overlap == 0])$p.value))
+               funs(t.test(.[overlap == 1] , .[overlap == 0])$p.value)) %>% 
+  gather(key = 'variable', value = 'p.value') %>% 
+  mutate(sig.difference = ifelse(p.value < 0.05, TRUE, FALSE),
+         bonferroni = ifelse(p.value < 0.05/81, TRUE, FALSE))
 
 save(tests,
      file = 'AnalysisOutput/Misc Output.Rdata')
