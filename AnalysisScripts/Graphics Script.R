@@ -484,8 +484,10 @@ OLS.CAR4.u.table <- tidy(OLS.fit.CAR4.u) %>%
 OLS.R.u.table <- tidy(ols.fit.R.u) %>% 
   mutate_if(~any(is.numeric(.x)), ~round(.,4))
 
-OLS.heterogeneous.table <- left_join(OLS.R.u.table, OLS.CAR4.f.table, by = 'term', suffix=c('.R', '.CAR4.f')) %>% 
-  left_join(y=OLS.CAR4.u.table, by = 'term') %>% 
+
+OLS.heterogeneous.table <- merge(OLS.R.u.table, OLS.CAR4.f.table, by = 'term',
+                  suffix=c('.R', '.CAR4.f'), all = TRUE) %>% 
+  merge(y=OLS.CAR4.u.table, by = 'term', all = TRUE) %>% 
   as.tibble
 OLS.heterogeneous.table  
 OLS.heterogeneous.latex <- xtable(OLS.heterogeneous.table)
