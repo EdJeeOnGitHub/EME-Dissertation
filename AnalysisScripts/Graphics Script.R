@@ -19,6 +19,7 @@ load('AnalysisOutput/Misc Output.Rdata')
 load('AnalysisOutput/Large Median Checks.Rdata')
 load('AnalysisOutput/Decade Median Checks.Rdata')
 load('AnalysisOutput/Analysis Script Data.Rdata')
+load('AnalysisOutput/Additional Index Checks.Rdata')
 
 
 #### Explaining Graphics ####
@@ -604,4 +605,13 @@ CAAR.table.median.latex <- CAAR.table.median %>%
   mutate(p = 2*pt(-abs(`T.statistic`), df = n - 1))
 
 CAAR.table.median.latex <- CAAR.table.median.latex[, c('Parameter', 'CAAR', 'boot.ci.lower', 'boot.ci.upper', 'T.statistic', 'p', 'n')] %>% 
+  xtable
+
+
+# Additional Index Checks:
+
+filtered.robustness.check.table <-  filtered.robustness.check.table %>% 
+  mutate(p = 2*pt(-abs(`T.statistic`), df = n - 1))
+
+CAAR.table.add.index.latex <- filtered.robustness.check.table[, c('Parameter', 'CAAR', 'boot.ci.lower', 'boot.ci.upper', 'T.statistic', 'p', 'n')] %>% 
   xtable
