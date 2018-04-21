@@ -188,7 +188,7 @@ calculate.attack.time.delta <- function(event.study){
 }
 
 # Pulling all the above together into a single function to run an event study. This will give an n-day CAR observation only.
-perform.one.day.event.study <- function(index, events, n, car.length = 11, estimation.window.length = 20, estimation.window.end = 10, boot = FALSE){
+perform.one.day.event.study <- function(index, events, n, car.length = 11, estimation.window.length = 20, estimation.window.end = 10, boot = FALSE, use.median = FALSE){
   
   event.market.date <- events$Date[n]
   
@@ -203,6 +203,9 @@ perform.one.day.event.study <- function(index, events, n, car.length = 11, estim
                                     window.length = car.length)
   
   constant.mean.return <- mean(estimation.window)
+  if (use.median == TRUE){
+    constant.mean.return <- median(estimation.window)
+  }
   
   estimation.car <- calculate.CAR(window = estimation.window,
                                   mean.return = constant.mean.return,
@@ -266,7 +269,7 @@ perform.one.day.event.study <- function(index, events, n, car.length = 11, estim
 }
 
 # Calculates the CAR for every day in the event window
-perform.event.study <- function(index, events, n, car.length = 11, estimation.window.length = 20, estimation.window.end = 10, boot = FALSE){
+perform.event.study <- function(index, events, n, car.length = 11, estimation.window.length = 20, estimation.window.end = 10, boot = FALSE, use.median = FALSE){
   
   full.event.study <- perform.one.day.event.study(index = index,
                                                   events = events,
@@ -274,7 +277,8 @@ perform.event.study <- function(index, events, n, car.length = 11, estimation.wi
                                                   car.length = 1,
                                                   estimation.window.length = estimation.window.length,
                                                   estimation.window.end = estimation.window.end,
-                                                  boot = boot)
+                                                  boot = boot,
+                                                  use.median = use.median)
   for (i in 2:car.length){
     single.event.study <- perform.one.day.event.study(n = n,
                                                       index = index,
@@ -282,7 +286,8 @@ perform.event.study <- function(index, events, n, car.length = 11, estimation.wi
                                                       car.length = i,
                                                       estimation.window.length = estimation.window.length,
                                                       estimation.window.end = estimation.window.end,
-                                                      boot = boot)
+                                                      boot = boot,
+                                                      use.median = use.median)
     
     full.event.study <- rbind(full.event.study, single.event.study)
   }
@@ -294,7 +299,7 @@ perform.event.study <- function(index, events, n, car.length = 11, estimation.wi
 # produce identical results although require slightly different arguments. calculate.car takes an event day argument, perform.event.study takes a
 # list of events and an indexer n for the specific event wanted. This second function is meant to be marginally quicker but the effect is 
 # negligible or non-existent
-calculate.car <- function(events, index, estimation.window.length = 20, estimation.window.end = 10, car.length = 11, boot = FALSE){
+calculate.car <- function(events, index, estimation.window.length = 20, estimation.window.end = 10, car.length = 11, boot = FALSE, use.median = FALSE){
   
   
   n.vector <- seq(nrow(events))
@@ -306,7 +311,8 @@ calculate.car <- function(events, index, estimation.window.length = 20, estimati
             estimation.window.length = estimation.window.length,
             estimation.window.end = estimation.window.end,
             car.length = car.length,
-            boot = boot)
+            boot = boot,
+            use.median = use.median)
   
   
   
@@ -340,14 +346,15 @@ calculate.boot.CAAR <- function(data, indices){
 }
 
 # Given a dataframe with n-day CARs calculated, will calculate n-day CAAR with confidence intervals etc.
-calculate.CAAR <- function(events, index, estimation.window.length = 20, estimation.window.end = 10, car.length = 11){
+calculate.CAAR <- function(events, index, estimation.window.length = 20, estimation.window.end = 10, car.length = 11, use.median = FALSE){
   
   CAAR <-
     calculate.car(events,
                   index,
                   estimation.window.length,
                   estimation.window.end,
-                  car.length)
+                  car.length,
+                  use.median = use.median)
   
   CAAR$CAAR <- mean(CAAR$event.car)
   CAAR$n <- nrow(CAAR)
