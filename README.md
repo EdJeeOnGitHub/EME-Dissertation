@@ -1,6 +1,16 @@
 # EME-Dissertation
 The paper first explores asset market responses to terror and then underlying event heterogeneity. https://github.com/edgOnGithub/EME-Dissertation/blob/master/Economic%20Costs%20of%20Terror.pdf.
 
+'I show that large terror attacks do not have a significant negative
+effect on UK asset markets. Furthermore, when I expand my analysis
+to include all terror attacks from 1970 to present day I find
+no evidence of a negative asset market response. Finally, I find no
+evidence of event heterogeneity. That is, target type and location;
+success of an attack; number of wounded or killed; weapons used;
+attack type and media coverage cannot be used as predictors for
+asset market responses. Results are consistent across a range of
+UK indices and specifications.'
+
 ## Organisation:
 
 Pretty self-explanatory:
