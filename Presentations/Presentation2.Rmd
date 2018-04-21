@@ -1,0 +1,456 @@
+---
+title: "EC331 Presentation"
+author: "Ed Jee"
+date: "February 14, 2018"
+output:
+   beamer_presentation:
+    fig_width: 12 
+    fig_height: 8 
+    toc: true
+    theme: "Boadilla"
+    colortheme: "dolphin"
+    fonttheme: "structurebold"
+    fig_caption: false
+    slide_level: 3
+header-includes:
+- \usepackage{amsmath}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(knitr)
+```
+
+# Introduction
+
+### Research Objectives
+ - Aim to estimate asset market responses to terror
+    + Both short-term responses in the order of days or weeks.
+    + Longer term responses to 'terror waves' e.g. Good Friday Agreement, rise of Islamic terror.
+
+- Use a mixture of techniques to identify responses, primarily in a Bayesian setting.
+    + Event study.
+    + Hierarchical logistic regression.
+    + Hierarchical shrinkage models.
+
+- Short term responses are characterised by extreme heterogeneity.
+    + Currently struggling to accurately pin this down.
+- Long run responses TBC.
+    
+
+### Context
+
+- Terrorism seems to have a negative effect on economies.
+    + Abadie & Dimisi (2006) look at agglomeration economies of scale.
+    + Abadie & Gardeazabal (2003) synthetic controls and ETA.
+    + Enders & Sandler (2008) Spanish tourism VAR.
+- Brodeur (Forthcoming) uses same dataset to address same question with a US focus.
+
+### Context II
+
+- There's a large amount of finance literature that explores asset market responses to large attacks.
+    + Almost all the current work looks at big events such as the Barcelona bombings, 9/11 and 7/7.
+- Tend to find that terror attacks act as a negative shock and banking sector is often most affected, Chesney et al. (2011).
+- Not much evidence of firms adjusting terror expectations.
+    + A terror shock today is pretty similar to one a decade ago and high intensity/high frequency windows aren't associated with any terror 'fatigue'.
+- Zussman & Zussman (2006, 2008) find heterogenous asset market responses depending on type of attack.
+    + Killing high ranking politicans causes the market to fall, killing generals causes a positive bump. (In the context of the Israeli-Palestinian conflict)
+
+
+# Methodology
+## Event Study
+### Event Study I
+![Event Study Windows](C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Event Study Method Figure.png)
+
+* Formulae for cumulative abnormal returns:
+    + $AR_{i,\tau}=R_{i,\tau}-E[R_{i,\tau}\vert\Omega_{i,\tau}]$
+    + $CAR_{i(\tau_{1},\tau_{2})}=\sum_{t=\tau_{1}}^{\tau_{2}} AR_{i,t}$
+* And then taking an average: $CAAR_{(\tau_{1},\tau_{2})}=\frac{1}N \sum_{i=1}^{N} CAR_{i(\tau_{1},\tau_{2})}$ 
+* There's a range of different ways of specifying $E[R_{i,\tau}\vert\Omega_{i,\tau}]$
+* But for index data can only use constant mean return model.
+
+
+### Event Study II
+![Diff in Diff](C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/DID.png)
+
+## Conditional Probability
+
+### Conditional Probability Method I
+
+- 'Pioneered' by Chesney, Reshetar and Karaman (CRK) in 2011 and never touched since.
+- We have a conditional distribution:
+$$
+\pi(z|x) \equiv P(Z_i \leq z | X_i = x)
+$$
+- Where $Z_i$ are index returns and $X_i$ is a lagged vector of $Z_i$.
+- Let $Y_i = I(Z_i \leq z)$ then $E(Y_i | X_i = x) = \pi(z|x)$.
+- Basically a regression of $Y_i$ on $X_i$ will give us the probability, conditional on the value of lagged returns, of observing  $Z_i \leq z$.
+
+### Conditional Probability Method II
+
+- Applying this to terror attacks:
+$$ 
+Y_{it} = I(R_{it} \leq r_{i,terror})
+$$
+- where $R_{it}$ are the index returns and $r_{i,terror}$ is the observed event day terror return.
+- Our $X_{it}$ variable is equal to $R_{i,t-1} - r_{i,pre\_terror}$, that is, lagged index values minus the return the day before the attack.
+
+### Conditional Probability Method III
+
+- In words:
+    1. Take an event and calculate the event day return.
+    2. For the 200 days preceding the event construct an indicator variable $Y_{it}$ that takes value $1$ if returns are lower than the event day return and $0$ otherwise.
+    3. Our $X_{it}$ variable is found by lagging returns by one day and subtracting the return of the day $\textit{before}$ the event.
+    4. Regress $Y_{it}$ on $X_{it}$ and plug in our event day return to obtain a fitted out-of-sample value.
+- This fitted value can be thought of as the probability of observing a return on the day of the attack more extreme than the return actually observed.
+
+### Conditional Probability Method IV
+
+- CRK decide that an event is abnormal if there's less than a 10% probability of observing something worse than the event day return and extreme if less than 5%.
+- The advantages of this method are that it's less susceptible to twiddling/p-hacking than the event study where a range of hyperparameters are set by the researcher. 
+- CRK use a local polynomial regression to fit the model.
+    + \textit{This can be considered a bad idea.}
+- I instead use a logistic regression, however I immediately run into a problem.
+- Some events are \textit{too} extreme.
+    + There is 'separation' where our binary $Y$ variable always equals 0 for some events.
+
+
+## Conditional Probability: A Bayesian Approach
+
+### Bayesian Primer
+- Bayesian econometrics relies on a researcher specifying his/her beliefs about likely parameter values (a prior) and a likelihood function. 
+- We observe data $y$ conditional on some parameter(s) $\theta$. Using Bayes' rule:
+$$
+p(\theta | y) = \dfrac{p(y|\theta)\pi(\theta)}{p(y)}
+$$
+- Where $p(y) = \int{p(y|\theta)\pi(\theta)d\theta}$.
+- Specifying a prior lets us overcome the problem of separation.
+    + CRK use divine intervention/ignore the problem/an unpublished manuscript set to rock the econometrics world.
+
+### No Pooling
+
+
+- For each terror attack I estimate a separate logistic regression with 'weak' priors:
+$$ 
+\begin{aligned}
+\alpha &\sim  N(0, 1) \\
+\beta &\sim  t(\nu = 3, \mu =  0, \sigma = 2.5) \\ \\
+y_i &\sim N(\alpha + \beta x_i, \epsilon_i)
+\end{aligned}
+$$
+- $\alpha$ is the intercept prior and $\beta$ the slope prior.
+- These are standard logistic weak priors from the literature e.g. Gelman et al. (2008), Ghosh et al. (2015).
+    + Ghosh et al. deal specifically with the case of separation in logistic regression.
+
+
+
+### Complete Pooling
+
+- Combine the data from all terror attacks and estimate $\hat{\beta}$, this potentially helps increase the precision of our results and deal with separation.
+- Interpretation becomes a little sketchy.
+- All the variation in our fitted conditional probability estimates will only come from variation in event day returns and pre-event day returns.
+- Identical priors to the no pooling case.
+
+### Hierarchical Model
+
+- Previously I set the distribution parameters of $\alpha$ and $\beta$ to some fixed constant that seemed reasonable.
+- Instead I can give these priors their 'own' priors - hyperpriors.
+
+
+
+$$
+\begin{aligned}
+\alpha_e &\sim N(\gamma_e, \sigma_\gamma) \\
+\beta_e &\sim t(\nu = 3, \mu_e, \sigma_\mu) \\ \\
+\gamma_e &\sim N(0.5, 0.5),\quad \sigma_\gamma \sim N(1, 5) \\
+\mu_{e} &\sim N(0,1), \quad \sigma_\mu \sim N(2.5, 5) \\ \\
+y_{ie} &\sim N(\alpha_e + \beta_ex_{ie},\sigma_{ye}^2 )
+\end{aligned}
+$$
+
+
+### Hierarchical Model II
+
+- This effectively means we partially pool the data.
+- If the events are considered identical and there's no heterogeneity across attacks (our $\sigma_{\gamma,\mu} = 0$) the model is identical to the pooled model - we 'shrink' the estimates towards an overall average effect.
+- However, if there is event heterogeneity present, estimates are not shrunk but allowed to vary i.e. shrinkage is inversely proportional to $\sigma_{\gamma,\mu}$.
+
+### Hierarchical Model III
+
+- You can think of this as there being some underlying population terror parameter $\Theta$.
+- Each terror attack is a random draw from this $\Theta$ that we observe.
+- Each individual attack gives us slightly different results.
+- We're not sure if this is because we're estimating different underlying population parameters or because of noise/unobserved heterogeneity.
+- So we measure the variance of our attacks and decide to pool or not-pool based off this.
+
+### Hierarchical Model IV
+- By specifying hyperpriors for both $\alpha$ and $\beta$ we have a varying slope and varying intercept model.
+    + Traditional fixed effects would be sort of analogous to a varying intercept model.
+- Methods like this are often used when we have several separate experiments trying to estimate roughly the same effect.
+    + e.g. pooling multiple minimum wage studies to improve our minimum wage estimates or testing the external validity of multiple RCTs answering the same research question.
+    
+
+
+# Data
+### Terror Data
+- Using UK terror data from the Global Terrorism Database compiled by the National Consortium for the Study of Terrorism and Responses to Terrorism (START) at the University of Maryland.
+    + Includes a range of variables such as wounded, killed, property damage, target, perpetrator group, ideology and weapon used.
+    + Incredibly granular data with information ranging from weapon subtype (was a shotgun, handgun or hands and fists used for instance) to target subtype (was the target a telecommunications facility or military installation)
+- There have been 3041 attacks since 1980 in the UK.
+- However, when screening for overlapping events this falls to ~100.
+- I present results using both a screened and overlapping dataset.
+- This is the same dataset used by Brodeur in his forthcoming paper exploring economic costs of terror in US states.
+
+### Index Data
+
+- Daily index return data from Thomson Reuters.
+- Results reported using FTSE All-Share unless specified otherwise.
+    + Robustness checks performed using a range of alternative indices.
+- Financial data is known to have fat tails.
+- I use Trapani (2016)'s test for (in)finite fourth moments with a few adaptations and find that I can reject the null of an infinite fourth moment with $p < 10^{-11}$.
+- Price data is shown to be non-stationary but transforming to return data (i.e. log-differencing) gives a stationary, I(1), process.
+
+# Results I
+
+## Five Largest Events
+###
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/lockerbie_plot}
+\end{center}
+
+
+###
+
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/London_plot}
+\end{center}
+###
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/Omagh_plot}
+\end{center}
+###
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/Manchester_plot}
+\end{center}
+###
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/Droppin_plot}
+\end{center}
+## Five Largest Events Per Decade
+###
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/bar_chart_decade_CAR_plot}
+\end{center}
+
+###
+
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/decade_event_study_CAR4}
+\end{center}
+
+###
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/bar_chart_decade_time}
+\end{center}
+## Cumulative Average Abnormal Returns
+
+###
+
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/All_CAAR_plot}
+\end{center}
+###
+
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/All_CAAR_filtered}
+\end{center}
+## Conditional Probability Results
+
+###
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/large_cp_plot}
+\end{center}
+
+###
+
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/decade_cp_plot}
+\end{center}
+
+###
+
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/decade_cp_hierarchical_plot}
+\end{center}
+
+### Brief Summary
+
+- The individual event studies indicate that maybe something is going on here - but it's very tenuous.
+- When I aggregate up into CAARs this disappears.
+- The conditional probability method seems to come to broadly similar conclusions.
+- The hierarchical model offers an improvement over the pooled and separate models but it still only points to 2 extreme events and an additional abnormal event.
+- Can we do better by looking at the makeup of terror events in more detail?
+
+# Model Extensions
+### Event Heterogeneity - The 'No' Slide
+
+- Can we estimate the determinants of terror responses?
+    + Do bombings have greater impacts than shootings?
+    + Are lone wolf attacks different to attacks organised by a terror cell?
+- Can we find evidence that reconciles the differences between the 5 'largest' attacks and the rest?
+
+### Some Issues
+- After events have been screened to remove overlap I have ~100 events.
+- I have somewhere between 70-100 predictors depending on exact specification used.
+- OLS typically doesn't fare too well at estimation under these conditions.
+- I need to either increase N or reduce K.
+    + Two approaches: relax screening assumptions and/or perform variable selection.
+    
+### Bayesian LASSO
+
+- Two ways to do this:
+    + Estimate traditional OLS with a regularisation parameter and use generic, weak priors (something like N(0,5)).
+    + Use a hierarchical shrinkage model with Laplace priors on the regression parameters, Park & Casella (2008).
+  
+![Fahrmeir, L., Kneib, T. & Konrath, S. Stat Comput (2010) 20: 203](C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/LASSO and Ridge Priors.png)
+
+### Horseshoe and Horseshoe+ priors
+
+- I can go a few steps further than just aping the frequentist LASSO.
+- HS and HS+ priors are another attempt at handling sparsity and variable selection Carvalho et al. (2009), Bhadra et al. (2015).
+- They seem to perform better than the LASSO at regularising outliers amongst other things.
+- The horseshoe:
+$$
+\begin{aligned}
+\beta_i &\sim N(0, \lambda_i^2\tau^2) \\
+\lambda_i &\sim C^+(0, 1) \\
+\tau &\sim C^+(0, \tau_0^2) \\
+\boldsymbol{y} &\sim N(\boldsymbol{\beta}, \sigma_y^2)
+\end{aligned}
+$$
+
+
+- Where $\tau_0$ is a function of our expected number of relevant predictors and some other stuff, Piironen & Vehtari (2017).
+
+
+### The Horseshoe+
+- Pretty similar but I add a half-Cauchy 'mixing' variable:
+$$
+\begin{aligned}
+\beta_i &\sim N(0, \lambda_i^2\tau^2) \\
+\lambda_i &\sim C^+(0, \eta_i) \\
+\eta_i &\sim C^+(0, 1)\\
+\tau &\sim C^+(0, \tau_0^2) \\
+\boldsymbol{y} &\sim N(\boldsymbol{\beta}, \sigma_y^2)
+\end{aligned}
+$$
+
+- This improves on the HS's ability to detect signals when signals are 'ultra-sparse'.
+- Basically the HS+ has heavier tails and more mass near the origin so you get the best of both worlds in setting stuff to 0 and detecting outliers (i.e. relevant variables).
+
+
+# Results II
+
+### OLS 
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/OLS/OLS Params}
+\end{center}
+
+### OLS - Attack Type
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/OLS/attack.dummies.OLS.CAR4}
+\end{center}
+
+### OLS - Weapon Type
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/OLS/weapon.dummies.OLS.plot.CAR4}
+\end{center}
+
+### OLS - Target Type
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/OLS/target.dummies.OLS.plot.CAR4}
+\end{center}
+
+### OLS - Posterior Predictive Check
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/OLS/OLS.CAR4.ppcheck}
+\end{center}
+
+### LASSO
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/LASSO/laplace params}
+\end{center}
+
+### LASSO - Attack Type
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/LASSO/attack.dummies.laplace.CAR4}
+\end{center}
+
+### LASSO - Weapon Type
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/LASSO/weapon.dummies.laplace.plot.CAR4}
+\end{center}
+
+### LASSO - Target Type
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/LASSO/target.dummies.laplace.plot.CAR4}
+\end{center}
+
+### LASSO - Posterior Predictive Check
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/LASSO/laplace.ppcheck}
+\end{center}
+
+### OLS - PPC
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/OLS/OLS.CAR4.ppcheck}
+\end{center}
+
+### HS
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/HS/HS params}
+\end{center}
+
+### HS - Attack Type
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/HS/attack.dummies.HS.CAR4}
+\end{center}
+
+### HS - Weapon Type
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/HS/weapon.dummies.HS.plot.CAR4}
+\end{center}
+
+### HS - Target Type
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/HS/target.dummies.plot.CAR4}
+\end{center}
+
+### HS - Posterior Predictive Check
+\begin{center}
+\includegraphics{C:/Users/ed/Documents/R Working Directory/EME-Dissertation/Stanfit Objects/ShinyStan Output/HS/HS.CAR4.ppcheck}
+\end{center}
+
+
+
+# Conclusion
+###
+
+
+- Very large events on the whole negatively impact markets but effects disappear quickly as I move from larger to smaller events.
+- Pinning down these 'large' events statistically instead of heuristically isn't going too hot right now.
+
+### To Do:
+
+- Look at interaction terms?
+- Add a time trend?
+- Aggregate up and reduce variables manually?
+- Conclude that asset markets are very resilient to terror attacks in the short-term.
+    + Are attacks already priced in?
+    + Has there been a change over time?
+    + What about LT effects?
+
+
+
+
+
