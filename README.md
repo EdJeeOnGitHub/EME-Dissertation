@@ -3,7 +3,7 @@ The project first explores asset market responses to terror and then underlying 
 
 ## Organisation:
 
-- Pretty self-explanatory:
+Pretty self-explanatory:
 - Data in folders marked data.
 - Scripts in the Script folder.
 - Material used in presentations in the Presentation folder.
@@ -17,9 +17,11 @@ The project first explores asset market responses to terror and then underlying 
 
 ## Replication Steps:
 
-1. AnalysisScript1 - Main analysis that doesn't involve heterogenous effects
-2. TextAnalysis/TerrorCleaning - preparation for heterogenous effects
-3. Heterogenous CAR4 Analysis (The others aren't actually used apart from robustness checks so maybe be a little out of date wrt relative paths.)
-4. ExploratoryHeterogeneous Analysis/Any scripts that produce graphics or tables - Using analysis output to create any tables or graphs used.
+
+1. Data Sleaning and Preparation Script in Main Analysis folder.
+2. Any other script in Main Analysis folder
+3. TextAnalysis/TerrorCleaning - preparation for heterogenous effects
+4. Heterogenous CAR4 Analysis (The others aren't actually used apart from robustness checks so maybe be a little out of date wrt relative paths.)
+5. ExploratoryHeterogeneous Analysis/Any scripts that produce graphics or tables - Using analysis output to create any tables or graphs used.
 
 None of this is strictly necessary in terms of order to use as all the output data should be saved anyway.
