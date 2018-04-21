@@ -1,5 +1,5 @@
 # EME-Dissertation
-The paper first explores asset market responses to terror and then underlying event heterogeneity.
+The paper first explores asset market responses to terror and then underlying event heterogeneity. https://github.com/edgOnGithub/EME-Dissertation/blob/master/Economic%20Costs%20of%20Terror.pdf.
 
 ## Organisation:
 
