@@ -114,6 +114,38 @@ index.data.zoo.FT30 <- select.index(raw.index.data.UK,
   prices.to.returns
 
 
+
+## The following indices are only used in robustness checks and the appendix rather than the main analysis.
+
+additional.index.data <- read_csv('Index and Terror Data/Small cap and Sector indices.csv')
+additional.index.data$Date <- dmy(additional.index.data$Date)
+
+add.index.smallcap <- select.index(additional.index.data,
+                                   index.to.select = "FTSE SMALL CAP - PRICE INDEX") %>% 
+  read.zoo %>% 
+  na.omit %>% 
+  prices.to.returns
+
+add.index.retailers <- select.index(additional.index.data,
+                                    index.to.select = "FTSE 350 GEN RETAILERS £ - PRICE INDEX") %>% 
+  read.zoo %>% 
+  na.omit %>% 
+  prices.to.returns
+add.index.aero.defence <- select.index(additional.index.data,
+                                       index.to.select = "FTSE 350 AERO/DEFENCE £ - PRICE INDEX") %>% 
+  read.zoo %>% 
+  na.omit %>% 
+  prices.to.returns
+
+add.index.industrial <- select.index(additional.index.data,
+                                     index.to.select = "FTSE 350 GENERAL INDS £ - PRICE INDEX") %>% 
+  read.zoo %>% 
+  na.omit %>% 
+  prices.to.returns
+add.index.banks <- select.index(additional.index.data,
+                                index.to.select = "FTSE 350 BANKS £ - PRICE INDEX")
+
+
 # Cleaning up unwanted variables
 removal.list.index <- c(
   'raw.index.data',
@@ -126,7 +158,9 @@ removal.list.index <- c(
   'keep.vars',
   'index.data.UK.decade.list',
   'removal.list.index',
-  'index.zoo.UK.decade.list.ALLSHARE')
+  'index.zoo.UK.decade.list.ALLSHARE',
+  'index.zoo.UK.decade.list.ALLSHARE.omitted',
+  'additional.index.data')
 
 rm(list = removal.list.index)
 
@@ -226,6 +260,30 @@ rm(list = removal.list.terror)
 
 
 
-save.image(file = 'AnalysisOutput/Analysis Script Data.Rdata')
+save(all.events.filtered,
+     events.80s,
+     events.90s,
+     events.00s,
+     events.10s,
+     events.all.decades,
+     events.decade.list,
+     events.sorted,
+     events.top5,
+     index.data.UK.ALLSHARE,
+     index.zoo.UK.ALLSHARE.omitted,
+     no.overlap,
+     overlap,
+     terror.covariates.subset,
+     terror.data,
+     terror.UK.grouped,
+     index.data.zoo.FT30,
+     index.data.zoo.FTSE,
+     index.data.zoo.MSCI,
+     add.index.aero.defence,
+     add.index.industrial,
+     add.index.banks,
+     add.index.retailers,
+     add.index.smallcap,
+     file = 'AnalysisOutput/Analysis Script Data.Rdata')
 
 
