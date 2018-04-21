@@ -8,6 +8,7 @@ library(xtable)
 library(rmutil)
 library(rstanarm)
 library(bayesplot)
+library(Hmisc)
 # load("AnalysisOutput/AnalysisOutput.RData")
 load('AnalysisOutput/CAR_Data.RData')
 load('AnalysisOutput/Decade CAR Output.Rdata')
@@ -15,7 +16,10 @@ load('AnalysisOutput/Decade Logit Output.Rdata')
 load('AnalysisOutput/Largest Event Logit Results.Rdata')
 load('AnalysisOutput/Largest Events CAR Output.Rdata')
 load('AnalysisOutput/Misc Output.Rdata')
+load('AnalysisOutput/Large Median Checks.Rdata')
+load('AnalysisOutput/Decade Median Checks.Rdata')
 load('AnalysisOutput/Analysis Script Data.Rdata')
+load('AnalysisOutput/Additional Index Checks.Rdata')
 
 
 #### Explaining Graphics ####
@@ -85,6 +89,15 @@ LASSO.3.plot <- ggplot(laplace.df)  +
 # ggsave('LASSO3.pdf')
 #### Summary Statistics Graphics ####
 
+
+terror.data.summary <- summary(terror.covariates.subset %>% 
+          subset(select = c(nkill,
+                            nwound,
+                            ransomamt,
+                            nperps)))
+
+# Used in summary stats table
+# latex(terror.data.summary)
 ## Histograms ##
 
 
@@ -92,8 +105,8 @@ histogram.wounded.small <- ggplot(terror.data[(terror.data$nwound > 0), ], aes(n
   geom_histogram(show.legend = FALSE) +
   xlim(0, 100) +
   xlab('Number of wounded | at least one person is wounded') +
-  ggtitle('Number of wounded from UK Terror Attacks, 1970-2016', subtitle = 'xlim(0, 100)') +
   theme_minimal()
+ggsave(histogram.wounded.small, file = 'Figures/wounded_hist.pdf')
 
 histogram.wounded.large <- ggplot(terror.data[(terror.data$nwound > 0), ], aes(nwound, fill = cut(nwound, 100))) +
   geom_histogram(show.legend = FALSE, binwidth = 5) +
@@ -204,16 +217,18 @@ line.ALLSHARE.time <- ggplot(na.omit(index.data.UK.ALLSHARE), aes(Date, FTSE.ALL
 
 ## @knitr lockerbie.plot
 lockerbie.plot <- ggplot(lockerbie.bombing.event.study, aes(time.delta, event.car)) +
-  geom_line(size = 2, colour = 'pink') +
+  geom_line(size = 2, colour = 'red') +
   geom_line(aes(time.delta, event.car + event.confidence.interval), linetype = 'longdash', alpha = 0.3) +
   geom_line(aes(time.delta, event.car - event.confidence.interval), linetype = 'longdash', alpha = 0.3) +
   geom_hline(aes(yintercept = 0), linetype = 'longdash', size = 1, colour = 'red', alpha = 0.4) +
   xlab('Days Since Attack') +
-  ylab('Cumulate Abnormal Returns (%)')+
-  ggtitle('Lockerbie Bombing, Cumulative Abnormal Returns', subtitle = 'FTSE ALL SHARE Price Index, log differenced - 21 December 1988') +
+  ylab('Cumulate Abnormal Returns')+
   ylim(-3, 5) +
-  theme_minimal()
-#ggsave('lockerbie_plot.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
+  scale_x_discrete(limit = seq(11) - 1) +
+  theme_minimal() +
+  theme(panel.grid.minor = element_blank(), panel.grid.major.x = element_blank())
+
+#ggsave('lockerbie_plot.pdf', path = 'Figures/')
 
 ## @knitr london.7.7.plot
 london.7.7.plot <-ggplot(london.7.7.bombing.event.study, aes(time.delta, event.car)) +
@@ -222,7 +237,7 @@ london.7.7.plot <-ggplot(london.7.7.bombing.event.study, aes(time.delta, event.c
   geom_line(aes(time.delta, event.car - event.confidence.interval), linetype = 'longdash', alpha = 0.3) +
   geom_hline(aes(yintercept = 0), linetype = 'longdash', size = 1, colour = 'red', alpha = 0.4) +
   xlab('Days Since Attack') +
-  ylab('Cumulate Abnormal Returns (%)')+
+  ylab('Cumulate Abnormal Returns')+
   ylim(-3, 3.5) +
   scale_x_discrete(limit = seq(11) - 1) +
   theme_minimal() +
@@ -231,39 +246,45 @@ london.7.7.plot
 # ggsave('London_plot.pdf', path = 'Figures/')
 ## @knitr omagh.plot
 omagh.plot <- ggplot(omagh.bombing.event.study, aes(time.delta, event.car)) +
-  geom_line(size = 2, colour = 'pink') +
+  geom_line(size = 2, colour = 'red') +
   geom_line(aes(time.delta, event.car + event.confidence.interval), linetype = 'longdash', alpha = 0.3) +
   geom_line(aes(time.delta, event.car - event.confidence.interval), linetype = 'longdash', alpha = 0.3) +
   geom_hline(aes(yintercept = 0), linetype = 'longdash', size = 1, colour = 'red', alpha = 0.4) +
   xlab('Days Since Attack') +
-  ylab('Cumulate Abnormal Returns (%)')+
-  ggtitle('Omagh Bombing, Cumulative Abnormal Returns', subtitle = 'FTSE ALL SHARE Price Index, log differenced - 15 August 1998') +
-  theme_minimal()
-#ggsave('Omagh_plot.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
+  ylab('Cumulate Abnormal Returns')+
+  scale_x_discrete(limit = seq(11) - 1) +
+  theme_minimal() +
+  theme(panel.grid.minor = element_blank(), panel.grid.major.x = element_blank())
+
+#ggsave('Omagh_plot.pdf', path = 'Figures/')
 ## @knitr manchester.plot
 manchester.plot <- ggplot(manchester.bombing.1996.event.study, aes(time.delta, event.car)) +
-  geom_line(size = 2, colour = 'pink') +
+  geom_line(size = 2, colour = 'red') +
   geom_line(aes(time.delta, event.car + event.confidence.interval), linetype = 'longdash', alpha = 0.3) +
   geom_line(aes(time.delta, event.car - event.confidence.interval), linetype = 'longdash', alpha = 0.3) +
   geom_hline(aes(yintercept = 0), linetype = 'longdash', size = 1, colour = 'red', alpha = 0.4) +
   xlab('Days Since Attack') +
-  ylab('Cumulate Abnormal Returns (%)')+
-  ggtitle('1996 Manchester Bombing, Cumulative Abnormal Returns', subtitle = 'FTSE ALL SHARE Price Index, log differenced - 15 June 1996') +
-  ylim(-3, 3) +
-  theme_minimal()
-#ggsave('Manchester_plot.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
+  ylab('Cumulate Abnormal Returns')+
+  scale_x_discrete(limit = seq(11) - 1) +
+  ylim(-5,3) +
+  theme_minimal() +
+  theme(panel.grid.minor = element_blank(), panel.grid.major.x = element_blank())
+
+#ggsave('Manchester_plot.pdf', path = 'Figures/')
 ## @knitr droppin.well.plot
 droppin.well.plot <- ggplot(droppin.well.bombing.event.study, aes(time.delta, event.car)) +
-  geom_line(size = 2, colour = 'pink') +
+  geom_line(size = 2, colour = 'red') +
   geom_line(aes(time.delta, event.car + event.confidence.interval), linetype = 'longdash', alpha = 0.3) +
   geom_line(aes(time.delta, event.car - event.confidence.interval), linetype = 'longdash', alpha = 0.3) +
   geom_hline(aes(yintercept = 0), linetype = 'longdash', size = 1, colour = 'red', alpha = 0.4) +
   xlab('Days Since Attack') +
-  ylab('Cumulate Abnormal Returns (%)')+
-  ggtitle('Droppin Well Disco Bombing, Cumulative Abnormal Returns', subtitle = 'FTSE ALL SHARE Price Index, log differenced - 6 December 1982') +
+  ylab('Cumulate Abnormal Returns')+
   ylim(-5, 3) +
-  theme_minimal()
-#ggsave('Droppin_plot.png', path = '~/R Working Directory/EME-Dissertation/Presentation and Plots/R/plots/Script1 plots/')
+  scale_x_discrete(limit = seq(11) - 1) +
+  theme_minimal() +
+  theme(panel.grid.minor = element_blank(), panel.grid.major.x = element_blank())
+
+#ggsave('Droppin_plot.pdf', path = 'Figures/')
 # lockerbie.plot
 # london.7.7.plot
 # omagh.plot
@@ -469,6 +490,10 @@ events.top20.latex <- xtable(events.top25.no.overlap, digits = 0 )
 events.top5$Date <- as.character(events.top5$Date)
 events.top5.latex <- xtable(events.top5)
 
+
+# Used in appendix, 5 largest results using logit conditional probability method
+largest.5.cp.table <- xtable(large.cp.results, digits = 3)
+
 #### Heterogeneous results tables ####
 
 load('AWS Output/CAR4/OLS_fit_CAR4_f.Rdata')
@@ -484,8 +509,10 @@ OLS.CAR4.u.table <- tidy(OLS.fit.CAR4.u) %>%
 OLS.R.u.table <- tidy(ols.fit.R.u) %>% 
   mutate_if(~any(is.numeric(.x)), ~round(.,4))
 
-OLS.heterogeneous.table <- left_join(OLS.R.u.table, OLS.CAR4.f.table, by = 'term', suffix=c('.R', '.CAR4.f')) %>% 
-  left_join(y=OLS.CAR4.u.table, by = 'term') %>% 
+
+OLS.heterogeneous.table <- merge(OLS.R.u.table, OLS.CAR4.f.table, by = 'term',
+                  suffix=c('.R', '.CAR4.f'), all = TRUE) %>% 
+  merge(y=OLS.CAR4.u.table, by = 'term', all = TRUE) %>% 
   as.tibble
 OLS.heterogeneous.table  
 OLS.heterogeneous.latex <- xtable(OLS.heterogeneous.table)
@@ -564,3 +591,27 @@ CAR4.f.laplace.plot.4
 # R.f.plot.4
 
 
+
+#### Misc/Appendix ####
+
+colnames(KW.tests) <- c('Variable', 'p-value', 'sig different 5%', 'sig different 5% adj')
+balance.tests.latex <- xtable(KW.tests, digits = 4)
+
+
+
+# All events - \label{fig: CAAR table}
+CAAR.table.median.latex <- CAAR.table.median %>% 
+  subset(select = -c(`CI.width`, `st.dev`)) %>% 
+  mutate(p = 2*pt(-abs(`T.statistic`), df = n - 1))
+
+CAAR.table.median.latex <- CAAR.table.median.latex[, c('Parameter', 'CAAR', 'boot.ci.lower', 'boot.ci.upper', 'T.statistic', 'p', 'n')] %>% 
+  xtable
+
+
+# Additional Index Checks:
+
+filtered.robustness.check.table <-  filtered.robustness.check.table %>% 
+  mutate(p = 2*pt(-abs(`T.statistic`), df = n - 1))
+
+CAAR.table.add.index.latex <- filtered.robustness.check.table[, c('Parameter', 'CAAR', 'boot.ci.lower', 'boot.ci.upper', 'T.statistic', 'p', 'n')] %>% 
+  xtable

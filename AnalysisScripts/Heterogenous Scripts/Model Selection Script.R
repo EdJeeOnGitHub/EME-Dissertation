@@ -37,26 +37,40 @@ non.count.vector <- c(
 
 
 ## Returns Projection Prediction LASSO ####
-# 
-# laplace.CAR.varsel <- varsel(laplace.fit.CAR4.f)
-# fit_cv <- cv_varsel(laplace.CAR.varsel, method='forward')
-# laplace.R.var.selected.fit <- mcmc_areas(as.matrix(laplace.R.varsel), 
-#                                     pars = c('(Intercept)', names(laplace.R.varsel$varsel$vind[1:5]))) + coord_cartesian(xlim = c(-0.05, 0.05)) +
-#   ggtitle('Variables with greatest predictive power - Terror Day Returns')
-# laplace.f.plot.1
-# laplace.f.plot.2
-# laplace.f.plot.3
-# laplace.f.plot.4
-# laplace.R.var.selected.fit
+
+laplace.CAR.varsel <- varsel(laplace.fit.CAR4.f)
+fit_cv <- cv_varsel(laplace.CAR.varsel, method='forward')
+laplace.CAR.var.CV.plot <- mcmc_areas(as.matrix(fit_cv),
+                                    pars = c('(Intercept)', names(fit_cv$varsel$vind[1:7]))) +
+  xlim(-3,3)
+
+
+laplace.CAR.var.Varsel.plot <- mcmc_areas(as.matrix(laplace.CAR.varsel),
+                                     pars = c('(Intercept)', names(laplace.CAR.varsel$varsel$vind[1:5]))) +
+  ggtitle('Variables with greatest predictive power - 4-day CARs')
+
+laplace.CAR.var.CV.plot
+laplace.CAR.var.Varsel.plot
+varsel_plot(laplace.CAR.varsel)
+varsel_plot(fit_cv, stats = c('mlpd', 'mse'))
+
+laplace.CAR.proj <- project(fit_cv, nv = 7)
+projected.laplace.plot <- mcmc_areas(as.matrix(laplace.CAR.proj))
+
+
+
 #####
 
 loo.LASSO<- loo(log_lik(laplace.fit.CAR4.f))
 loo.OLS <- loo(log_lik(OLS.fit.CAR4.f))
 
+
+
 loo.LASSO
 loo.OLS
 
-compare(loo.LASSO, loo.OLS)
+
+loo.test <- compare(loo.LASSO, loo.OLS)
 
 waic.LASSO <-  waic(log_lik(laplace.fit.CAR4.f))
 waic.OLS <- waic(log_lik(OLS.fit.CAR4.f))
