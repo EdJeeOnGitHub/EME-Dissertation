@@ -31,7 +31,7 @@ Pretty self-explanatory:
 
 1. Data Cleaning and Preparation Script in Main Analysis folder.
 2. Any other script in Main Analysis folder.
-3. TextAnalysis/TerrorCleaning - preparation for heterogenous effects.
+3. TextAnalysis/TerrorCleaning - preparation for heterogeneous effects.
 4. Heterogenous CAR4 Analysis (The others aren't actually used apart from robustness checks so maybe be a little out of date wrt relative paths.)
 5. ExploratoryHeterogeneous Analysis/Any scripts that produce graphics or tables - Using analysis output to create any tables or graphs used.
 
