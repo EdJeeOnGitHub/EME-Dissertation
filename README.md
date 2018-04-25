@@ -24,7 +24,7 @@ Pretty self-explanatory:
 ## Requirements:
 
 - Packrat should have a list of packages that need to be installed.
-- Any of the Bayesian models that are run require separate (I think) installation from stan, see here: https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started. There's a few Bayesian models in the Main Analysis folder (only under the Logit headings I think) and any script starting 'Heterogenous X' where X = {CAR4, R, etc.(but not 'Exploratory Heterogenous Analysis')} is full of these models. I highly recommend not running the latter scripts as stan can be a pain to install and to run all of them takes ~4 hours.
+- Any of the Bayesian models that are run require separate (I think) installation from stan, see here: https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started. There's a few Bayesian models in the Main Analysis folder (only under the Logit headings I think) and any script starting 'Heterogeneous X' where X = {CAR4, R, etc.(but not 'Exploratory Heterogeneous Analysis')} is full of these models. I highly recommend not running the latter scripts as stan can be a pain to install and to run all of them takes ~4 hours.
 
 ## Replication Steps:
 
